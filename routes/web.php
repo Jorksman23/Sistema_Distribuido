@@ -15,7 +15,6 @@ Route::get('/products', [ProductsController::class, 'index']);
 Route::get('/carrito/{userId}', [CarritoController::class, 'index']);
 Route::post('/carrito/add', [CarritoController::class, 'add']);
 Route::put('/carrito/update', [CarritoController::class, 'update']);
-
 Route::delete('/carrito/remove', [CarritoController::class, 'remove']);
 
 //Login_Controller
@@ -24,5 +23,4 @@ Route::post('/register', [LoginController::class, 'register']);
 // Obtener usuarios
 Route::get('/users', [LoginController::class, 'users']);
 
-Route::delete('/carrito/remove', [CarritoController::class, 'remove']);
 
