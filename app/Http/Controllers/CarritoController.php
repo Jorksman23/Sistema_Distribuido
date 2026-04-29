@@ -1,36 +1,53 @@
 <?php
 
-namespace App\Models;
+namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
+use App\Models\CarritoModel;
 
-class CarritoModel {
-    protected string $connection = 'odbc';
-    protected string $table = 'DBA.pw_carrito_web';
+class CarritoController extends Controller
+{
+    
+    protected CarritoModel $carrito;
 
-    public function getCarritoByUser(int $userId): array {
-        return DB::connection($this->connection)
-            ->select("SELECT * FROM {$this->table} WHERE usuario_id = ?", [$userId]);
+    public function __construct()
+    {
+        $this->carrito = new CarritoModel();
     }
 
-    public function addProducto(int $userId, int $productoId, int $cantidad): bool {
-        return DB::connection($this->connection)->insert("
-            INSERT INTO {$this->table} (usuario_id, producto_id, cantidad)
-            VALUES (?, ?, ?)
-        ", [$userId, $productoId, $cantidad]);
+    // Parámetro tipado como int
+    public function index(int $userId)
+    {
+        $items = $this->carrito->getCarritoByUser($userId);
+        return response()->json($items);
     }
 
-    public function updateProducto(int $userId, int $productoId, int $cantidad): int {
-        return DB::connection($this->connection)->update("
-            UPDATE {$this->table}
-            SET cantidad = ?
-            WHERE usuario_id = ? AND producto_id = ?
-        ", [$cantidad, $userId, $productoId]);
+    public function add(Request $request)
+    {
+        $this->carrito->addProducto(
+            (int)$request->user_id,
+            (int)$request->producto_id,
+            (int)$request->cantidad
+        );
+        return response()->json(['message' => 'Producto agregado al carrito']);
     }
 
-    public function removeProducto(int $userId, int $productoId): int {
-        return DB::connection($this->connection)->delete("
-            DELETE FROM {$this->table} WHERE usuario_id = ? AND producto_id = ?
-        ", [$userId, $productoId]);
+    public function update(Request $request)
+    {
+        $this->carrito->updateProducto(
+            (int)$request->user_id,
+            (int)$request->producto_id,
+            (int)$request->cantidad
+        );
+        return response()->json(['message' => 'Producto actualizado']);
+    }
+
+    public function remove(Request $request)
+    {
+        $this->carrito->removeProducto(
+            (int)$request->user_id,
+            (int)$request->producto_id
+        );
+        return response()->json(['message' => 'Producto eliminado del carrito']);
     }
 }
