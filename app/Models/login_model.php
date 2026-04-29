@@ -20,9 +20,9 @@ class login_model{
             (pw_codigo, nombre, cedula_ruc, email, contrasena, estado, direccion, telefono, tipo_identificacion)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ", [
-            $data['pw_codigo']           ?? null,
+            $data['pw_codigo'],
             $data['nombre'],
-            $data['cedula_ruc']          ?? null,
+            $data['cedula_ruc'],
             $data['email'],
             $data['contrasena'],
             $data['estado']              ?? 'A',
