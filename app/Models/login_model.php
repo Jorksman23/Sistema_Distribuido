@@ -33,6 +33,6 @@ class login_model{
     }
     public function getUsers(){
         return DB::connection($this->connection)
-            ->select("SELECT TOP 50 * FROM DBA.pw_ge_usuarios");
+            ->select("SELECT * FROM DBA.pw_ge_usuarios");
     }
 }

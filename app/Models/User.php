@@ -2,48 +2,38 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    protected $connection = 'odbc'; 
+    protected $table = 'DBA.pw_ge_usuarios';
+    protected $primaryKey = 'user_id';
+
+    public $timestamps = false; //
+
     protected $fillable = [
-        'name',
+        'pw_codigo',
+        'nombre',
+        'cedula_ruc',
         'email',
-        'password',
+        'contrasena',
+        'estado',
+        'direccion',
+        'telefono',
+        'tipo_identificacion'
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
-        'password',
-        'remember_token',
+        'contrasena'
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    // 🔐 Laravel necesita esto para auth
+    public function getAuthPassword()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->contrasena;
     }
 }
