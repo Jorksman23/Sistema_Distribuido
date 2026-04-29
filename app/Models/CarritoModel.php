@@ -5,8 +5,8 @@ namespace App\Models;
 use Illuminate\Support\Facades\DB;
 
 class CarritoModel {
-    protected string $connection = 'odbc';
-    protected string $table = 'DBA.pw_carrito_web';
+    protected  $connection = 'odbc';
+    protected  $table = 'DBA.pw_carrito_web';
 
     public function getCarritoByUser(int $userId): array {
         return DB::connection($this->connection)

@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 
 class products_model
 {
-    protected $connection = 'odbc';
+    protected  $connection = 'odbc';
 
     // public function getProducts()
     // {
