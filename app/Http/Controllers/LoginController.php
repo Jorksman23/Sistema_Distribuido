@@ -4,10 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\login_model;
-use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
 
 class LoginController extends Controller
 {
@@ -15,92 +13,93 @@ class LoginController extends Controller
 
     public function __construct()
     {
-        $this->model = new login_model();
+        $this->model = new Login_Model();
     }
 
-    // Registrar_usuario
     public function register(Request $request)
-{
-    if (!$request->email || !$request->password || !$request->nombre) {
-        return response()->json([
-            'error' => 'Faltan datos obligatorios'
-        ], 400);
-    }
+    {
+        $request->validate([              // ✅ validación robusta
+            'email'    => 'required|email',
+            'password' => 'required|min:6',
+            'nombre'   => 'required|string',
+        ]);
 
-    $existe = $this->model->findByEmail($request->email);
-    if ($existe) {
-        return response()->json([
-            'error' => 'El email ya está registrado'
-        ], 400);
-    }
-
-    $passwordHash = Hash::make($request->password);
-
-    // 1) Crear usuario
-    $this->model->createUser([
-        'pw_codigo' => $request->pw_codigo ?? ('USR' . time()),
-        'nombre' => $request->nombre,
-        'cedula_ruc' => $request->cedula_ruc,
-        'email' => $request->email,
-        'contrasena' => $passwordHash,
-        'estado' => 'A',
-        'direccion' => $request->direccion,
-        'telefono' => $request->telefono,
-        'tipo_identificacion'=> $request->tipo_identificacion,
-    ]);
-
-    // 2) Generar token
-    $token = Str::random(60);
-
-    // 3) Guardar token en BD
-    DB::connection('odbc')->update("
-        UPDATE DBA.pw_ge_usuarios
-        SET api_token = ?
-        WHERE email = ?
-    ", [$token, $request->email]);
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Usuario registrado correctamente',
-        'token' => $token
-    ]);
-}
-
-    // Loguin
-    public function login(Request $request){
-        if (!$request->email || !$request->password) {
-            return response()->json([
-                'error' => 'Datos incompletos'
-            ], 400);
+        if ($this->model->findByEmail($request->email)) {
+            return response()->json(['error' => 'El email ya está registrado'], 400);
         }
-        $user = $this->model->findByEmail($request->email);
-        if (!$user || !Hash::check($request->password, $user->contrasena)) {
-            return response()->json([
-                'error' => 'Credenciales incorrectas'
-            ], 401);
-        }
-        // nuevo token
+
+        $this->model->createUser([
+            'pw_codigo'           => $request->pw_codigo ?? ('USR' . time()),
+            'nombre'              => $request->nombre,
+            'cedula_ruc'          => $request->cedula_ruc,
+            'email'               => $request->email,
+            'contrasena'          => Hash::make($request->password),
+            'estado'              => 'A',
+            'direccion'           => $request->direccion,
+            'telefono'            => $request->telefono,
+            'tipo_identificacion' => $request->tipo_identificacion,
+        ]);
+
         $token = Str::random(60);
-
-        DB::connection('odbc')->update("
-            UPDATE DBA.pw_ge_usuarios
-            SET api_token = ?
-            WHERE email = ?
-        ", [$token, $request->email]);
+        $this->model->saveToken($request->email, $token); // ✅ método dedicado
 
         return response()->json([
             'success' => true,
-            'token' => $token
+            'message' => 'Usuario registrado correctamente',
+            'token'   => $token
         ]);
     }
 
-    //Obtener usuarios
-    public function users(){
-        $users = $this->model->getUsers();
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required',
+        ]);
+
+        $user = $this->model->findByEmail($request->email);
+
+        if (!$user || !Hash::check($request->password, $user->contrasena)) {
+            return response()->json(['error' => 'Credenciales incorrectas'], 401);
+        }
+
+        $token = Str::random(60);
+        $this->model->saveToken($request->email, $token); // ✅
 
         return response()->json([
             'success' => true,
-            'data' => $users
+            'message' => 'Login correcto',
+            'token'   => $token
+        ]);
+    }
+
+    public function users()
+    {
+        return response()->json([
+            'success' => true,
+            'data'    => $this->model->getUsers()
+        ]);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = $request->attributes->get('user');
+
+        if (!$user) {
+            return response()->json(['error' => 'No autenticado'], 401);
+        }
+
+        $request->validate(['nombre' => 'required|string']);
+
+        $this->model->updateUser($user->user_id, [
+            'nombre'    => $request->nombre,
+            'direccion' => $request->direccion,
+            'telefono'  => $request->telefono,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Perfil actualizado correctamente'
         ]);
     }
 }

@@ -5,6 +5,7 @@ use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\LoginController;
 
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -29,4 +30,5 @@ Route::middleware('auth.token')->get('/profile', function (Request $request) {
 // Obtener usuarios
 Route::get('/users', [LoginController::class, 'users']);
 
-
+//Actualizar perfil
+Route::middleware('auth.token')->put('/profile', [LoginController::class, 'updateProfile']);

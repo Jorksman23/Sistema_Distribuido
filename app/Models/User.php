@@ -9,7 +9,7 @@ class User extends Authenticatable
 {
     use HasApiTokens;
 
-    protected $connection = 'odbc'; 
+    protected $connection = 'odbc';
     protected $table = 'DBA.pw_ge_usuarios';
     protected $primaryKey = 'user_id';
 
@@ -31,7 +31,6 @@ class User extends Authenticatable
         'contrasena'
     ];
 
-    // 🔐 Laravel necesita esto para auth
     public function getAuthPassword()
     {
         return $this->contrasena;
