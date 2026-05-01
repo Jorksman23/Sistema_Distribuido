@@ -15,8 +15,7 @@ class CarritoController extends Controller
         $this->carrito = new CarritoModel();
     }
 
-    // Parámetro tipado como int
-    public function index(int $userId)
+    public function index(string $userId)
     {
         $items = $this->carrito->getCarritoByUser($userId);
         return response()->json($items);
