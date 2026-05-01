@@ -31,7 +31,6 @@ class AuthToken
                 'error' => 'Token inválido'
             ], 401);
         }
-
         // guardar usuario en request
         $request->attributes->set('user', $user);
 

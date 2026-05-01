@@ -4,12 +4,11 @@ namespace App\Models;
 
 use Illuminate\Support\Facades\DB;
 
-class products_model
-{
-    public function getProducts(){
+class products_promo_model{
+    public function getPromociones(){
         $items = DB::connection('odbc')
-            ->select("SELECT TOP 20 * FROM DBA.in_item");
-        //  Convertir a UTF-8
+            ->select("SELECT TOP 20 * FROM DBA.in_item_promocion");
+
         return array_map(function ($item) {
             return array_map(function ($value) {
                 return is_string($value)
@@ -18,7 +17,4 @@ class products_model
             }, (array) $item);
         }, $items);
     }
-     
 }
-
-

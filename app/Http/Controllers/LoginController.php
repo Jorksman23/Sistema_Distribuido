@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\login_model;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class LoginController extends Controller
 {
@@ -13,43 +12,22 @@ class LoginController extends Controller
 
     public function __construct()
     {
-        $this->model = new Login_Model();
+        $this->model = new login_model();
     }
 
-    public function register(Request $request)
+    // Mostrar formulario login
+    public function showLogin()
     {
-        $request->validate([              // ✅ validación robusta
-            'email'    => 'required|email',
-            'password' => 'required|min:6',
-            'nombre'   => 'required|string',
-        ]);
-
-        if ($this->model->findByEmail($request->email)) {
-            return response()->json(['error' => 'El email ya está registrado'], 400);
-        }
-
-        $this->model->createUser([
-            'pw_codigo'           => $request->pw_codigo ?? ('USR' . time()),
-            'nombre'              => $request->nombre,
-            'cedula_ruc'          => $request->cedula_ruc,
-            'email'               => $request->email,
-            'contrasena'          => Hash::make($request->password),
-            'estado'              => 'A',
-            'direccion'           => $request->direccion,
-            'telefono'            => $request->telefono,
-            'tipo_identificacion' => $request->tipo_identificacion,
-        ]);
-
-        $token = Str::random(60);
-        $this->model->saveToken($request->email, $token); // ✅ método dedicado
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Usuario registrado correctamente',
-            'token'   => $token
-        ]);
+        return view('auth.login');
     }
 
+    // Mostrar formulario register
+    public function showRegister()
+    {
+        return view('auth.register');
+    }
+
+    // Procesar login
     public function login(Request $request)
     {
         $request->validate([
@@ -60,46 +38,63 @@ class LoginController extends Controller
         $user = $this->model->findByEmail($request->email);
 
         if (!$user || !Hash::check($request->password, $user->contrasena)) {
-            return response()->json(['error' => 'Credenciales incorrectas'], 401);
+            return back()->withErrors([
+                'email' => 'Credenciales incorrectas'
+            ])->withInput();
         }
 
-        $token = Str::random(60);
-        $this->model->saveToken($request->email, $token); // ✅
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Login correcto',
-            'token'   => $token
-        ]);
-    }
-
-    public function users()
-    {
-        return response()->json([
-            'success' => true,
-            'data'    => $this->model->getUsers()
-        ]);
-    }
-
-    public function updateProfile(Request $request)
-    {
-        $user = $request->attributes->get('user');
-
-        if (!$user) {
-            return response()->json(['error' => 'No autenticado'], 401);
+        // Verificar que el usuario esté activo
+        if ($user->estado !== 'A') {
+            return back()->withErrors([
+                'email' => 'Tu cuenta está inactiva'
+            ]);
         }
 
-        $request->validate(['nombre' => 'required|string']);
-
-        $this->model->updateUser($user->user_id, [
-            'nombre'    => $request->nombre,
-            'direccion' => $request->direccion,
-            'telefono'  => $request->telefono,
+        // Guardar en sesión
+        session([
+            'user_id'  => $user->user_id,
+            'nombre'   => $user->nombre,
+            'email'    => $user->email,
+            'pw_codigo'=> $user->pw_codigo,
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Perfil actualizado correctamente'
+        return redirect('/');
+    }
+
+    // Procesar register
+    public function register(Request $request)
+    {
+        $request->validate([
+            'nombre'   => 'required|string',
+            'email'    => 'required|email',
+            'password' => 'required|min:6',
         ]);
+
+        if ($this->model->findByEmail($request->email)) {
+            return back()->withErrors([
+                'email' => 'El email ya está registrado'
+            ])->withInput();
+        }
+
+        $this->model->createUser([
+            'pw_codigo'           => 'USR' . time(),
+            'nombre'              => $request->nombre,
+            'cedula_ruc'          => $request->cedula_ruc,
+            'email'               => $request->email,
+            'contrasena'          => Hash::make($request->password),
+            'estado'              => 'A',
+            'direccion'           => $request->direccion,
+            'telefono'            => $request->telefono,
+            'tipo_identificacion' => $request->tipo_identificacion,
+        ]);
+
+        return redirect('/login')->with('success', 'Cuenta creada, puedes iniciar sesión');
+    }
+
+    // Cerrar sesión
+    public function logout()
+    {
+        session()->flush();
+        return redirect('/login');
     }
 }
