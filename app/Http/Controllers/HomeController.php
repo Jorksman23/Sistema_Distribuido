@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\login_model;
+use App\Models\products_model;
 use App\Models\Empresa;
 class HomeController extends Controller
 {
@@ -17,6 +18,7 @@ class HomeController extends Controller
     {
         return view('Home.Home');
     }
+    
     // public function viewHome(){
     //     return view('Home.Home', [
     //         'empresa' => Empresa::getNombre()
