@@ -17,6 +17,7 @@ Route::get('/home', [HomeController::class, 'index']);
 //Prueba obtenemos productos
 Route::get('/products', [ProductsController::class, 'index']);
 
+
 Route::get('/carrito/{userId}', [CarritoController::class, 'index']);
 Route::post('/carrito/add', [CarritoController::class, 'add']);
 Route::put('/carrito/update', [CarritoController::class, 'update']);
