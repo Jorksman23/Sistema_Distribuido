@@ -40,7 +40,10 @@ class ProductsController extends Controller
         }
     }
 
-
-
+    // public function index()
+    // {
+    //     $products = $this->productModel->getProducts();
+    //     return response()->json($products);
+    // }
 
 }

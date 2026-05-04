@@ -24,4 +24,5 @@ class HomeController extends Controller
     //         'empresa' => Empresa::getNombre()
     //     ]);
     // }
+
 }

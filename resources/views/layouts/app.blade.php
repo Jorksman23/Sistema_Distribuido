@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', config('app.name'))</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@stack('scripts')
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
 
@@ -17,7 +19,7 @@
 
     {{-- LINKS --}}
     <div class="hidden md:flex gap-6 text-sm ml-4">
-        <a href="/" class="text-blue-600 font-semibold">Home</a>
+        <a href="/" class="text-gray-600 hover:text-blue-600">Home</a>
         <a href="#" class="text-gray-600 hover:text-blue-600">Categorías</a>
         <a href="#" class="text-gray-600 hover:text-blue-600">Tienda</a>
         <a href="#" class="text-gray-600 hover:text-blue-600">Sobre Nosotros</a>
@@ -48,14 +50,15 @@
         </button>
 
         {{-- CARRITO --}}
-        <button onclick="requireAuth(event, '/carrito')" class="hover:scale-110 transition">
-            <svg class="w-6 h-6 text-gray-700 hover:text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
-            </svg>
+        <button onclick="toggleCart()" class="hover:scale-110 transition relative">
+            🛒
+            <span id="carritoCount"
+                class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                0
+            </span>
         </button>
 
-        {{-- USUARIO DROPDOWN --}}
+        {{-- USUARIO --}}
         <div class="relative">
             <button onclick="toggleMenu()" class="hover:scale-110 transition">
                 <svg class="w-6 h-6 text-gray-700 hover:text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -95,43 +98,103 @@
     © {{ date('Y') }} {{ config($empresaNombre) }}
 </footer>
 
-{{-- MODAL LOGIN REQUERIDO --}}
-<div id="authModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-    <div class="bg-white rounded-2xl p-8 w-full max-w-sm text-center shadow-xl">
-        <h2 class="text-xl font-bold mb-2">Inicia sesión</h2>
-        <p class="text-gray-500 text-sm mb-6">Necesitas una cuenta para continuar.</p>
-        <a href="{{ route('login') }}"
-           class="block w-full bg-indigo-600 text-white py-2.5 rounded-full font-medium hover:bg-indigo-700 mb-3">
-            Iniciar sesión
-        </a>
-        <a href="{{ route('register') }}"
-           class="block w-full border border-indigo-600 text-indigo-600 py-2.5 rounded-full font-medium hover:bg-indigo-50">
-            Registrarse
-        </a>
-        <button onclick="closeModal()" class="mt-4 text-sm text-gray-400 hover:underline">Cancelar</button>
-    </div>
-</div>
-
 <script>
 function toggleMenu() {
     document.getElementById('userMenu').classList.toggle('hidden');
 }
-window.addEventListener('click', function(e) {
-    if (!e.target.closest('#userMenu') && !e.target.closest('button')) {
-        document.getElementById('userMenu').classList.add('hidden');
-    }
-});
 
-function closeModal() {
-    document.getElementById('authModal').classList.add('hidden');
+function toggleCart() {
+    const cart = document.getElementById('cartDrawer');
+    cart.classList.toggle('translate-x-full');
+    renderCart();
 }
-document.getElementById('search').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter' && this.value.trim()) {
-        window.location.href = '/tienda?q=' + encodeURIComponent(this.value);
+
+/* ===== CARRITO ===== */
+
+function getCart() {
+    return JSON.parse(localStorage.getItem('cart')) || [];
+}
+
+function updateCartCount() {
+    const cart = getCart();
+    const badge = document.getElementById('carritoCount');
+
+    if (cart.length > 0) {
+        badge.classList.remove('hidden');
+        badge.textContent = cart.length;
+    } else {
+        badge.classList.add('hidden');
     }
+}
+
+function renderCart() {
+    const cart = getCart();
+    const container = document.getElementById('cartContent');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+
+    if (!container || !checkoutBtn) return;
+
+    if (cart.length === 0) {
+        container.innerHTML = `
+            <span class="text-4xl">🛒</span>
+            <p class="mt-4">Tu carrito está vacío</p>
+        `;
+        checkoutBtn.classList.add('hidden');
+    } else {
+        container.innerHTML = `
+            <p class="font-semibold">Tienes ${cart.length} productos en tu carrito</p>
+        `;
+        checkoutBtn.classList.remove('hidden');
+    }
+}
+
+function addToCart(productId) {
+    let cart = getCart();
+    cart.push(productId);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateCartCount();
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    updateCartCount();
 });
 </script>
 
-@stack('scripts')
+<div id="cartDrawer"
+    class="fixed top-0 right-0 w-96 h-full bg-white shadow-lg transform translate-x-full transition-transform duration-300 z-50">
+
+    <div class="flex justify-between items-center p-4 border-b">
+        <h2 class="text-lg font-bold">Tu carrito</h2>
+        <button onclick="toggleCart()" class="text-xl">&times;</button>
+    </div>
+
+    <div class="flex flex-col items-center justify-center h-full text-gray-500">
+
+        @if(session('user_id'))
+
+            <div id="cartContent" class="text-center">
+                <span class="text-4xl">🛒</span>
+                <p class="mt-4">Tu carrito está vacío</p>
+            </div>
+
+            <button id="checkoutBtn"
+                    class="hidden mt-4 bg-orange-500 text-white px-5 py-2 rounded">
+                Proceder al pago
+            </button>
+
+        @else
+
+            <span class="text-4xl">🔒</span>
+            <p class="mt-4">Debes iniciar sesión para usar el carrito</p>
+
+            <a href="{{ route('login') }}" class="mt-4 bg-blue-600 text-white px-5 py-2 rounded">
+                Iniciar sesión
+            </a>
+
+        @endif
+
+    </div>
+</div>
+
 </body>
 </html>
