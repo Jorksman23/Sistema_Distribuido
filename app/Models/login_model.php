@@ -23,7 +23,7 @@ class login_model implements AuthenticatableContract
     public $direccion;
     public $telefono;
     public $tipo_identificacion;
-
+    public $empresa;
     // ── Requeridos por Authenticatable ──────────────────
     public function getAuthIdentifierName(): string
     {
@@ -61,6 +61,7 @@ class login_model implements AuthenticatableContract
         $instance->email              = $row->email;
         $instance->contrasena         = $row->contrasena;
         $instance->estado             = $row->estado;
+        $instance->empresa            = $row->empresa            ?? null;
         $instance->cedula_ruc         = $row->cedula_ruc         ?? null;
         $instance->direccion          = $row->direccion          ?? null;
         $instance->telefono           = $row->telefono           ?? null;
@@ -73,8 +74,8 @@ class login_model implements AuthenticatableContract
     {
         return DB::connection($this->connection)->insert("
             INSERT INTO DBA.pw_ge_usuarios
-            (pw_codigo, nombre, cedula_ruc, email, contrasena, estado, direccion, telefono, tipo_identificacion)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (pw_codigo, nombre, cedula_ruc, email, contrasena, estado, direccion, telefono, tipo_identificacion,empresa)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ", [
             $data['pw_codigo'],
             $data['nombre'],
@@ -85,6 +86,7 @@ class login_model implements AuthenticatableContract
             $data['direccion']            ?? null,
             $data['telefono']             ?? null,
             $data['tipo_identificacion']  ?? null,
+            $data['empresa'] ,
         ]);
     }
 

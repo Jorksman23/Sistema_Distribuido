@@ -75,9 +75,9 @@ class LoginController extends Controller
                 'email' => 'El email ya está registrado'
             ])->withInput();
         }
-
+        try{
         $this->model->createUser([
-            'pw_codigo'           => 'USR' . time(),
+            'pw_codigo'           => 'USR' . substr(time(),-7),
             'nombre'              => $request->nombre,
             'cedula_ruc'          => $request->cedula_ruc,
             'email'               => $request->email,
@@ -86,10 +86,14 @@ class LoginController extends Controller
             'direccion'           => $request->direccion,
             'telefono'            => $request->telefono,
             'tipo_identificacion' => $request->tipo_identificacion,
+            'empresa'             => currentCompany(), // Asignar empresa actual
         ]);
+            return redirect('/login')->with('success', 'Cuenta creada, puedes iniciar sesión');
+            }catch (\Exception $e) {
+                dd($e->getMessage());
+            }
+        }
 
-        return redirect('/login')->with('success', 'Cuenta creada, puedes iniciar sesión');
-    }
 
     // Cerrar sesión
     public function logout()
