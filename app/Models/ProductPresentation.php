@@ -2,47 +2,43 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-class ProductPresentation extends Model
+class ProductPresentation
 {
     protected $connection = 'odbc';
-    protected $table = 'in_item_presentacion';
-    public $timestamps = false;
 
-    protected $fillable = [
-        'codigo', 'empresa', 'producto', 'nombre', 'foto', 'foto_id', 'mostrar'
-    ];
+    // ── Propiedades de la presentación ───────────────────
+    public $codigo;
+    public $empresa;
+    public $producto;
+    public $nombre;
+    public $foto;
+    public $foto_id;
+    public $mostrar;
+    public $foto_url;
 
-    /**
-     * Devuelve todas las presentaciones activas de una empresa.
-     * No depende de products_model, solo devuelve datos crudos.
-     */
-    public static function getPresentations(string $empresa): array
+    // ── Obtener todas las presentaciones activas ─────────
+    public function getPresentations(string $empresa = null): array
     {
-        $rows = DB::connection('odbc')->select("
+        $empresa = $empresa ?? currentCompany();
+
+        $rows = DB::connection($this->connection)->select("
             SELECT producto, nombre, foto
             FROM in_item_presentacion
             WHERE empresa = ?
               AND mostrar = 'S'
         ", [$empresa]);
 
-        return array_map(function ($row) {
-            return [
-                'producto' => $row->producto,
-                'foto'     => $row->foto,
-                'nombre'   => $row->nombre,
-            ];
-        }, $rows);
+        return array_map(fn($row) => $this->mapRowToInstance($row, $empresa), $rows);
     }
 
-    /**
-     * Devuelve las presentaciones de un producto específico.
-     */
-    public static function getByProduct(string $empresa, string $codigoProducto): array
+    // ── Obtener presentaciones de un producto específico ─
+    public function getByProduct(string $codigoProducto, string $empresa = null): array
     {
-        $rows = DB::connection('odbc')->select("
+        $empresa = $empresa ?? currentCompany();
+
+        $rows = DB::connection($this->connection)->select("
             SELECT producto, nombre, foto
             FROM in_item_presentacion
             WHERE empresa = ?
@@ -50,12 +46,32 @@ class ProductPresentation extends Model
               AND mostrar = 'S'
         ", [$empresa, $codigoProducto]);
 
-        return array_map(function ($row) {
-            return [
-                'producto' => $row->producto,
-                'foto'     => $row->foto,
-                'nombre'   => $row->nombre,
-            ];
-        }, $rows);
+        return array_map(fn($row) => $this->mapRowToInstance($row, $empresa), $rows);
+    }
+
+    // ── Mapear fila a objeto ─────────────────────────────
+    private function mapRowToInstance($row, string $empresa)
+    {
+        $instance = new self();
+        $instance->producto  = $row->producto;
+        $instance->nombre    = self::cleanString($row->nombre);
+        $instance->foto      = $row->foto;
+        $instance->foto_url  = productImageUrl($row->foto);
+
+        return $instance;
+    }
+
+    // ── Limpieza de cadenas ──────────────────────────────
+    public static function cleanString(?string $value): ?string
+    {
+        if ($value === null || $value === '') return $value;
+
+        $value = str_replace(['�', "\r", "\n", "\t"], ' ', $value);
+        $converted = @mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
+        if ($converted === false) {
+            $converted = @iconv('Windows-1252', 'UTF-8//IGNORE', $value);
+        }
+
+        return $converted !== false ? trim($converted) : trim($value);
     }
 }

@@ -1,5 +1,142 @@
 <?php
 
+namespace App\Models;
+
+use Illuminate\Support\Facades\DB;
+
+class ProductsModel
+{
+    protected $connection = 'odbc';
+
+    // ── Propiedades del producto ─────────────────────────
+    public $codigo;
+    public $empresa;
+    public $descripcion1;
+    public $linea;
+    public $pvp1;
+    public $pvp2;
+    public $pvp3;
+    public $costo;
+    public $iva;
+    public $imagen;
+    public $observacion;
+    public $activo;
+    public $stock;
+    public $categoria;
+    public $imagen_url;
+
+    // ── Buscar producto por código ───────────────────────
+    public function findByCodigo($codigo, $empresa = null)
+    {
+        $empresa = $empresa ?? currentCompany();
+
+        $row = DB::connection($this->connection)->selectOne("
+            SELECT TOP 1 *
+            FROM DBA.in_item
+            WHERE codigo = ? AND empresa = ? AND activo = 'S'
+        ", [$codigo, $empresa]);
+
+        if (!$row) return null;
+
+        return $this->mapRowToInstance($row);
+    }
+
+    // ── Crear producto ───────────────────────────────────
+    public function createProduct($data)
+    {
+        return DB::connection($this->connection)->insert("
+            INSERT INTO DBA.in_item
+            (codigo, empresa, descripcion1, linea, pvp1, pvp2, pvp3, costo, iva, imagen, observacion, activo, stock)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ", [
+            $data['codigo'],
+            $data['empresa'] ?? currentCompany(),
+            $data['descripcion1'],
+            $data['linea'],
+            $data['pvp1'],
+            $data['pvp2'],
+            $data['pvp3'],
+            $data['costo'],
+            $data['iva'],
+            $data['imagen'] ?? null,
+            $data['observacion'] ?? null,
+            $data['activo'] ?? 'S',
+            $data['stock'] ?? 0,
+        ]);
+    }
+
+    // ── Listar productos activos ─────────────────────────
+    public function getActiveProducts(int $limit = 50, string $empresa = null): array
+    {
+        $empresa = $empresa ?? currentCompany();
+
+        $rows = DB::connection($this->connection)->select("
+            SELECT TOP {$limit}
+                i.codigo,
+                i.empresa,
+                i.descripcion1,
+                i.pvp1,
+                i.imagen,
+                i.stock,
+                l.linea AS categoria
+            FROM DBA.in_item i
+            LEFT JOIN DBA.in_linea l
+                ON i.linea = l.codigo AND l.empresa = i.empresa
+            WHERE i.activo = 'S' AND i.empresa = ?
+            ORDER BY i.codigo
+        ", [$empresa]);
+
+        return array_map(fn($row) => $this->mapRowToInstance($row), $rows);
+    }
+
+    // ── Actualizar producto ──────────────────────────────
+    public function updateProduct($codigo, $empresa, $data)
+    {
+        return DB::connection($this->connection)->update("
+            UPDATE DBA.in_item
+            SET descripcion1 = ?, pvp1 = ?, stock = ?
+            WHERE codigo = ? AND empresa = ?
+        ", [
+            $data['descripcion1'],
+            $data['pvp1'],
+            $data['stock'],
+            $codigo,
+            $empresa
+        ]);
+    }
+
+    // ── Mapear fila a objeto ─────────────────────────────
+    private function mapRowToInstance($row)
+    {
+        $instance = new self();
+        $instance->codigo       = $row->codigo;
+        $instance->empresa      = $row->empresa;
+        $instance->descripcion1 = self::cleanString($row->descripcion1);
+        $instance->pvp1         = number_format((float)$row->pvp1, 2, '.', '');
+        $instance->imagen       = $row->imagen;
+        $instance->stock        = $row->stock;
+        $instance->categoria    = self::cleanString($row->categoria ?? null);
+        $instance->imagen_url   = productImageUrl($row->imagen);
+
+        return $instance;
+    }
+
+    // ── Limpieza de cadenas ──────────────────────────────
+    public static function cleanString(?string $value): ?string
+    {
+        if ($value === null || $value === '') return $value;
+
+        $value = str_replace(['�', "\r", "\n", "\t"], ' ', $value);
+        $converted = @mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
+        if ($converted === false) {
+            $converted = @iconv('Windows-1252', 'UTF-8//IGNORE', $value);
+        }
+
+        return $converted !== false ? trim($converted) : trim($value);
+    }
+}
+
+
 // namespace App\Models;
 
 // use Illuminate\Database\Eloquent\Model;
@@ -142,111 +279,3 @@
 //         }, $items);
 //     }
 // }
-
-
-
-
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-
-class products_model extends Model
-{
-    protected $connection = 'odbc';
-    protected $table = 'DBA.in_item';
-    protected $primaryKey = 'codigo';
-    public $timestamps = false;
-
-    protected $fillable = [
-        'codigo', 'empresa', 'descripcion1', 'linea', 'pvp1', 'pvp2', 'pvp3',
-        'costo', 'iva', 'imagen', 'observacion', 'activo', 'stock',
-    ];
-
-    protected $casts = [
-        'pvp1'   => 'float',
-        'pvp2'   => 'float',
-        'pvp3'   => 'float',
-        'costo'  => 'float',
-        'stock'  => 'integer',
-    ];
-
-    /**
-     * Genera la URL de la imagen principal validando extensión.
-     */
-    public static function getProductImageUrl(?string $filename, string $empresa = null): ?string
-    {
-        if (empty($filename)) {
-            return null;
-        }
-
-        $empresa = $empresa ?? currentCompany();
-        $baseUrl = companyImageBaseUrl();
-
-        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-
-        if (!in_array($ext, $allowedExtensions)) {
-            Log::warning("Formato de imagen no permitido: {$filename}");
-            return null;
-        }
-
-        return rtrim($baseUrl, '/') . '/' . ltrim($filename, '/');
-    }
-
-    /**
-     * Limpieza segura de cadenas para evitar errores de codificación.
-     */
-    public static function cleanString(?string $value): ?string
-    {
-        if ($value === null || $value === '') {
-            return $value;
-        }
-
-        $value = str_replace(['�', "\r", "\n", "\t"], ' ', $value);
-        $converted = @mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
-        if ($converted === false) {
-            $converted = @iconv('Windows-1252', 'UTF-8//IGNORE', $value);
-        }
-
-        return $converted !== false ? trim($converted) : trim($value);
-    }
-
-    /**
-     * Devuelve productos activos con su imagen principal.
-     */
-    public static function getActiveProducts(int $limit = 50, string $empresa = null): array
-    {
-        $empresa = $empresa ?? currentCompany();
-
-        $items = DB::connection('odbc')->select("
-            SELECT TOP {$limit}
-                i.codigo,
-                 i.empresa,
-                i.descripcion1,
-                i.pvp1,
-                i.imagen,
-                i.stock,
-                l.linea AS categoria
-            FROM DBA.in_item i
-            LEFT JOIN DBA.in_linea l
-                ON i.linea = l.codigo AND l.empresa = i.empresa
-            WHERE i.activo = 'S'
-              AND i.empresa = ?
-            ORDER BY i.codigo
-        ", [$empresa]);
-
-        return array_map(function ($item) use ($empresa) {
-            return [
-                'codigo'       => $item->codigo,
-                'descripcion1' => self::cleanString($item->descripcion1),
-                'pvp1'         => number_format((float)$item->pvp1, 2, '.', ''),
-                'empresa'      => self::cleanString($item->empresa),
-                'stock'        => $item->stock,
-                'categoria'    => self::cleanString($item->categoria),
-                'imagen_url'   => self::getProductImageUrl($item->imagen, $empresa),
-            ];
-        }, $items);
-    }
-}
