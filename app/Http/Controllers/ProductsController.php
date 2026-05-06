@@ -3,25 +3,19 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\ProductCatalog;
+use App\Models\ProductsModel;
+use App\Models\ProductPresentation;
 use Throwable;
 
 class ProductsController extends Controller
 {
-    protected $catalog;
-
-    public function __construct()
-    {
-        // Instanciamos el catálogo de productos
-        $this->catalog = new ProductCatalog();
-    }
-
-    // Mostrar listado de productos (solo básicos, sin stock)
+    // Mostrar listado de productos (solo básicos, sin stock ni presentaciones)
     public function index(Request $request)
     {
         $empresa   = $request->query('empresa', currentCompany());
-        // Traemos hasta 50 productos, sin presentaciones ni stock
-        $productos = $this->catalog->getCatalog(52, $empresa);
+
+        // Traemos hasta 50 productos activos con imagen principal
+        $productos = (new ProductsModel())->getActiveProducts(50, $empresa);
 
         return view('products.index', [
             'empresa'   => $empresa,
@@ -30,20 +24,21 @@ class ProductsController extends Controller
         ]);
     }
 
-    // Mostrar detalle de un producto específico (con stock y presentaciones)
+    // Mostrar detalle de un producto específico con presentaciones
     public function show(Request $request, string $codigo)
     {
         try {
             $empresa  = $request->query('empresa', currentCompany());
-            $producto = $this->catalog->getProductWithPresentations($codigo, $empresa);
 
-            if (!$producto) {
+            // Usamos directamente ProductPresentation para obtener producto + presentaciones
+            $producto = (new ProductPresentation())->getByProduct($codigo, $empresa, 5);
+
+            if (empty($producto)) {
                 return view('errores.404', ['mensaje' => 'Producto no encontrado']);
             }
 
             return view('products.show', [
                 'empresa'  => $empresa,
-                'codigo'   => $codigo,
                 'producto' => $producto,
             ]);
         } catch (Throwable $e) {

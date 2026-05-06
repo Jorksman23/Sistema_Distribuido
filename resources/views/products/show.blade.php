@@ -4,25 +4,39 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto px-6 py-10">
-    <h1 class="text-2xl font-bold text-gray-800 mb-6">Detalle del producto {{ $codigo }}</h1>
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">
+        Detalle del producto {{ $producto['codigo'] ?? '' }}
+    </h1>
 
     @if(!empty($producto))
         <div class="bg-white shadow rounded-lg overflow-hidden">
-            <img src="{{ $producto[0]['foto_url'] ?? '' }}" alt="Imagen del producto"
+            {{-- Imagen principal --}}
+            <img src="{{ $producto['imagen_url'] ?? '' }}" alt="Imagen del producto"
                  class="w-full h-64 object-cover">
+
             <div class="p-6">
                 <h2 class="text-xl font-semibold text-gray-700">
-                    {{ $producto[0]['descripcion'] ?? '' }}
+                    {{ $producto['descripcion'] ?? '' }}
                 </h2>
-                <p class="text-blue-600 font-bold mt-2">${{ $producto[0]['precio'] ?? '' }}</p>
-                <p class="text-sm text-gray-500 mt-1">Stock: {{ $producto[0]['stock'] ?? '' }}</p>
+                <p class="text-blue-600 font-bold mt-2">${{ $producto['precio'] ?? '' }}</p>
+                <p class="text-sm text-gray-500 mt-1">Stock: {{ $producto['stock'] ?? '' }}</p>
 
-                <p class="mt-4 text-gray-600">
-                    Presentación: {{ $producto[0]['nombre'] ?? '' }}
-                </p>
+                {{-- Presentaciones --}}
+                @if(!empty($producto['presentaciones']))
+                    <h3 class="text-lg font-bold mt-6">Presentaciones</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+                        @foreach($producto['presentaciones'] as $pres)
+                            <div class="bg-gray-100 p-2 rounded">
+                                <img src="{{ $pres->foto_url }}" alt="{{ $pres->nombre }}"
+                                     class="w-full h-32 object-cover">
+                                <p class="text-sm text-gray-700 mt-2">{{ $pres->nombre }}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
 
                 <div class="mt-6 flex gap-4">
-                    <button onclick="addToCart('{{ $codigo }}')"
+                    <button onclick="addToCart('{{ $producto['codigo'] }}')"
                             class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
                         Añadir al carrito 🛒
                     </button>

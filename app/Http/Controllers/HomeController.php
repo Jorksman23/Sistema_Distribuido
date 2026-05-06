@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\login_model;
-use App\Models\products_model;
 use Illuminate\Http\Request;
+use App\Models\login_model;
+use App\Models\ProductsModel;
 use App\Models\Empresa;
-use App\Models\ProductCatalog as ModelsProductCatalog;
 
 class HomeController extends Controller
 {
@@ -16,16 +15,21 @@ class HomeController extends Controller
     {
         $this->model = new login_model();
     }
-    public function viewHome(Request $request)
-{
-    $empresa   = $request->query('empresa', currentCompany());
-    $productos = (new ModelsProductCatalog())->getCatalog(4, $empresa); // 4 destacados
 
-    return view('Home.Home', [
-        'empresa'   => $empresa,
-        'productos' => $productos,
-    ]);
+    public function viewHome(Request $request)
+    {
+        $empresa   = $request->query('empresa', currentCompany());
+
+        // Traemos hasta 4 productos destacados directamente desde ProductsModel
+        $productos = (new ProductsModel())->getActiveProducts(4, $empresa);
+
+        return view('Home.Home', [
+            'empresa'   => $empresa,
+            'productos' => $productos,
+        ]);
+    }
 }
+
 
     // public function viewHome()
     // {
@@ -38,4 +42,4 @@ class HomeController extends Controller
     //     ]);
     // }
 
-}
+

@@ -5,7 +5,7 @@ if (!function_exists('currentCompany')) {
     function currentCompany(): string
     {
         // Devuelve el código de empresa actual desde config
-        return config('app.company_code', '001');
+        return config('app.company_code', '?');
     }
 }
 
@@ -45,3 +45,11 @@ if (!function_exists('productImageUrl')) {
         return companyImageBaseUrl() . ltrim($filename, '/');
     }
 }
+function presentationImageUrl(string $filename, string $ruc): string
+{
+    if (empty($filename)) {
+        return '';
+    }
+    return "http://186.101.203.76:10555/$ruc/product/" . trim($filename);
+}
+
