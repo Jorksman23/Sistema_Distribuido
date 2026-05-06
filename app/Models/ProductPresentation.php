@@ -34,7 +34,7 @@ class ProductPresentation
     }
 
     // ── Obtener presentaciones de un producto específico ─
-    public function getByProduct(string $codigoProducto, string $empresa = null): array
+    public function getByProduct(int $limit = 50,string $codigoProducto, string $empresa = null): array
     {
         $empresa = $empresa ?? currentCompany();
 
