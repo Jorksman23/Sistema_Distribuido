@@ -14,15 +14,16 @@
 
     {{-- LOGO --}}
     <a href="/" class="text-xl font-bold text-blue-600 shrink-0">
-        {{ config($empresaNombre) }}
+        {{ config('app.name') }}
     </a>
 
     {{-- LINKS --}}
-    <div class="hidden md:flex gap-6 text-sm ml-4">
-        <a href="/" class="text-gray-600 hover:text-blue-600">Home</a>
-        <a href="#" class="text-gray-600 hover:text-blue-600">Categorías</a>
-        <a href="#" class="text-gray-600 hover:text-blue-600">Tienda</a>
-        <a href="#" class="text-gray-600 hover:text-blue-600">Sobre Nosotros</a>
+    {{-- Aqui deben ir los links para las demas vistas --}}
+    <div class="hidden md:flex gap-6 text-base ml-4">
+        <a href="/" class="text-gray-900 hover:text-blue-600 font-medium transition">Home</a>
+        <a href="#" class="text-gray-900 hover:text-blue-600 font-medium transition">Categorías</a>
+        <a href="#" class="text-gray-900 hover:text-blue-600 font-medium transition">Tienda</a>
+        <a href="#" class="text-gray-900 hover:text-blue-600 font-medium transition">Sobre Nosotros</a>
     </div>
 
     {{-- BUSCADOR --}}
@@ -33,7 +34,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
-            <input id="search" type="text" placeholder="Search products..."
+            <input id="search" type="text" placeholder="Buscar productos..."
                    class="w-full pl-9 pr-4 py-2 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
     </div>
