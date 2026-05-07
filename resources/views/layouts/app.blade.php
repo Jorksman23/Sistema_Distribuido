@@ -21,8 +21,8 @@
     {{-- Aqui deben ir los links para las demas vistas --}}
     <div class="hidden md:flex gap-6 text-base ml-4">
         <a href="/" class="text-gray-900 hover:text-blue-600 font-medium transition">Home</a>
-        <a href="#" class="text-gray-900 hover:text-blue-600 font-medium transition">Categorías</a>
-        <a href="#" class="text-gray-900 hover:text-blue-600 font-medium transition">Tienda</a>
+        <a href="{{ route('catalogo.index') }}" class="text-gray-900 hover:text-blue-600 font-medium transition">Categorías</a>
+        <a href="" class="text-gray-900 hover:text-blue-600 font-medium transition">Tienda</a>
         <a href="#" class="text-gray-900 hover:text-blue-600 font-medium transition">Sobre Nosotros</a>
     </div>
 

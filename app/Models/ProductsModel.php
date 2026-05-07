@@ -134,6 +134,49 @@ class ProductsModel
 
         return $converted !== false ? trim($converted) : trim($value);
     }
+
+    //Paginado de Productos
+    public function getPaginatedProducts(int $page = 1, int $perPage = 12, string $empresa = null): array{
+        $empresa  = $empresa ?? currentCompany();
+        // SQL Anywhere usa START AT (base 1, no base 0)
+        $startAt  = (($page - 1) * $perPage) + 1;
+
+        // Total de productos
+        $totalRow = DB::connection($this->connection)->selectOne("
+            SELECT COUNT(*) AS total
+            FROM DBA.in_item i
+            WHERE i.activo = 'S' AND i.empresa = ?
+        ", [$empresa]);
+
+        $total = $totalRow->total ?? 0;
+
+        // Paginación con TOP ... START AT (sintaxis SQL Anywhere)
+        $rows = DB::connection($this->connection)->select("
+            SELECT TOP {$perPage} START AT {$startAt}
+                i.codigo,
+                i.empresa,
+                i.descripcion1,
+                i.pvp1,
+                i.imagen,
+                i.stock,
+                l.linea AS categoria
+            FROM DBA.in_item i
+            LEFT JOIN DBA.in_linea l
+                ON i.linea = l.codigo AND l.empresa = i.empresa
+            WHERE i.activo = 'S' AND i.empresa = ?
+            ORDER BY i.codigo
+        ", [$empresa]);
+
+        $productos = array_map(fn($row) => $this->mapRowToInstance($row), $rows);
+
+        return [
+            'data'         => $productos,
+            'total'        => $total,
+            'per_page'     => $perPage,
+            'current_page' => $page,
+            'last_page'    => (int) ceil($total / $perPage),
+        ];
+    }
 }
 
 

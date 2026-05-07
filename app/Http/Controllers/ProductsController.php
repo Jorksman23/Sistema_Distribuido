@@ -10,17 +10,33 @@ use Throwable;
 class ProductsController extends Controller
 {
     // Mostrar listado de productos (solo básicos, sin stock ni presentaciones)
-    public function index(Request $request)
-    {
-        $empresa   = $request->query('empresa', currentCompany());
+    // public function index(Request $request)
+    // {
+    //     $empresa   = $request->query('empresa', currentCompany());
+    //     // Traemos hasta 50 productos activos con imagen principal
+    //     $productos = (new ProductsModel())->getActiveProducts(50, $empresa);
 
-        // Traemos hasta 50 productos activos con imagen principal
-        $productos = (new ProductsModel())->getActiveProducts(50, $empresa);
+    //     return view('products.index', [
+    //         'empresa'   => $empresa,
+    //         'productos' => $productos,
+    //         'total'     => count($productos),
+    //     ]);
+    // }
 
-        return view('products.index', [
-            'empresa'   => $empresa,
-            'productos' => $productos,
-            'total'     => count($productos),
+    //Producto Paginado
+    public function index(Request $request){
+        $empresa = $request->query('empresa', currentCompany());
+        $page    = max(1, (int) $request->query('page', 1));
+
+        $result = (new ProductsModel())->getPaginatedProducts($page, 12, $empresa);
+
+        return view('catalogo.catalogo', [
+            'empresa'      => $empresa,
+            'productos'    => $result['data'],
+            'total'        => $result['total'],
+            'currentPage'  => $result['current_page'],
+            'lastPage'     => $result['last_page'],
+            'perPage'      => $result['per_page'],
         ]);
     }
 
