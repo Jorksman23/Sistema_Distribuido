@@ -25,6 +25,13 @@ class ProductsModel
     public $categoria;
     public $imagen_url;
 
+    //Normalizador de cadenas para búsqueda
+    private function normalizeString(string $text): string{
+            $from = ['á','é','í','ó','ú','ü','ñ','Á','É','Í','Ó','Ú','Ü','Ñ'];
+            $to   = ['a','e','i','o','u','u','n','a','e','i','o','u','u','n'];
+            return str_replace($from, $to, mb_strtolower($text, 'UTF-8'));
+        }
+
     // ── Buscar producto por código ───────────────────────
     public function findByCodigo($codigo, $empresa = null)
     {
@@ -135,7 +142,7 @@ class ProductsModel
         return $converted !== false ? trim($converted) : trim($value);
     }
 
-    //Paginado de Productos
+    //Paginado de Productos Catalogo/vista-web.app
     public function getPaginatedProducts(int $page = 1, int $perPage = 12, string $empresa = null): array{
         $empresa  = $empresa ?? currentCompany();
         // SQL Anywhere usa START AT (base 1, no base 0)
@@ -177,148 +184,34 @@ class ProductsModel
             'last_page'    => (int) ceil($total / $perPage),
         ];
     }
+
+    //Bsuqueda de productos por descripción
+        public function searchProducts(string $search, string $empresa = null): array{
+            $empresa = $empresa ?? currentCompany();
+
+            $searchOriginal   = '%' . $search . '%';
+            $searchNormalizado = '%' . $this->normalizeString($search) . '%';
+
+            $rows = DB::connection($this->connection)->select("
+                SELECT
+                    i.codigo,
+                    i.empresa,
+                    i.descripcion1,
+                    i.pvp1,
+                    i.imagen,
+                    i.stock,
+                    l.linea AS categoria
+                FROM DBA.in_item i
+                LEFT JOIN DBA.in_linea l
+                    ON i.linea = l.codigo AND l.empresa = i.empresa
+                WHERE i.activo = 'S'
+                AND i.empresa = ?
+                AND i.descripcion1 LIKE ?
+                OR i.descripcion1 LIKE ?
+                ORDER BY i.codigo
+            ", [$empresa, $searchOriginal, $searchNormalizado]);
+
+            return array_map(fn($r) => $this->mapRowToInstance($r), $rows);
+        }
 }
 
-
-// namespace App\Models;
-
-// use Illuminate\Database\Eloquent\Model;
-// use Illuminate\Support\Facades\DB;
-// use Illuminate\Support\Facades\Cache;
-// use Illuminate\Support\Facades\Log;
-
-// class products_model extends Model
-// {
-//     protected $connection = 'odbc';
-//     protected $table = 'DBA.in_item';
-//     protected $primaryKey = 'codigo';
-//     public $timestamps = false;
-
-//     protected $fillable = [
-//         'codigo', 'empresa', 'descripcion1', 'linea', 'pvp1', 'pvp2', 'pvp3',
-//         'costo', 'iva', 'imagen', 'observacion', 'activo', 'stock',
-//     ];
-
-//     protected $casts = [
-//         'pvp1' => 'float',
-//         'pvp2' => 'float',
-//         'pvp3' => 'float',
-//         'costo' => 'float',
-//         'stock' => 'integer',
-//     ];
-
-
-//     public static function getProductImageUrl(?string $filename, string $empresa = '005'): ?string
-//     {
-//         if (empty($filename)) {
-//             return null;
-//         }
-
-//         $base = self::getImageServerUrl($empresa);
-//         return rtrim($base, '/') . '/product/' . ltrim($filename, '/');
-//     }
-
-//     public static function getImageServerUrl(string $empresa = '005'): string
-//     {
-//         $fallback = 'http://186.101.203.76:10555/';
-
-//         try {
-//             $row = DB::connection('odbc')
-//                 ->selectOne("SELECT TOP 1 detalle FROM web_ge_parametros WHERE codigo = 348 AND empresa = ?", [$empresa]);
-
-//             $detalle = $row?->detalle ?? '';
-//             $baseUrl = (empty($detalle) || str_contains($detalle, 'Servidor')) ? $fallback : $detalle;
-//         } catch (\Throwable $e) {
-//             $baseUrl = $fallback;
-//         }
-
-//         $ruc = self::getCompanyRuc($empresa);
-//         return rtrim($baseUrl, '/') . '/' . $ruc;
-//     }
-
-//     public static function getCompanyRuc(string $empresa): string
-//     {
-//         return Cache::remember("ruc_{$empresa}", now()->addHours(6), function () use ($empresa) {
-//             $row = DB::connection('odbc')->selectOne("SELECT TOP 1 ruc FROM GE_EMPRESA WHERE codigo = ?", [$empresa]);
-//             return $row?->ruc ?: $empresa;
-//         });
-//     }
-
-
-//     public static function getActiveProducts(int $limit = 50): array
-//     {
-//         $empresa = '005';
-
-//         // Obtener productos
-//         $items = DB::connection('odbc')
-//             ->select("
-//                 SELECT DISTINCT TOP {$limit}
-//                     i.codigo AS id,
-//                     i.descripcion1 AS nombre,
-//                     i.pvp1 AS precio,
-//                     i.imagen AS imagen_principal,
-//                     i.stock,
-//                     l.linea AS categoria
-//                 FROM DBA.in_item i
-//                 LEFT JOIN DBA.in_linea l ON i.linea = l.codigo
-//                 WHERE i.activo = 'S'
-//                   AND i.empresa = ?
-//                 ORDER BY i.codigo
-//             ", [$empresa]);
-
-//         if (empty($items)) {
-//             return [];
-//         }
-
-//         $productIds = array_column($items, 'id');
-
-//         $presentationsRaw = DB::connection('odbc')
-//             ->select("
-//                 SELECT producto, foto, nombre
-//                 FROM in_item_presentacion
-//                 WHERE producto IN (" . str_repeat('?,', count($productIds) - 1) . "?)
-//                   AND mostrar = 'S'
-//             ", $productIds);
-
-//         // Agrupar por producto
-//         $presentations = [];
-//         foreach ($presentationsRaw as $p) {
-//             $presentations[$p->producto][] = $p;
-//         }
-
-//         return array_map(function ($item) use ($empresa, $presentations) {
-//             $item = (array) $item;
-
-            // // Limpieza UTF-8
-            // foreach ($item as $key => $value) {
-            //     if (is_string($value) && $value !== '') {
-            //         $value = str_replace(['�', "\r", "\n", "\t"], ' ', $value);
-            //         $converted = @mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
-            //         if ($converted === false) {
-            //             $converted = @iconv('Windows-1252', 'UTF-8//IGNORE', $value);
-            //         }
-            //         $item[$key] = $converted !== false ? trim($converted) : trim($value);
-            //     }
-            // }
-
-            // if (isset($item['precio'])) {
-            //     $item['precio'] = number_format((float)$item['precio'], 2, '.', '');
-            // }
-
-            // $item['imagen_url'] = self::getProductImageUrl($item['imagen_principal'] ?? null, $empresa);
-
-            // // Imágenes de la tabla presentacion
-            // $item['imagenes'] = [];
-            // if (isset($presentations[$item['id']]) && count($presentations[$item['id']]) > 0) {
-            //     $item['imagenes'] = array_map(function ($p) use ($empresa) {
-            //         return [
-            //             'url'    => self::getProductImageUrl(trim($p->foto ?? ''), $empresa),
-            //             'nombre' => trim($p->nombre ?? '')
-            //         ];
-            //     }, $presentations[$item['id']]);
-            // }
-
-//             return $item;
-//         }, $items);
-//     }
-// }

@@ -11,6 +11,17 @@
             <p class="text-sm text-gray-400 mt-1">{{ $total }} productos encontrados</p>
         </div>
     </div>
+    {{-- RESULTADO DE BÚSQUEDA --}}
+    @if($search)
+    <div class="flex items-center gap-2 mb-4">
+        <p class="text-sm text-gray-500">
+            Resultados para: <span class="font-semibold text-gray-800">"{{ $search }}"</span>
+            — {{ $total }} encontrados
+        </p>
+        <a href="{{ route('catalogo.index') }}"
+        class="text-xs text-red-400 hover:underline">✕ Limpiar búsqueda</a>
+    </div>
+    @endif
 
     {{-- GRID --}}
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
@@ -67,7 +78,7 @@
     <div class="flex items-center justify-center mt-10 gap-1">
 
         @if($currentPage > 1)
-            <a href="?page={{ $currentPage - 1 }}"
+            <a href="?page={{ $currentPage - 1 }} &q={{ $search }}"
                class="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:border-orange-400 hover:text-orange-500 transition">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
@@ -81,14 +92,14 @@
         @endphp
 
         @if($start > 1)
-            <a href="?page=1" class="w-9 h-9 flex items-center justify-center rounded-full text-sm text-gray-600 hover:bg-orange-50 transition">1</a>
+            <a href="?page=1&q={{ $search }}" class="w-9 h-9 flex items-center justify-center rounded-full text-sm text-gray-600 hover:bg-orange-50 transition">1</a>
             @if($start > 2)
                 <span class="w-9 h-9 flex items-center justify-center text-gray-400">…</span>
             @endif
         @endif
 
         @for($i = $start; $i <= $end; $i++)
-            <a href="?page={{ $i }}"
+            <a href="?page={{ $i }}&q={{ $search }}"
                class="w-9 h-9 flex items-center justify-center rounded-full text-sm font-medium transition
                       {{ $i === $currentPage ? 'bg-orange-400 text-white shadow-sm' : 'text-gray-600 hover:bg-orange-50 hover:text-orange-500' }}">
                 {{ $i }}
@@ -99,11 +110,11 @@
             @if($end < $lastPage - 1)
                 <span class="w-9 h-9 flex items-center justify-center text-gray-400">…</span>
             @endif
-            <a href="?page={{ $lastPage }}" class="w-9 h-9 flex items-center justify-center rounded-full text-sm text-gray-600 hover:bg-orange-50 transition">{{ $lastPage }}</a>
+            <a href="?page={{ $lastPage }}&q={{ $search }}" class="w-9 h-9 flex items-center justify-center rounded-full text-sm text-gray-600 hover:bg-orange-50 transition">{{ $lastPage }}</a>
         @endif
 
         @if($currentPage < $lastPage)
-            <a href="?page={{ $currentPage + 1 }}"
+            <a href="?page={{ $currentPage + 1 }}&q={{ $search }}"
                class="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:border-orange-400 hover:text-orange-500 transition">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
