@@ -34,7 +34,8 @@ Route::post('/logout',  [LoginController::class, 'logout'])->name('logout');
 // PRODUCTOS
 // CATÁLOGO Paginado
 Route::get('/catalogo', [ProductsController::class, 'index'])->name('catalogo.index');
-Route::get('/catalogo/search', [ProductsController::class, 'indexSearch'])->name('catalogo.search');
+//Eliminar despues esta ruta comentada
+//Route::get('/catalogo/search', [ProductsController::class, 'indexSearch'])->name('catalogo.search');
 // Listado de productos
 Route::get('/products', [ProductsController::class, 'index'])->name('products.index');
 // Detalle de un producto específico

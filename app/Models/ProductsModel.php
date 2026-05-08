@@ -142,51 +142,9 @@ class ProductsModel
         return $converted !== false ? trim($converted) : trim($value);
     }
 
-    //Paginado de Productos Catalogo/vista-web.app
-    public function getPaginatedProducts(int $page = 1, int $perPage = 12, string $empresa = null): array{
-        $empresa  = $empresa ?? currentCompany();
-        // SQL Anywhere usa START AT (base 1, no base 0)
-        $startAt  = (($page - 1) * $perPage) + 1;
-
-        // Total de productos
-        $totalRow = DB::connection($this->connection)->selectOne("
-            SELECT COUNT(*) AS total
-            FROM DBA.in_item i
-            WHERE i.activo = 'S' AND i.empresa = ?
-        ", [$empresa]);
-
-        $total = $totalRow->total ?? 0;
-
-        // Paginación con TOP ... START AT (sintaxis SQL Anywhere)
-        $rows = DB::connection($this->connection)->select("
-            SELECT TOP {$perPage} START AT {$startAt}
-                i.codigo,
-                i.empresa,
-                i.descripcion1,
-                i.pvp1,
-                i.imagen,
-                i.stock,
-                l.linea AS categoria
-            FROM DBA.in_item i
-            LEFT JOIN DBA.in_linea l
-                ON i.linea = l.codigo AND l.empresa = i.empresa
-            WHERE i.activo = 'S' AND i.empresa = ?
-            ORDER BY i.codigo
-        ", [$empresa]);
-
-        $productos = array_map(fn($row) => $this->mapRowToInstance($row), $rows);
-
-        return [
-            'data'         => $productos,
-            'total'        => $total,
-            'per_page'     => $perPage,
-            'current_page' => $page,
-            'last_page'    => (int) ceil($total / $perPage),
-        ];
-    }
 
     //Bsuqueda de productos por descripción
-        public function searchProducts(string $search, string $empresa = null): array{
+    public function searchProducts(string $search, string $empresa = null): array{
             $empresa = $empresa ?? currentCompany();
 
             $searchOriginal   = '%' . $search . '%';
@@ -212,6 +170,130 @@ class ProductsModel
             ", [$empresa, $searchOriginal, $searchNormalizado]);
 
             return array_map(fn($r) => $this->mapRowToInstance($r), $rows);
+    }
+
+//Trabajando en el filtrado esto es lo nuevo
+    // ── Obtener Grupos ───────────────────────────────────
+    public function getGrupos(string $empresa = null): array
+    {
+        $empresa = $empresa ?? currentCompany();
+        return DB::connection($this->connection)->select("
+            SELECT codigo, grupo
+            FROM DBA.in_grupo
+            WHERE empresa = ?
+            ORDER BY grupo
+        ", [$empresa]);
+    }
+
+    // ── Obtener Líneas ───────────────────────────────────
+    public function getLineas(string $empresa = null): array
+    {
+        $empresa = $empresa ?? currentCompany();
+        return DB::connection($this->connection)->select("
+            SELECT codigo, linea
+            FROM DBA.in_linea
+            WHERE empresa = ?
+            ORDER BY linea
+        ", [$empresa]);
+    }
+
+    // ── Obtener Ubicaciones ──────────────────────────────
+    public function getUbicaciones(string $empresa = null): array
+    {
+        $empresa = $empresa ?? currentCompany();
+        return DB::connection($this->connection)->select("
+            SELECT codigo, ubicacion
+            FROM DBA.in_ubicacion
+            WHERE empresa = ?
+            ORDER BY ubicacion
+        ", [$empresa]);
+    }
+
+    public function getPaginatedProducts(
+        int    $page      = 1,
+        int    $perPage   = 12,
+        string $empresa   = null,
+        string $search    = '',
+        string $grupo     = '',
+        string $linea     = '',
+        string $ubicacion = '',
+        float  $precioMin = 0,
+        float  $precioMax = 0,
+        string $orden     = 'codigo'
+        ): array {
+        $empresa = $empresa ?? currentCompany();
+        $startAt = (($page - 1) * $perPage) + 1;
+
+        $where  = "WHERE i.activo = 'S' AND i.empresa = ?";
+        $params = [$empresa];
+
+        if ($search !== '') {
+            $normalizado = $this->normalizeString($search);
+            $where      .= " AND (i.descripcion1 LIKE ? OR i.descripcion1 LIKE ?)";
+            $params[]    = '%' . $search . '%';
+            $params[]    = '%' . $normalizado . '%';
         }
+
+        if ($grupo !== '') {
+            $where   .= " AND i.grupo = ?";
+            $params[] = $grupo;
+        }
+
+        if ($linea !== '') {
+            $where   .= " AND i.linea = ?";
+            $params[] = $linea;
+        }
+
+        if ($precioMin > 0) {
+            $where   .= " AND i.pvp1 >= ?";
+            $params[] = $precioMin;
+        }
+
+        if ($precioMax > 0) {
+            $where   .= " AND i.pvp1 <= ?";
+            $params[] = $precioMax;
+        }
+
+        $orderBy = match($orden) {
+            'precio_asc'  => 'i.pvp1 ASC',
+            'precio_desc' => 'i.pvp1 DESC',
+            'nombre'      => 'i.descripcion1 ASC',
+            default       => 'i.codigo ASC',
+        };
+
+        $totalRow = DB::connection($this->connection)->selectOne("
+            SELECT COUNT(*) AS total
+            FROM DBA.in_item i
+            {$where}
+        ", $params);
+
+        $total = $totalRow->total ?? 0;
+
+        $rows = DB::connection($this->connection)->select("
+            SELECT TOP {$perPage} START AT {$startAt}
+                i.codigo,
+                i.empresa,
+                i.descripcion1,
+                i.pvp1,
+                i.imagen,
+                i.stock,
+                i.grupo,
+                l.linea AS categoria
+            FROM DBA.in_item i
+            LEFT JOIN DBA.in_linea l
+                ON i.linea = l.codigo AND l.empresa = i.empresa
+            {$where}
+            ORDER BY {$orderBy}
+        ", $params);
+
+        return [
+            'data'         => array_map(fn($r) => $this->mapRowToInstance($r), $rows),
+            'total'        => $total,
+            'per_page'     => $perPage,
+            'current_page' => $page,
+            'last_page'    => (int) ceil($total / $perPage),
+       ];
+    }
+
 }
 

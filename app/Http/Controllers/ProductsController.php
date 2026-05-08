@@ -9,39 +9,6 @@ use Throwable;
 
 class ProductsController extends Controller
 {
-    // Mostrar listado de productos (solo básicos, sin stock ni presentaciones)
-    // public function index(Request $request)
-    // {
-    //     $empresa   = $request->query('empresa', currentCompany());
-    //     // Traemos hasta 50 productos activos con imagen principal
-    //     $productos = (new ProductsModel())->getActiveProducts(50, $empresa);
-
-    //     return view('products.index', [
-    //         'empresa'   => $empresa,
-    //         'productos' => $productos,
-    //         'total'     => count($productos),
-    //     ]);
-    // }
-
-    //Producto Paginado Catalogo/vista-web.app
-    public function index(Request $request){
-        $empresa = $request->query('empresa', currentCompany());
-        $page    = max(1, (int) $request->query('page', 1));
-        $search  = trim($request->query('q',''));
-
-        $result = (new ProductsModel())->getPaginatedProducts($page, 12, $empresa);
-
-        return view('catalogo.catalogo', [
-            'empresa'      => $empresa,
-            'productos'    => $result['data'],
-            'total'        => $result['total'],
-            'currentPage'  => $result['current_page'],
-            'lastPage'     => $result['last_page'],
-            'perPage'      => $result['per_page'],
-            'search'       => $search,
-        ]);
-    }
-
     // Mostrar detalle de un producto específico con presentaciones
     public function show(Request $request, string $codigo)
     {
@@ -65,27 +32,31 @@ class ProductsController extends Controller
         }
     }
 
-        public function indexSearch(Request $request){
+    public function index(Request $request){
         $empresa = currentCompany();
-        $search  = trim($request->query('q', ''));
         $page    = max(1, (int) $request->query('page', 1));
+        $model   = new ProductsModel();
 
-        if ($search !== '') {
-            // Búsqueda específica
-            $productos = (new ProductsModel())->searchProducts($search, $empresa);
+        $filters = [
+            'search'    => trim($request->query('q', '')),
+            'grupo'     => trim($request->query('grupo', '')),
+            'linea'     => trim($request->query('linea', '')),
+            'ubicacion' => trim($request->query('ubicacion', '')),
+            'precioMin' => (float) $request->query('precio_min', 0),
+            'precioMax' => (float) $request->query('precio_max', 0),
+            'orden'     => $request->query('orden', 'codigo'),
+        ];
 
-            return view('Catalogo.catalogo', [
-                'empresa'     => $empresa,
-                'productos'   => $productos,
-                'total'       => count($productos),
-                'currentPage' => 1,
-                'lastPage'    => 1,
-                'perPage'     => count($productos),
-                'search'      => $search,
-            ]);
-        }
-        // Sin búsqueda — paginación normal
-        $result = (new ProductsModel())->getPaginatedProducts($page, 12, $empresa);
+        $result = $model->getPaginatedProducts(
+            $page, 12, $empresa,
+            $filters['search'],
+            $filters['grupo'],
+            $filters['linea'],
+            $filters['ubicacion'],
+            $filters['precioMin'],
+            $filters['precioMax'],
+            $filters['orden'],
+        );
 
         return view('Catalogo.catalogo', [
             'empresa'     => $empresa,
@@ -94,7 +65,10 @@ class ProductsController extends Controller
             'currentPage' => $result['current_page'],
             'lastPage'    => $result['last_page'],
             'perPage'     => $result['per_page'],
-            'search'      => '',
+            'filters'     => $filters,
+            'grupos'      => $model->getGrupos($empresa),
+            'lineas'      => $model->getLineas($empresa),
+            'ubicaciones' => $model->getUbicaciones($empresa),
         ]);
     }
 }

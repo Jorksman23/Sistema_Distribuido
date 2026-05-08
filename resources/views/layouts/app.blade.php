@@ -180,9 +180,14 @@ function renderCart() {
     }
 }
 // BUSCADOR
+// document.getElementById('search').addEventListener('keypress', function(e) {
+//     if (e.key === 'Enter' && this.value.trim()) {
+//         window.location.href = '/catalogo/search?q=' + encodeURIComponent(this.value.trim());
+//     }
+// });
 document.getElementById('search').addEventListener('keypress', function(e) {
     if (e.key === 'Enter' && this.value.trim()) {
-        window.location.href = '/catalogo/search?q=' + encodeURIComponent(this.value.trim());
+        window.location.href = '{{ route("catalogo.index") }}?q=' + encodeURIComponent(this.value.trim());
     }
 });
 
