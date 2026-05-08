@@ -74,7 +74,7 @@
                     <div class="px-4 py-3 border-b text-gray-700 font-semibold truncate">
                         {{ session('nombre') }}
                     </div>
-                    <a href="#" class="block px-4 py-2 hover:bg-gray-50">Mi perfil</a>
+                    <a href="{{ route('profile.show') }}" class="block px-4 py-2 hover:bg-gray-50">Mi perfil</a>
                     <a href="#" class="block px-4 py-2 hover:bg-gray-50">Mis pedidos</a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
@@ -97,7 +97,7 @@
 </main>
 
 <footer class="bg-white mt-16 py-6 text-center text-sm text-gray-400">
-    © {{ date('Y') }} {{ config($empresaNombre) }}
+    © {{ date('Y') }} {{ config('app.name') }}. Todos los derechos reservados.
 </footer>
 
 <script>
