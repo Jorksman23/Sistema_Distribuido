@@ -7,10 +7,10 @@ use App\Models\ProductsModel;
 use App\Models\ProductPresentation;
 use Throwable;
 
+
 class ProductsController extends Controller
 {
-    // Mostrar detalle de un producto específico con presentaciones
-    public function show(Request $request, string $codigo)
+     public function show(Request $request, string $codigo)
     {
         try {
             $empresa  = $request->query('empresa', currentCompany());

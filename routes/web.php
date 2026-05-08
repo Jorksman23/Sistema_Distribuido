@@ -5,6 +5,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CarritoController;
 
+
 // HOME
 Route::get('/', [HomeController::class, 'viewHome']);
 
@@ -39,9 +40,8 @@ Route::get('/catalogo', [ProductsController::class, 'index'])->name('catalogo.in
 // Listado de productos
 Route::get('/products', [ProductsController::class, 'index'])->name('products.index');
 // Detalle de un producto específico
-Route::get('/products/{codigo}', [ProductsController::class, 'show'])->name('products.show');
 
-
+Route::get('/presentaciones/{codigo}', [ProductsController::class, 'show'])->name('products.show');
 
 
 //Actualizar perfil

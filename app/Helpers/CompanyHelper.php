@@ -45,11 +45,20 @@ if (!function_exists('productImageUrl')) {
         return companyImageBaseUrl() . ltrim($filename, '/');
     }
 }
-function presentationImageUrl(string $filename, string $ruc): string
-{
-    if (empty($filename)) {
-        return '';
-    }
-    return "http://186.101.203.76:10555/$ruc/product/" . trim($filename);
-}
 
+if (!function_exists('presentationImageUrl')) {
+    function presentationImageUrl(?string $filename, ?string $codigoProducto = null): ?string
+    {
+        if (empty($filename)) {
+            return null;
+        }
+
+        $base = companyImageBaseUrl();
+
+        if ($codigoProducto) {
+            return rtrim($base, '/') . '/' . $codigoProducto . '/' . ltrim($filename, '/');
+        }
+
+        return $base . ltrim($filename, '/');
+    }
+}
