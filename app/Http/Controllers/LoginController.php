@@ -28,13 +28,12 @@ class LoginController extends Controller
     }
 
     // Procesar login
-    public function login(Request $request)
-    {
+    public function login(Request $request){
         $request->validate([
             'email'    => 'required|email',
             'password' => 'required',
         ]);
-
+        // Buscar usuario por email y empresa activa
         $user = $this->model->findByEmail($request->email);
 
         if (!$user || !Hash::check($request->password, $user->contrasena)) {
@@ -42,14 +41,18 @@ class LoginController extends Controller
                 'email' => 'Credenciales incorrectas'
             ])->withInput();
         }
-
         // Verificar que el usuario esté activo
         if ($user->estado !== 'A') {
             return back()->withErrors([
                 'email' => 'Tu cuenta está inactiva'
             ]);
         }
-
+        // Verificar que el usuario pertenezca a la empresa activa
+        if ($user->empresa !== config('app.company_code', '001')) {
+            return back()->withErrors([
+                'email' => 'No tienes acceso a esta empresa.'
+            ]);
+        }
         // Guardar en sesión
         session([
             'user_id'  => $user->user_id,
@@ -57,7 +60,6 @@ class LoginController extends Controller
             'email'    => $user->email,
             'pw_codigo'=> $user->pw_codigo,
         ]);
-
         return redirect('/');
     }
 
@@ -72,7 +74,7 @@ class LoginController extends Controller
 
         if ($this->model->findByEmail($request->email)) {
             return back()->withErrors([
-                'email' => 'El email ya está registrado'
+                'email' => 'El email ya está registrado.'
             ])->withInput();
         }
         try{
@@ -86,15 +88,13 @@ class LoginController extends Controller
             'direccion'           => $request->direccion,
             'telefono'            => $request->telefono,
             'tipo_identificacion' => $request->tipo_identificacion,
-            'empresa'             => currentCompany(), // Asignar empresa actual
+            'empresa'             => config('app.company_code', '001'),
         ]);
-            return redirect('/login')->with('success', 'Cuenta creada, puedes iniciar sesión');
-            }catch (\Exception $e) {
-                dd($e->getMessage());
-            }
+        return redirect('/login')->with('success', 'Cuenta creada, puedes iniciar sesión');
+        }catch (\Exception $e) {
+            dd($e->getMessage());
         }
-
-
+    }
     // Cerrar sesión
     public function logout()
     {

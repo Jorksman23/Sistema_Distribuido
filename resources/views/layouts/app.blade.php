@@ -107,7 +107,7 @@
 </main>
 
 <footer class="bg-white mt-16 py-6 text-center text-sm text-gray-400">
-    © {{ date('Y') }} {{ config('app.name') }}. Todos los derechos reservados.
+    © {{ date('Y') }} {{ $nombreEmpresa->empresa ?? config('app.name') }}. Todos los derechos reservados.
 </footer>
 
 <script>
