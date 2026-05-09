@@ -60,33 +60,24 @@ class ProfileController extends Controller
     }
 
     // ── Cambiar contraseña ───────────────────────────────
-    public function updatePassword(Request $request)
-    {
+    public function updatePassword(Request $request){
         $userId = session('user_id');
-
         if (!$userId) {
             return redirect()->route('login');
         }
-
         $request->validate([
             'current'               => 'required',
             'password'              => 'required|min:6|confirmed',
             'password_confirmation' => 'required',
         ]);
-
         $model   = new login_model();
         $usuario = $model->findById($userId);
-
-        // Verificar contraseña actual
-        if (md5($request->current) !== $usuario->contrasena &&
-            $request->current      !== $usuario->contrasena) {
+        // ── Verificar contraseña actual con bcrypt ──────────
+        if (!password_verify($request->current, $usuario->contrasena)) {
             return back()->withErrors(['current' => 'La contraseña actual no es correcta.']);
         }
-
-        // Guardar nueva contraseña
-        $model->updatePassword($userId, md5($request->password));
-
-        return redirect()->route('profile.show')
-                         ->with('success_pass', '¡Contraseña cambiada correctamente!');
+        // ── Guardar nueva contraseña con bcrypt ─────────────
+        $model->updatePassword($userId, password_hash($request->password, PASSWORD_BCRYPT));
+        return redirect()->route('profile.show')->with('success_pass', '¡Contraseña cambiada correctamente!');
     }
 }

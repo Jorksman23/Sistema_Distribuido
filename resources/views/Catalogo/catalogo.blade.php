@@ -10,7 +10,7 @@
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sticky top-6">
 
             <div class="flex items-center gap-2 mb-5">
-                <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="w-5 h-5 text-[#0300a3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
                 </svg>
@@ -24,14 +24,14 @@
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Búsqueda</label>
                     <input type="text" name="q" value="{{ $filters['search'] }}"
                            placeholder="Buscar producto..."
-                           class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                           class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
                 </div>
 
                 {{-- GRUPO --}}
                 <div class="mb-5">
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Grupo</label>
                     <select name="grupo"
-                            class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                            class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
                         <option value="">Todos</option>
                         @foreach($grupos as $g)
                             <option value="{{ $g->codigo }}"
@@ -46,7 +46,7 @@
                 <div class="mb-5">
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Línea</label>
                     <select name="linea"
-                            class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                            class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
                         <option value="">Todas</option>
                         @foreach($lineas as $l)
                             <option value="{{ $l->codigo }}"
@@ -61,7 +61,7 @@
                 <div class="mb-5">
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Ubicación</label>
                     <select name="ubicacion"
-                            class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                            class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
                         <option value="">Todas</option>
                         @foreach($ubicaciones as $u)
                             <option value="{{ $u->codigo }}"
@@ -79,12 +79,12 @@
                         <input type="number" name="precio_min" min="0" step="0.01"
                                value="{{ $filters['precioMin'] ?: '' }}"
                                placeholder="Min"
-                               class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                               class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
                         <span class="text-gray-400 text-sm">—</span>
                         <input type="number" name="precio_max" min="0" step="0.01"
                                value="{{ $filters['precioMax'] ?: '' }}"
                                placeholder="Max"
-                               class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                               class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
                     </div>
                 </div>
 
@@ -92,7 +92,7 @@
                 <div class="mb-6">
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Ordenar por</label>
                     <select name="orden"
-                            class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                            class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
                         <option value="codigo"      {{ $filters['orden'] === 'codigo'      ? 'selected' : '' }}>Por defecto</option>
                         <option value="nombre"      {{ $filters['orden'] === 'nombre'      ? 'selected' : '' }}>Nombre</option>
                         <option value="precio_asc"  {{ $filters['orden'] === 'precio_asc'  ? 'selected' : '' }}>Precio ascendente</option>
@@ -102,14 +102,13 @@
 
                 {{-- BOTONES --}}
                 <button type="submit"
-                        class="w-full bg-orange-400 hover:bg-orange-500 text-white font-semibold py-2.5 rounded-xl transition mb-2">
+                        class="w-full bg-[#0300a3] hover:bg-[#0200cc] text-white font-semibold py-2.5 rounded-xl transition mb-2">
                     Aplicar filtros
                 </button>
                 <a href="{{ route('catalogo.index') }}"
-                   class="block w-full text-center text-sm text-gray-400 hover:text-gray-600 py-2 rounded-xl border border-gray-200 hover:border-gray-300 transition">
+                        class="block w-full text-center text-sm font-semibold text-white bg-gray-800 hover:bg-gray-900 py-2 rounded-xl transition">
                     Limpiar filtros
                 </a>
-
             </form>
         </div>
     </aside>
@@ -161,7 +160,7 @@
                                Ver detalle
                             </a>
                             <button onclick="addToCart('{{ $prod->codigo }}')"
-                                    class="flex-1 text-xs text-white bg-orange-400 px-2 py-1.5 rounded-lg hover:bg-orange-500 transition font-medium">
+                                    class="flex-1 text-xs text-white bg-[#0300a3] px-2 py-1.5 rounded-lg hover:bg-[#0200cc] transition font-medium">
                                 + Carrito
                             </button>
                         </div>
@@ -197,7 +196,7 @@
 
             @if($currentPage > 1)
                 <a href="?{{ http_build_query(array_merge($queryParams, ['page' => $currentPage - 1])) }}"
-                   class="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:border-orange-400 hover:text-orange-500 transition">
+                   class="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:border-[#0300a3] hover:text-[#0300a3] transition">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
@@ -217,7 +216,7 @@
             @for($i = $start; $i <= $end; $i++)
                 <a href="?{{ http_build_query(array_merge($queryParams, ['page' => $i])) }}"
                    class="w-9 h-9 flex items-center justify-center rounded-full text-sm font-medium transition
-                          {{ $i === $currentPage ? 'bg-orange-400 text-white shadow-sm' : 'text-gray-600 hover:bg-orange-50 hover:text-orange-500' }}">
+                          {{ $i === $currentPage ? 'bg-[#0300a3] text-white shadow-sm' : 'text-gray-600 hover:bg-[#0300a3]/10 hover:text-[#0300a3]' }}">
                     {{ $i }}
                 </a>
             @endfor
@@ -232,7 +231,7 @@
 
             @if($currentPage < $lastPage)
                 <a href="?{{ http_build_query(array_merge($queryParams, ['page' => $currentPage + 1])) }}"
-                   class="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:border-orange-400 hover:text-orange-500 transition">
+                   class="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:border-[#0300a3] hover:text-[#0300a3] transition">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
