@@ -11,10 +11,14 @@
 <body class="bg-gray-100 min-h-screen flex flex-col">
 
 <nav class="bg-white shadow px-6 py-3 flex items-center gap-4">
-
+    @php
+        $nombreEmpresa = \Illuminate\Support\Facades\DB::connection('odbc')
+        ->selectOne("SELECT TOP 1 empresa FROM DBA.ge_empresa WHERE codigo = ?",
+        [config('app.company_code', '001')]);
+    @endphp
     {{-- LOGO --}}
     <a href="/" class="text-xl font-bold text-blue-600 shrink-0">
-        {{ config('app.name') }}
+        {{ $nombreEmpresa->empresa ?? config('app.name') }}
     </a>
 
     {{-- LINKS --}}

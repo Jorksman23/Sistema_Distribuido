@@ -48,7 +48,7 @@ class ProductsController extends Controller
         ];
 
         $result = $model->getPaginatedProducts(
-            $page, 12, $empresa,
+            $page, 20, $empresa,
             $filters['search'],
             $filters['grupo'],
             $filters['linea'],
