@@ -3,11 +3,11 @@
 
 @section('content')
 <div class="max-w-8xl mx-auto mt-6 px-4 mb-16">
-<div class="flex gap-6">
+<div class="flex flex-col lg:flex-row gap-6">
 
     {{-- ===== SIDEBAR FILTROS ===== --}}
-    <aside class="w-72 shrink-0">
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sticky top-6">
+    <aside class="w-full lg:w-72 shrink-0">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 lg:sticky lg:top-6">
 
             <div class="flex items-center gap-2 mb-5">
                 <svg class="w-5 h-5 text-[#0300a3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -125,9 +125,9 @@
         </div>
 
         {{-- GRID --}}
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             @forelse($productos as $prod)
-                <div class="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 group">
+                <div class="min-w-0 bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 group">
 
                     <div class="relative overflow-hidden bg-gray-50">
                         <img src="{{ $prod->imagen_url }}"

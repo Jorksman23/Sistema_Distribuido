@@ -11,11 +11,11 @@
     }
 </style>
 
-<div class="max-w-5xl mx-auto mt-8 px-4 mb-16">
-<div class="flex flex-col md:flex-row gap-6">
+<div class="max-w-7xl mx-auto mt-6 sm:mt-8 px-3 sm:px-4 mb-16">
+<div class="flex flex-col lg:flex-row gap-6">
 
     {{-- ===== SIDEBAR CUENTA ===== --}}
-    <aside class="w-full md:w-56 shrink-0">
+    <aside class="w-full lg:w-56 shrink-0">
         {{-- Borde gris suave --}}
         <div class="bg-white rounded-2xl shadow-sm border border-gray-300 overflow-hidden">
 
@@ -31,7 +31,7 @@
                 </div>
 
                 {{-- Nombre con padding de 10px para nombres largos --}}
-                <p class="font-bold text-white text-sm px-[5px] whitespace-nowrap overflow-hidden text-ellipsis w-full">
+                <p class="font-bold text-white text-sm px-[5px] break-words text-center w-full leading-tight">
                     {{ $usuario->nombre }}
                 </p>
 
@@ -110,7 +110,7 @@
         @endif
 
         {{-- ===== INFORMACIÓN PERSONAL ===== --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
             <h2 class="font-bold text-gray-800 mb-5">Información Personal</h2>
 
             {{-- Datos de solo lectura (no editables) --}}
@@ -141,7 +141,7 @@
             <form method="POST" action="{{ route('profile.update') }}">
                 @csrf
                 @method('PUT')
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                     {{-- Nombre --}}
                     <div>
@@ -196,7 +196,7 @@
         </div>
 
         {{-- ===== CAMBIAR CONTRASEÑA ===== --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div class="min-w-0 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
             <h2 class="font-bold text-gray-800 mb-5">Cambiar contraseña</h2>
             <form method="POST" action="{{ route('profile.password') }}">
                 @csrf
@@ -268,7 +268,7 @@
         </div>
 
         {{-- ===== HISTORIAL DE PEDIDOS ===== --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
             <h2 class="font-bold text-gray-800 mb-5">Historial de Pedidos</h2>
 
             {{-- Estado vacío: sin pedidos aún --}}
