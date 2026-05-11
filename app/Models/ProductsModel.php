@@ -295,5 +295,28 @@ class ProductsModel
        ];
     }
 
+    //Carrusel de productos destacados
+    public function getProductosDestacados(int $limit = 20, string $empresa = null): array{
+        $empresa = $empresa ?? config('app.company_code', '001');
+        $rows = DB::connection($this->connection)->select("
+            SELECT TOP {$limit}
+                i.codigo,
+                i.empresa,
+                i.descripcion1,
+                i.pvp1,
+                i.imagen,
+                i.stock,
+                l.linea AS categoria
+            FROM DBA.in_item i
+            LEFT JOIN DBA.in_linea l
+                ON i.linea = l.codigo AND l.empresa = i.empresa
+            WHERE i.activo = 'S'
+            AND i.empresa = ?
+            AND i.imagen IS NOT NULL
+            AND i.pvp1 > 0
+            ORDER BY i.stock DESC
+        ", [$empresa]);
+        return array_map(fn($r) => $this->mapRowToInstance($r), $rows);
+    }
 }
 

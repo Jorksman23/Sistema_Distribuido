@@ -15,32 +15,23 @@ class HomeController extends Controller
     {
         $this->model = new login_model();
     }
+    // Método nuevo para el carrusel
+    public function homeConCarrusel(Request $request){
+        $empresa  = config('app.company_code', '001');
+        $model    = new ProductsModel();
 
-    public function viewHome(Request $request)
-    {
-        $empresa   = $request->query('empresa', currentCompany());
-
-        // Traemos hasta 4 productos destacados directamente desde ProductsModel
-        $productos = (new ProductsModel())->getActiveProducts(4, $empresa);
+        $productos = $model->getActiveProducts(4, $empresa);
+        $carrusel  = $model->getProductosDestacados(16, $empresa);
 
         return view('Home.Home', [
             'empresa'   => $empresa,
             'productos' => $productos,
+            'carrusel'  => $carrusel,
         ]);
     }
-
 }
 
 
-    // public function viewHome()
-    // {
-    //     return view('Home.Home');
-    // }
 
-    // public function viewHome(){
-    //     return view('Home.Home', [
-    //         'empresa' => Empresa::getNombre()
-    //     ]);
-    // }
 
 
