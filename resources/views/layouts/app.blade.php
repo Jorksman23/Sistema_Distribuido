@@ -81,7 +81,7 @@
                             {{ session('nombre') }}
                         </div>
                         <a href="{{ route('profile.show') }}" class="block px-4 py-2 hover:bg-gray-50">Mi perfil</a>
-                        <a href="#" class="block px-4 py-2 hover:bg-gray-50">Agregar método de pago</a>
+                        <a href="#" class="block px-4 py-2 hover:bg-gray-50">Mis pedidos</a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit"
