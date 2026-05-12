@@ -29,7 +29,6 @@
                 Ir al catálogo
             </a>
         </div>
-
     @else
         {{-- GRID DE PRODUCTOS --}}
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
@@ -40,14 +39,13 @@
                     <div class="relative overflow-hidden bg-gray-50">
                         <a href="{{ route('products.show', $item->codigo_item) }}">
                             <img src="{{ $item->imagen_url }}"
-                                 alt="{{ $item->nombre }}"
-                                 class="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
-                                 onerror="this.onerror=null;this.src='https://placehold.co/300x300?text=Sin+imagen'">
+                                alt="{{ $item->nombre }}"
+                                class="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
+                                onerror="this.onerror=null;this.src='https://placehold.co/300x300?text=Sin+imagen'">
                         </a>
-
                         {{-- BOTÓN ELIMINAR DE WISHLIST --}}
                         <form method="POST" action="{{ route('wishlist.toggle') }}"
-                              class="absolute top-2 right-2">
+                            class="absolute top-2 right-2">
                             @csrf
                             <input type="hidden" name="codigo_item" value="{{ $item->codigo_item }}">
                             <input type="hidden" name="redirect_to"  value="wishlist">
@@ -67,21 +65,15 @@
                             {{ $item->nombre }}
                         </h3>
                         <p class="text-sm font-bold text-gray-900">${{ $item->pvp3 }}</p>
-
                         <div class="mt-2 flex gap-1.5">
                             <a href="{{ route('products.show', $item->codigo_item) }}"
-                               class="flex-1 text-center text-xs text-white bg-gray-800 hover:bg-gray-900 py-1.5 rounded-lg transition font-medium">
+                            class="flex-1 text-center text-xs text-white bg-gray-800 hover:bg-gray-900 py-1.5 rounded-lg transition font-medium">
                                 Ver detalle
                             </a>
-                            <form method="POST" action="{{ route('wishlist.toggle') }}">
-                                @csrf
-                                <input type="hidden" name="codigo_item" value="{{ $item->codigo_item }}">
-                                <input type="hidden" name="redirect_to"  value="wishlist">
-                                <button type="submit"
-                                        class="flex-1 text-xs text-white bg-[#0300a3] hover:bg-[#0200cc] py-1.5 px-2 rounded-lg transition font-medium">
-                                    Eliminar
-                                </button>
-                            </form>
+                            <button onclick="addToCart('{{ $item->codigo_item }}')"
+                                    class="flex-1 text-xs text-white bg-[#0300a3] hover:bg-[#0200cc] py-1.5 px-2 rounded-lg transition font-medium">
+                                + Carrito
+                            </button>
                         </div>
                     </div>
                 </div>
