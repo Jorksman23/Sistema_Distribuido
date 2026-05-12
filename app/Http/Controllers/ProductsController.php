@@ -14,7 +14,6 @@ class ProductsController extends Controller
     {
         try {
             $empresa  = $request->query('empresa', currentCompany());
-
             // Usamos directamente ProductPresentation para obtener producto + presentaciones
             $producto = (new ProductPresentation())->getByProduct($codigo, $empresa, 5);
 
@@ -58,7 +57,7 @@ class ProductsController extends Controller
             $filters['orden'],
         );
 
-        return view('Catalogo.catalogo', [
+        return view('catalogo.catalogo', [
             'empresa'     => $empresa,
             'productos'   => $result['data'],
             'total'       => $result['total'],

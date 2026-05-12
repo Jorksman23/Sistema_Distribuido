@@ -6,19 +6,16 @@
     <title>@yield('title', config('app.name'))</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-@stack('scripts')
+    @stack('scripts')
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
 
-<nav class="bg-white shadow-sm border-b border-gray-100">
-    @php
-        $nombreEmpresa = \Illuminate\Support\Facades\DB::connection('odbc')
-        ->selectOne("SELECT TOP 1 empresa FROM DBA.ge_empresa WHERE codigo = ?",
-        [config('app.company_code', '001')]);
-    @endphp
+    @include('partials.navbar')
 
-    {{-- FILA PRINCIPAL --}}
-    <div class="px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-3">
+    <main class="flex-1">
+        @yield('content')
+    </main>
+
 
         {{-- LOGO --}}
         <a href="/" class="text-xl font-bold text-blue-600 shrink-0">
@@ -293,6 +290,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     </div>
 </div>
-
+    @include('partials.footer')
+    @include('partials.cart-drawer')
 </body>
 </html>

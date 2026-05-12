@@ -34,9 +34,9 @@
                             class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
                         <option value="">Todos</option>
                         @foreach($grupos as $g)
-                            <option value="{{ $g->codigo }}"
-                                {{ $filters['grupo'] == $g->codigo ? 'selected' : '' }}>
-                                {{ $g->grupo }}
+                            <option value="{{ $g['codigo'] }}"
+                                {{ $filters['grupo'] == $g['codigo'] ? 'selected' : '' }}>
+                                {{ $g['grupo'] }}
                             </option>
                         @endforeach
                     </select>
@@ -49,9 +49,9 @@
                             class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
                         <option value="">Todas</option>
                         @foreach($lineas as $l)
-                            <option value="{{ $l->codigo }}"
-                                {{ $filters['linea'] == $l->codigo ? 'selected' : '' }}>
-                                {{ $l->linea }}
+                            <option value="{{ $l['codigo'] }}"
+                                {{ $filters['linea'] == $l['codigo'] ? 'selected' : '' }}>
+                                {{ $l['linea'] }}
                             </option>
                         @endforeach
                     </select>
@@ -64,9 +64,9 @@
                             class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
                         <option value="">Todas</option>
                         @foreach($ubicaciones as $u)
-                            <option value="{{ $u->codigo }}"
-                                {{ $filters['ubicacion'] == $u->codigo ? 'selected' : '' }}>
-                                {{ $u->ubicacion }}
+                            <option value="{{ $u['codigo'] }}"
+                                {{ $filters['ubicacion'] == $u['codigo'] ? 'selected' : '' }}>
+                                {{ $u['ubicacion'] }}
                             </option>
                         @endforeach
                     </select>

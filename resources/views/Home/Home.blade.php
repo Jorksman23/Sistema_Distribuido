@@ -2,19 +2,6 @@
 @section('title', 'Tienda')
 
 @section('content')
-
-{{-- HERO --}}
-<div class="max-w-7xl mx-auto mt-6 px-4">
-    <div class="bg-gradient-to-r from-orange-400 to-yellow-500 rounded-xl p-10 text-white">
-        <h2 class="text-4xl font-bold mb-3">Elevate Your Lifestyle</h2>
-        <p>Productos premium con ofertas</p>
-        <a href="{{ route('products.index') }}"
-           class="mt-4 inline-block bg-blue-600 px-5 py-2 rounded text-white hover:bg-blue-700">
-           Ver productos
-        </a>
-    </div>
-</div>
-
 {{-- ===== CARRUSEL INFINITO ===== --}}
 @if(isset($carrusel) && count($carrusel) > 0)
 <div class="mt-12 mb-4">

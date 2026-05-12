@@ -146,7 +146,6 @@ class ProductsModel
     //Bsuqueda de productos por descripción
     public function searchProducts(string $search, string $empresa = null): array{
             $empresa = $empresa ?? currentCompany();
-
             $searchOriginal   = '%' . $search . '%';
             $searchNormalizado = '%' . $this->normalizeString($search) . '%';
 
@@ -164,49 +163,59 @@ class ProductsModel
                     ON i.linea = l.codigo AND l.empresa = i.empresa
                 WHERE i.activo = 'S'
                 AND i.empresa = ?
-                AND i.descripcion1 LIKE ?
-                OR i.descripcion1 LIKE ?
+                AND (i.descripcion1 LIKE ? OR i.descripcion1 LIKE ?)
                 ORDER BY i.codigo
             ", [$empresa, $searchOriginal, $searchNormalizado]);
 
             return array_map(fn($r) => $this->mapRowToInstance($r), $rows);
     }
 
-//Trabajando en el filtrado esto es lo nuevo
-    // ── Obtener Grupos ───────────────────────────────────
+    //Trabajando en el filtrado de productos por grupo, línea, ubicación y rango de precios
+    //Obtener Grupos - con caché de cada 6 hrs para optimizar
     public function getGrupos(string $empresa = null): array
-    {
-        $empresa = $empresa ?? currentCompany();
-        return DB::connection($this->connection)->select("
+{
+    $empresa = $empresa ?? currentCompany();
+    return cache()->remember("grupos_{$empresa}", now()->addHours(6), function () use ($empresa) {
+        $rows = DB::connection($this->connection)->select("
             SELECT codigo, grupo
             FROM DBA.in_grupo
             WHERE empresa = ?
             ORDER BY grupo
         ", [$empresa]);
+        // Convertir a array para que el caché lo serialice correctamente
+        return array_map(fn($r) => (array) $r, $rows);
+    });
+}
+
+    //Obtener Líneas - Agg caché de cada 6 hrs para optimizar
+    public function getLineas(string $empresa = null): array{
+        $empresa = $empresa ?? currentCompany();
+
+        return cache()->remember("lineas_{$empresa}", now()->addHours(6), function () use ($empresa) {
+            $rows = DB::connection($this->connection)->select("
+                SELECT codigo, linea
+                FROM DBA.in_linea
+                WHERE empresa = ?
+                ORDER BY linea
+            ", [$empresa]);
+            return array_map(fn($r) => (array) $r, $rows);
+        });
     }
 
-    // ── Obtener Líneas ───────────────────────────────────
-    public function getLineas(string $empresa = null): array
-    {
+    //Obtener Ubicaciones - Agg caché de cada 6 hrs para optimizar
+    public function getUbicaciones(string $empresa = null): array{
         $empresa = $empresa ?? currentCompany();
-        return DB::connection($this->connection)->select("
-            SELECT codigo, linea
-            FROM DBA.in_linea
-            WHERE empresa = ?
-            ORDER BY linea
-        ", [$empresa]);
-    }
 
-    // ── Obtener Ubicaciones ──────────────────────────────
-    public function getUbicaciones(string $empresa = null): array
-    {
-        $empresa = $empresa ?? currentCompany();
-        return DB::connection($this->connection)->select("
-            SELECT codigo, ubicacion
-            FROM DBA.in_ubicacion
-            WHERE empresa = ?
-            ORDER BY ubicacion
-        ", [$empresa]);
+        return cache()->remember("ubicaciones_{$empresa}", now()->addHours(6), function () use ($empresa) {
+            $rows = DB::connection($this->connection)->select("
+                SELECT codigo, ubicacion
+                FROM DBA.in_ubicacion
+                WHERE empresa = ?
+                ORDER BY ubicacion
+            ", [$empresa]);
+
+            return array_map(fn($r) => (array) $r, $rows);
+        });
     }
 
     public function getPaginatedProducts(

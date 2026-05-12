@@ -59,11 +59,12 @@ class LoginController extends Controller
             'nombre'   => $user->nombre,
             'email'    => $user->email,
             'pw_codigo'=> $user->pw_codigo,
+            'cod_cliente'=> (string) $user->user_id,
         ]);
         return redirect('/');
     }
 
-    // Procesar register
+    // Procesar registro
     public function register(Request $request)
     {
         $request->validate([
@@ -73,26 +74,24 @@ class LoginController extends Controller
         ]);
 
         if ($this->model->findByEmail($request->email)) {
-            return back()->withErrors([
-                'email' => 'El email ya está registrado.'
-            ])->withInput();
+            return back()->withErrors(['email' => 'El email ya está registrado.'])->withInput();
         }
         try{
-        $this->model->createUser([
-            'pw_codigo'           => 'USR' . substr(time(),-7),
-            'nombre'              => $request->nombre,
-            'cedula_ruc'          => $request->cedula_ruc,
-            'email'               => $request->email,
-            'contrasena'          => Hash::make($request->password),
-            'estado'              => 'A',
-            'direccion'           => $request->direccion,
-            'telefono'            => $request->telefono,
-            'tipo_identificacion' => $request->tipo_identificacion,
-            'empresa'             => config('app.company_code', '001'),
+            $this->model->createUser([
+                'pw_codigo'           => 'USR' . substr(time(),-7),
+                'nombre'              => $request->nombre,
+                'cedula_ruc'          => $request->cedula_ruc,
+                'email'               => $request->email,
+                'contrasena'          => Hash::make($request->password),
+                'estado'              => 'A',
+                'direccion'           => $request->direccion,
+                'telefono'            => $request->telefono,
+                'tipo_identificacion' => $request->tipo_identificacion,
+                'empresa'             => config('app.company_code', '001'),
         ]);
-        return redirect('/login')->with('success', 'Cuenta creada, puedes iniciar sesión');
+            return redirect('/login')->with('success', 'Cuenta creada, puedes iniciar sesión');
         }catch (\Exception $e) {
-            dd($e->getMessage());
+            return back()->withErrors(['error' => 'Error al crear cuenta: ' . $e->getMessage()]);
         }
     }
     // Cerrar sesión

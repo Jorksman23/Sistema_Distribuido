@@ -28,14 +28,14 @@ Route::post('/logout',  [LoginController::class, 'logout'])->name('logout');
 // PRODUCTOS
 // CATÁLOGO Paginado
 Route::get('/catalogo', [ProductsController::class, 'index'])->name('catalogo.index');
-Route::get('/products', [ProductsController::class, 'index'])->name('products.index');
+
 // Detalle de un producto específico
 
 Route::get('/presentaciones/{codigo}', [ProductsController::class, 'show'])->name('products.show');
 
 
 //Actualizar perfil
-Route::middleware('auth.token')->put('/profile', [LoginController::class, 'updateProfile']);
+//Route::middleware('auth.token')->put('/profile', [LoginController::class, 'updateProfile']);
 
 // CARRITO
 // Mostrar carrito del usuario

@@ -87,7 +87,7 @@
         icon: 'success',
         title: '¡Cuenta creada!',
         text: "{{ session('success') }}",
-        confirmButtonColor: '#6366f1'
+        confirmButtonColor: '#3E7CB4'
     });
 </script>
 @endif
@@ -98,7 +98,7 @@
         icon: 'error',
         title: 'Error al registrarse',
         text: "{{ $errors->first() }}",
-        confirmButtonColor: '#6366f1'
+        confirmButtonColor: '#3E7CB4'
     });
 </script>
 @endif
