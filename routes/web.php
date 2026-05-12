@@ -1,10 +1,11 @@
 <?php
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProductsController;
-use App\Http\Controllers\LoginController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\CarritoController;
+use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProductsController;
+use App\Http\Controllers\CarritoController;
+use App\Http\Controllers\WhishListController;
 
 // HOME
 Route::get('/', [HomeController::class, 'homeConCarrusel']);
@@ -30,12 +31,13 @@ Route::post('/logout',  [LoginController::class, 'logout'])->name('logout');
 Route::get('/catalogo', [ProductsController::class, 'index'])->name('catalogo.index');
 
 // Detalle de un producto específico
-
 Route::get('/presentaciones/{codigo}', [ProductsController::class, 'show'])->name('products.show');
 
-
-//Actualizar perfil
-//Route::middleware('auth.token')->put('/profile', [LoginController::class, 'updateProfile']);
+// WISHLIST - Lista de deseos
+Route::middleware('auth.custom')->group(function () {
+    Route::get('/wishlist',         [WhishListController::class, 'index'])->name('wishlist.index');
+    Route::post('/wishlist/toggle', [WhishListController::class, 'toggle'])->name('wishlist.toggle');
+});
 
 // CARRITO
 // Mostrar carrito del usuario

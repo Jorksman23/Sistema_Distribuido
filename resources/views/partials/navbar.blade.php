@@ -33,12 +33,18 @@
         <div class="flex items-center gap-3 ml-auto">
 
             {{-- WISHLIST --}}
-            <button onclick="requireAuth(event, '/wishlist')" class="hover:scale-110 transition">
-                <svg class="w-6 h-6 text-gray-700 hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                </svg>
-            </button>
+            <a href="{{ route('wishlist.index') }}" class="hover:scale-110 transition relative">
+            <svg class="w-6 h-6 text-gray-700 hover:text-red-500 transition"
+                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+            @if(session('user_id') && isset($wishCount) && $wishCount > 0)
+                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                    {{ $wishCount }}
+                </span>
+            @endif
+            </a>
 
             {{-- CARRITO --}}
             <button onclick="toggleCart()" class="hover:scale-110 transition relative">
