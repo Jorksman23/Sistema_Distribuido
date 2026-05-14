@@ -23,7 +23,11 @@ class CarritoModel
     public $presentacion;
     public $nombre_presentacion;
 
-    // ── Obtener carrito activo de un cliente ─────────────
+    const ESTATUS_ACTIVO = '1';
+    const ESTATUS_PROCESANDO = '2';
+
+
+    //Obtener carrito activo de un clientE
     public function getCarritoByUser(string $codCliente): array
     {
         $rows = DB::connection($this->connection)->select("
@@ -46,7 +50,7 @@ class CarritoModel
                 ON  p.codigo  = c.presentacion
                 AND p.producto = c.codigo_item
             WHERE c.cod_cliente = ?
-            AND   c.estatus     = 'A'
+            AND   c.estatus     = '1'
             ORDER BY c.id_item_web DESC
         ", [$codCliente]);
 
@@ -62,7 +66,7 @@ class CarritoModel
             WHERE cod_cliente = ?
             AND   codigo_item = ?
             AND   presentacion = ?
-            AND   estatus     = 'A'
+            AND   estatus     = '1'
         ", [$codCliente, $codigoItem, $presentacion]);
 
         return $row !== null;
@@ -77,7 +81,7 @@ class CarritoModel
             WHERE cod_cliente  = ?
             AND   codigo_item  = ?
             AND   presentacion = ?
-            AND   estatus      = 'A'
+            AND   estatus      = '1'
         ", [$codCliente, $codigoItem, $presentacion]);
 
         return $row ? $this->mapRowToInstance($row) : null;
@@ -89,7 +93,7 @@ class CarritoModel
         return DB::connection($this->connection)->insert("
             INSERT INTO {$this->table}
             (codigo_item, nombre, costo_real, pvp3, cantidad, cod_cliente, imagen, estatus, iva, presentacion)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'A', ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, '1', ?, ?)
         ", [
             $data['codigo_item'],
             $data['nombre'],
@@ -111,7 +115,7 @@ class CarritoModel
             SET cantidad  = ?
             WHERE id_item_web = ?
             AND   cod_cliente = ?
-            AND   estatus     = 'A'
+            AND   estatus     = '1'
         ", [$cantidad, $idItemWeb, $codCliente]);
     }
 
@@ -131,7 +135,7 @@ class CarritoModel
         return DB::connection($this->connection)->delete("
             DELETE FROM {$this->table}
             WHERE cod_cliente = ?
-            AND   estatus     = 'A'
+            AND   estatus     = '1'
         ", [$codCliente]);
     }
 
@@ -142,7 +146,7 @@ class CarritoModel
             SELECT COUNT(*) AS total
             FROM {$this->table}
             WHERE cod_cliente = ?
-            AND   estatus     = 'A'
+            AND   estatus     = '1'
         ", [$codCliente]);
 
         return (int) ($row->total ?? 0);
@@ -158,7 +162,7 @@ class CarritoModel
             ) AS total
             FROM {$this->table}
             WHERE cod_cliente = ?
-            AND   estatus     = 'A'
+            AND   estatus     = '1'
         ", [$codCliente]);
 
         return (float) ($row->total ?? 0);

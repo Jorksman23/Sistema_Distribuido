@@ -94,18 +94,18 @@
                                 <input type="hidden" name="id_item_web" value="{{ $item->id_item_web }}">
                                 <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
                                     <button type="submit" name="cantidad" value="{{ max(1, $item->cantidad - 1) }}"
-                                            class="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition text-sm font-bold">
+                                            class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-red-50 text-red-500 hover:text-red-700 transition">
                                         −
                                     </button>
                                     <span class="w-8 text-center text-xs font-semibold text-gray-800">
                                         {{ $item->cantidad }}
                                     </span>
                                     <button type="submit" name="cantidad" value="{{ $item->cantidad + 1 }}"
-                                            class="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition text-sm font-bold">
+                                            class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-red-50 text-red-500 hover:text-red-700 transition">
                                         +
                                     </button>
                                 </div>
-                                <span class="text-xs text-gray-400">
+                                <span class="text-xs text-gray-600 font-medium">
                                     = ${{ number_format($item->pvp3 * $item->cantidad, 2) }}
                                 </span>
                             </form>
@@ -136,7 +136,8 @@
                 @csrf
                 <button type="submit"
                         onclick="return confirm('¿Vaciar todo el carrito?')"
-                        class="w-full text-xs text-gray-400 hover:text-red-500 transition py-2">
+                        class="w-full flex justify-content gap-2 px-3 py-2 rounded-xl text-sm font-medium
+                                       text-red-400 hover:bg-red-50 hover:text-red-600 transition">
                     Vaciar carrito
                 </button>
             </form>
@@ -155,16 +156,16 @@
             </div>
 
             {{-- BOTÓN CHECKOUT --}}
-            <a href="{{ route('checkout.index') }}"
-               class="block w-full text-center bg-[#0300a3] hover:bg-[#0200cc] text-white font-semibold py-3 rounded-xl transition">
+            <a href="#"
+            class="block w-full text-center bg-[#0300a3] hover:bg-[#0200cc] text-white font-semibold py-3 rounded-xl transition">
                 Proceder al pago
             </a>
 
             {{-- SEGUIR COMPRANDO --}}
-            <button onclick="window.history.back()"
-                    class="block w-full text-center text-sm text-gray-400 hover:text-gray-600 transition mt-3">
+            <a href="{{ route('catalogo.index') }}"
+            class="block w-full text-center text-sm text-white bg-gray-800 hover:bg-gray-900 font-medium py-3 rounded-xl transition mt-3">
                 ← Seguir comprando
-            </button>
+            </a>
         </div>
     @endif
 

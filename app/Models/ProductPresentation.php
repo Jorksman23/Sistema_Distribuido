@@ -10,6 +10,7 @@ class ProductPresentation
     protected $connection = 'odbc';
     protected $table = 'DBA.in_item_presentacion';
     //protected $codigo;
+    public $codigo;
     public $producto;
     public $nombre;
     public $foto;
@@ -32,6 +33,7 @@ class ProductPresentation
         $rows = DB::connection($this->connection)->select("
             SELECT TOP {$limit}
                 producto,
+                codigo,
                 nombre,
                 foto
             FROM {$this->table}
@@ -66,6 +68,7 @@ class ProductPresentation
     private function mapRowToInstance($row, string $codigoProducto)
     {
         $instance = new self();
+        $instance->codigo    = $row->codigo;
         $instance->producto  = $row->producto;
         $instance->nombre    = self::cleanString($row->nombre);
         $instance->foto      = $row->foto;

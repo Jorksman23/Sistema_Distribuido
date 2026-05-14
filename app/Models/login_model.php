@@ -112,6 +112,29 @@ class login_model implements AuthenticatableContract
             $user_id
         ]);
     }
+
+    // ── Buscar usuario por ID ────────────────────────────
+        public function findById($userId){
+            $row = DB::connection($this->connection)
+                ->selectOne("SELECT TOP 1 * FROM DBA.pw_ge_usuarios WHERE user_id = ?", [$userId]);
+
+            if (!$row) return null;
+
+            $instance = new self();
+            $instance->user_id             = $row->user_id;
+            $instance->pw_codigo           = $row->pw_codigo;
+            $instance->nombre              = $row->nombre;
+            $instance->email               = $row->email;
+            $instance->contrasena          = $row->contrasena;
+            $instance->estado              = $row->estado;
+            $instance->empresa             = $row->empresa             ?? null;
+            $instance->cedula_ruc          = $row->cedula_ruc          ?? null;
+            $instance->direccion           = $row->direccion           ?? null;
+            $instance->telefono            = $row->telefono            ?? null;
+            $instance->tipo_identificacion = $row->tipo_identificacion ?? null;
+
+            return $instance;
+        }
 //Actualizar contraseña
         public function updatePassword($userId, string $nuevaContrasena){
             return DB::connection($this->connection)->update("

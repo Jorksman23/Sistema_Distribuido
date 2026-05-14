@@ -27,7 +27,7 @@
 
                 <div id="thumbnails" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 sm:gap-4">
                     @foreach($producto['presentaciones'] as $index => $pres)
-                        <div onclick="changeImage(this, '{{ $pres->foto_url }}')"
+                        <div onclick="changeImage(this, '{{ $pres->foto_url }}', {{ $pres->codigo }})"
                              class="thumbnail group cursor-pointer rounded-xl overflow-hidden border-2 transition-all hover:scale-105
                                     {{ $index === 0 ? 'border-blue-600 shadow-md' : 'border-transparent' }}">
                             <img src="{{ $pres->foto_url }}"
@@ -62,11 +62,19 @@
                 </div>
 
                 <div class="mt-auto space-y-4">
-                    <button onclick="addToCart('{{ $producto['codigo'] }}')"
+                    <form method="POST" action="{{ route('carrito.add') }}">
+                    @csrf
+                    <input type="hidden" name="codigo_item"  value="{{ $producto['codigo'] }}">
+                    <input type="hidden" name="nombre"        value="{{ $producto['descripcion'] }}">
+                    <input type="hidden" name="pvp3"          value="{{ $producto['precio'] }}">
+                    <input type="hidden" name="imagen"        value="{{ $producto['imagen'] }}">
+                    <input type="hidden" name="presentacion"  id="presentacionSeleccionada" value="0">
+                    <button type="submit"
                             class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-5 sm:py-6 rounded-2xl flex items-center justify-center gap-3 text-base sm:text-lg transition-all">
                         <span>Añadir al carrito</span>
                         <span class="text-2xl">🛒</span>
                     </button>
+                </form>
 
                     <a href="{{ route('catalogo.index') }}"
                        class="w-full block text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-5 sm:py-6 rounded-2xl transition-all">
@@ -83,7 +91,7 @@
 </div>
 
 <script>
-function changeImage(element, newSrc) {
+function changeImage(element, newSrc, codigoPresentacion) {
     document.getElementById('mainImage').src = newSrc;
 
     document.querySelectorAll('.thumbnail').forEach(thumb => {
@@ -92,10 +100,9 @@ function changeImage(element, newSrc) {
     });
 
     element.classList.add('border-blue-600', 'shadow-md');
-}
 
-function addToCart(codigo) {
-    alert(`✅ Producto ${codigo} añadido al carrito`);
+    // Guardar la presentación seleccionada
+    document.getElementById('presentacionSeleccionada').value = codigoPresentacion ?? 0;
 }
 </script>
 @endsection

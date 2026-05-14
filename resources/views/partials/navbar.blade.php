@@ -47,13 +47,17 @@
             </a>
 
             {{-- CARRITO  AQUI VAMOS A HACER EL CAMBIO--}}
-            <button onclick="toggleCart()" class="hover:scale-110 transition relative">
-                🛒
-                <span id="carritoCount"
-                    class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                    0
-                </span>
-            </button>
+            <a href="{{ route('carrito.index') }}" class="hover:scale-110 transition relative">
+                <svg class="w-6 h-6 text-gray-700 hover:text-[#0300a3] transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                @if(session('user_id') && isset($carritoCount) && $carritoCount > 0)
+                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                        {{ $carritoCount }}
+                    </span>
+                @endif
+            </a>
 
             {{-- USUARIO --}}
             <div class="relative">

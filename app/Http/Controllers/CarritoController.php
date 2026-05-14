@@ -136,7 +136,8 @@ class CarritoController extends Controller
             session()->forget('carrito_count');
 
         } catch (Throwable $e) {
-            return back()->withErrors(['error' => 'Error al actualizar: ' . $e->getMessage()]);
+            dd($e->getMessage());
+            //return back()->withErrors(['error' => 'Error al actualizar: ' . $e->getMessage()]);
         }
 
         return back();

@@ -170,10 +170,18 @@
                                class="flex-1 text-center text-xs text-white bg-gray-800 px-2 py-1.5 rounded-lg hover:bg-gray-900 transition font-medium">
                                Ver detalle
                             </a>
-                            <button onclick="addToCart('{{ $prod->codigo }}')"
-                                    class="flex-1 text-xs text-white bg-[#0300a3] px-2 py-1.5 rounded-lg hover:bg-[#0200cc] transition font-medium">
-                                + Carrito
-                            </button>
+                            <form method="POST" action="{{ route('carrito.add') }}">
+                                @csrf
+                                <input type="hidden" name="codigo_item"  value="{{ $prod->codigo }}">
+                                <input type="hidden" name="nombre"       value="{{ $prod->descripcion1 }}">
+                                <input type="hidden" name="pvp3"         value="{{ $prod->pvp1 }}">
+                                <input type="hidden" name="imagen"       value="{{ $prod->imagen }}">
+                                <input type="hidden" name="presentacion" value="0">
+                                <button type="submit"
+                                        class="flex-1 text-xs text-white bg-[#0300a3] px-2 py-1.5 rounded-lg hover:bg-[#0200cc] transition font-medium">
+                                    + Carrito
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
