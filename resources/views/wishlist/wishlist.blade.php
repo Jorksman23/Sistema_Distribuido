@@ -29,6 +29,7 @@
                 Ir al catálogo
             </a>
         </div>
+
     @else
         {{-- GRID DE PRODUCTOS --}}
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
@@ -39,10 +40,11 @@
                     <div class="relative overflow-hidden bg-gray-50">
                         <a href="{{ route('products.show', $item->codigo_item) }}">
                             <img src="{{ $item->imagen_url }}"
-                                alt="{{ $item->nombre }}"
-                                class="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
-                                onerror="this.onerror=null;this.src='https://placehold.co/300x300?text=Sin+imagen'">
+                                 alt="{{ $item->nombre }}"
+                                 class="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
+                                 onerror="this.onerror=null;this.src='https://placehold.co/300x300?text=Sin+imagen'">
                         </a>
+
                         {{-- BOTÓN ELIMINAR DE WISHLIST --}}
                         <form method="POST" action="{{ route('wishlist.toggle') }}"
                             class="absolute top-2 right-2">

@@ -9,7 +9,7 @@ class ProductPresentation
 {
     protected $connection = 'odbc';
     protected $table = 'DBA.in_item_presentacion';
-
+    //protected $codigo;
     public $producto;
     public $nombre;
     public $foto;
@@ -83,7 +83,6 @@ class ProductPresentation
         if ($converted === false) {
             $converted = @iconv('Windows-1252', 'UTF-8//IGNORE', $value);
         }
-
         return $converted !== false ? trim($converted) : trim($value);
     }
 }

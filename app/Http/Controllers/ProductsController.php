@@ -14,6 +14,7 @@ class ProductsController extends Controller
     {
         try {
             $empresa  = $request->query('empresa', currentCompany());
+
             // Usamos directamente ProductPresentation para obtener producto + presentaciones
             $producto = (new ProductPresentation())->getByProduct($codigo, $empresa, 5);
 

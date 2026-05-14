@@ -40,7 +40,7 @@ class ProductsModel
         $row = DB::connection($this->connection)->selectOne("
             SELECT TOP 1 *
             FROM DBA.in_item
-            WHERE codigo = ? AND empresa = ? AND activo = 'S'
+            WHERE codigo = ? AND empresa = ? AND stock in ('S', 'N')
         ", [$codigo, $empresa]);
 
         if (!$row) return null;
@@ -89,7 +89,7 @@ class ProductsModel
             FROM DBA.in_item i
             LEFT JOIN DBA.in_linea l
                 ON i.linea = l.codigo AND l.empresa = i.empresa
-            WHERE i.activo = 'S' AND i.empresa = ?
+            WHERE i.stock in ('S', 'N') AND i.empresa = ?
             ORDER BY i.codigo
         ", [$empresa]);
 
@@ -161,7 +161,7 @@ class ProductsModel
                 FROM DBA.in_item i
                 LEFT JOIN DBA.in_linea l
                     ON i.linea = l.codigo AND l.empresa = i.empresa
-                WHERE i.activo = 'S'
+                WHERE i.stock in ('S', 'N')
                 AND i.empresa = ?
                 AND (i.descripcion1 LIKE ? OR i.descripcion1 LIKE ?)
                 ORDER BY i.codigo
@@ -205,7 +205,6 @@ class ProductsModel
     //Obtener Ubicaciones - Agg caché de cada 6 hrs para optimizar
     public function getUbicaciones(string $empresa = null): array{
         $empresa = $empresa ?? currentCompany();
-
         return cache()->remember("ubicaciones_{$empresa}", now()->addHours(6), function () use ($empresa) {
             $rows = DB::connection($this->connection)->select("
                 SELECT codigo, ubicacion
@@ -233,7 +232,7 @@ class ProductsModel
         $empresa = $empresa ?? currentCompany();
         $startAt = (($page - 1) * $perPage) + 1;
 
-        $where  = "WHERE i.activo = 'S' AND i.empresa = ?";
+        $where  = "WHERE i.stock in ('S', 'N') AND i.empresa = ?";
         $params = [$empresa];
 
         if ($search !== '') {
@@ -306,7 +305,7 @@ class ProductsModel
 
     //Carrusel de productos destacados
     public function getProductosDestacados(int $limit = 20, string $empresa = null): array{
-        $empresa = $empresa ?? config('app.company_code', '001');
+        $empresa = currentCompany();
         $rows = DB::connection($this->connection)->select("
             SELECT TOP {$limit}
                 i.codigo,
@@ -319,7 +318,7 @@ class ProductsModel
             FROM DBA.in_item i
             LEFT JOIN DBA.in_linea l
                 ON i.linea = l.codigo AND l.empresa = i.empresa
-            WHERE i.activo = 'S'
+            WHERE i.stock in ('S', 'N')
             AND i.empresa = ?
             AND i.imagen IS NOT NULL
             AND i.pvp1 > 0

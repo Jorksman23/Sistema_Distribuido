@@ -46,7 +46,7 @@
             @endif
             </a>
 
-            {{-- CARRITO --}}
+            {{-- CARRITO  AQUI VAMOS A HACER EL CAMBIO--}}
             <button onclick="toggleCart()" class="hover:scale-110 transition relative">
                 🛒
                 <span id="carritoCount"

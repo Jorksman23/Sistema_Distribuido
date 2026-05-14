@@ -7,6 +7,7 @@ use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\WhishListController;
 
+
 // HOME
 Route::get('/', [HomeController::class, 'homeConCarrusel']);
 // PERFIL
@@ -39,14 +40,12 @@ Route::middleware('auth.custom')->group(function () {
     Route::post('/wishlist/toggle', [WhishListController::class, 'toggle'])->name('wishlist.toggle');
 });
 
-// CARRITO
-// Mostrar carrito del usuario
-Route::get('/carrito/{userId}', [CarritoController::class, 'index'])->name('carrito.index');
-// Agregar producto al carrito
-Route::post('/carrito/add', [CarritoController::class, 'add'])->name('carrito.add');
-// Actualizar cantidad de un producto
-Route::put('/carrito/update', [CarritoController::class, 'update'])->name('carrito.update');
-// Eliminar producto del carrito
-Route::delete('/carrito/remove', [CarritoController::class, 'remove'])->name('carrito.remove');
+Route::middleware('auth.custom')->group(function () {
+    Route::get('/cart',             [CarritoController::class, 'index'])->name('carrito.index');
+    Route::post('/cart/add',        [CarritoController::class, 'add'])->name('carrito.add');
+    Route::put('/cart/update',      [CarritoController::class, 'update'])->name('carrito.update');
+    Route::delete('/cart/remove',   [CarritoController::class, 'remove'])->name('carrito.remove');
+    Route::post('/cart/vaciar',     [CarritoController::class, 'vaciar'])->name('carrito.vaciar');
+});
 
 

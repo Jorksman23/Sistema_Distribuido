@@ -9,11 +9,9 @@
         <h2 class="text-2xl font-bold text-gray-800">Productos Destacados</h2>
         <a href="{{ route('catalogo.index') }}" class="text-sm text-[#0300a3] hover:underline font-medium">Ver todos →</a>
     </div>
-
     <div class="overflow-hidden relative">
-
+        
         <div class="carrusel-track flex gap-4 py-4 px-2">
-
             {{-- Primera pasada --}}
             @foreach($carrusel as $prod)
                 <div class="shrink-0 w-48 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">

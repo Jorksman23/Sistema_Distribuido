@@ -24,7 +24,7 @@ class login_model implements AuthenticatableContract
     public $telefono;
     public $tipo_identificacion;
     public $empresa;
-    // ── Requeridos por Authenticatable ──────────────────
+    //Requeridos por Authenticatable
     public function getAuthIdentifierName(): string
     {
         return 'user_id';
@@ -45,11 +45,12 @@ class login_model implements AuthenticatableContract
         return 'contrasena';
     }
 
-    // ── Cargar usuario desde BD ──────────────────────────
+    //Cargar usuario desde BD
     public function findByEmail($email)
     {
+        $empresa = currentCompany();
         $row = DB::connection($this->connection)
-            ->selectOne("SELECT TOP 1 * FROM DBA.pw_ge_usuarios WHERE email = ?", [$email]);
+            ->selectOne("SELECT TOP 1 * FROM DBA.pw_ge_usuarios WHERE email = ? AND empresa = ?", [$email, $empresa]);
 
         if (!$row) return null;
 
@@ -111,32 +112,7 @@ class login_model implements AuthenticatableContract
             $user_id
         ]);
     }
-
-
-    // ── Buscar usuario por ID ────────────────────────────
-        public function findById($userId){
-            $row = DB::connection($this->connection)
-                ->selectOne("SELECT TOP 1 * FROM DBA.pw_ge_usuarios WHERE user_id = ?", [$userId]);
-
-            if (!$row) return null;
-
-            $instance = new self();
-            $instance->user_id             = $row->user_id;
-            $instance->pw_codigo           = $row->pw_codigo;
-            $instance->nombre              = $row->nombre;
-            $instance->email               = $row->email;
-            $instance->contrasena          = $row->contrasena;
-            $instance->estado              = $row->estado;
-            $instance->empresa             = $row->empresa             ?? null;
-            $instance->cedula_ruc          = $row->cedula_ruc          ?? null;
-            $instance->direccion           = $row->direccion           ?? null;
-            $instance->telefono            = $row->telefono            ?? null;
-            $instance->tipo_identificacion = $row->tipo_identificacion ?? null;
-
-            return $instance;
-        }
-
-// ── Actualizar contraseña ────────────────────────────
+//Actualizar contraseña
         public function updatePassword($userId, string $nuevaContrasena){
             return DB::connection($this->connection)->update("
                 UPDATE DBA.pw_ge_usuarios
@@ -144,7 +120,4 @@ class login_model implements AuthenticatableContract
                 WHERE user_id = ?
             ", [$nuevaContrasena, $userId]);
         }
-
-
-
 }

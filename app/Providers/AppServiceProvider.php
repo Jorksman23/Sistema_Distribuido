@@ -6,7 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use App\Models\Empresa;
 use App\Models\WishListModel;
-
+use App\Models\CarritoModel;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,9 +35,16 @@ class AppServiceProvider extends ServiceProvider
         $codes = session('wish_codes', []);
         $view->with('wishCount', count($codes));
         $view->with('wishCodes', $codes);
+        // ── Carrito ───────────────────────────────────
+        if (!session()->has('carrito_count')) {
+            $carrito = new CarritoModel();
+            session(['carrito_count' => $carrito->count($codCliente)]);
+        }
+        $view->with('carritoCount', session('carrito_count', 0));
        } else {
         $view->with('wishCount', 0);
         $view->with('wishCodes', []);
+        $view->with('carritoCount', 0);
         }
       });
     }

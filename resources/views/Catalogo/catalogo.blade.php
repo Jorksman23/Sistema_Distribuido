@@ -144,7 +144,7 @@
                         <form method="POST" action="{{ route('wishlist.toggle') }}">
                         @csrf
                         <input type="hidden" name="codigo_item" value="{{ $prod->codigo }}">
-                            <button type="submit"
+                                <button type="submit"
                                 class="absolute top-2 right-2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center hover:bg-white transition shadow-sm hover:scale-110">
                             @if(in_array($prod->codigo, $wishCodes))
                                 <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 24 24">
