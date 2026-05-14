@@ -1,4 +1,4 @@
-@extends('layouts.app')
+<!-- @extends('layouts.app')
 
 @section('title', 'Productos')
 
@@ -30,4 +30,4 @@
         @endforelse
     </div>
 </div>
-@endsection
+@endsection -->

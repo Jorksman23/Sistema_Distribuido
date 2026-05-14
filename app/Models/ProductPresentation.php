@@ -20,47 +20,57 @@ class ProductPresentation
      * Obtener producto + presentaciones
      */
     public function getByProduct(string $codigoProducto, string $empresa = null, int $limit = 8): array
-    {
-        $empresa = $empresa ?? currentCompany();
+{
+    $empresa = $empresa ?? currentCompany();
 
-        // Buscar el producto principal
-        $producto = (new ProductsModel())->findByCodigo($codigoProducto, $empresa);
-        if (!$producto) {
-            return [];
-        }
-
-        // Buscar presentaciones
-        $rows = DB::connection($this->connection)->select("
-            SELECT TOP {$limit}
-                producto,
-                codigo,
-                nombre,
-                foto
-            FROM {$this->table}
-            WHERE empresa = ?
-              AND producto = ?
-              AND mostrar = 'S'
-            ORDER BY nombre
-        ", [$empresa, $codigoProducto]);
-
-        $presentaciones = array_map(
-            fn($row) => $this->mapRowToInstance($row, $codigoProducto),
-            $rows
-        );
-
-        // Respuesta final
-        return [
-            'codigo'        => $producto->codigo,
-            'empresa'       => $producto->empresa,
-            'descripcion'   => $producto->descripcion1,
-            'precio'        => $producto->pvp1,
-            'imagen'        => $producto->imagen,
-            'imagen_url'    => $producto->imagen_url,
-            'stock'         => $producto->stock,
-            'categoria'     => $producto->categoria,
-            'presentaciones'=> $presentaciones,
-        ];
+    // Buscar el producto principal
+    $producto = (new ProductsModel())->findByCodigo($codigoProducto, $empresa);
+    if (!$producto) {
+        return [];
     }
+
+    // ── Stock total sumando todas las ubicaciones ────────
+    $stockRow = DB::connection($this->connection)->selectOne("
+        SELECT SUM(existencia) AS total
+        FROM DBA.in_existencia
+        WHERE producto = ?
+        AND   empresa  = ?
+    ", [$codigoProducto, $empresa]);
+
+    $stockTotal = (float) ($stockRow->total ?? 0);
+
+    // Buscar presentaciones
+    $rows = DB::connection($this->connection)->select("
+        SELECT TOP {$limit}
+            producto,
+            codigo,
+            nombre,
+            foto
+        FROM {$this->table}
+        WHERE empresa = ?
+          AND producto = ?
+          AND mostrar = 'S'
+        ORDER BY nombre
+    ", [$empresa, $codigoProducto]);
+
+    $presentaciones = array_map(
+        fn($row) => $this->mapRowToInstance($row, $codigoProducto),
+        $rows
+    );
+    // Respuesta final
+    return [
+        'codigo'        => $producto->codigo,
+        'empresa'       => $producto->empresa,
+        'descripcion'   => $producto->descripcion1,
+        'precio'        => $producto->pvp1,
+        'imagen'        => $producto->imagen,
+        'imagen_url'    => $producto->imagen_url,
+        'stock'         => $producto->stock,
+        'stock_total'   => $stockTotal,
+        'categoria'     => $producto->categoria,
+        'presentaciones'=> $presentaciones,
+    ];
+}
 
     /**
      * Mapea cada presentación

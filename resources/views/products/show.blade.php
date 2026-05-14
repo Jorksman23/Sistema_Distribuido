@@ -53,31 +53,48 @@
                     </span>
                 </div>
 
-                <p class="mt-3 text-base text-green-600 font-medium">
-                    Stock: <span class="font-semibold">{{ $producto['stock'] ?? 'S' }}</span>
+                <p class="mt-3 text-base font-medium">
+                    @if(($producto['stock_total'] ?? 0) > 0)
+                        <span class="text-green-600">
+                            Stock disponible: <span class="font-bold">{{ (int) $producto['stock_total'] }}</span> unidades
+                        </span>
+                    @else
+                        <span class="text-red-500 font-bold">
+                            Sin stock disponible
+                        </span>
+                    @endif
                 </p>
 
                 <div class="my-10 border-t border-gray-100 pt-8 text-gray-600 leading-relaxed text-sm sm:text-base">
                     <!-- Agrega aquí descripción larga si tienes -->
                 </div>
+                <div class="my-10 border-t border-gray-100 pt-8 text-gray-600 leading-relaxed text-sm sm:text-base">
+                </div>
 
                 <div class="mt-auto space-y-4">
-                    <form method="POST" action="{{ route('carrito.add') }}">
-                    @csrf
-                    <input type="hidden" name="codigo_item"  value="{{ $producto['codigo'] }}">
-                    <input type="hidden" name="nombre"        value="{{ $producto['descripcion'] }}">
-                    <input type="hidden" name="pvp3"          value="{{ $producto['precio'] }}">
-                    <input type="hidden" name="imagen"        value="{{ $producto['imagen'] }}">
-                    <input type="hidden" name="presentacion"  id="presentacionSeleccionada" value="0">
-                    <button type="submit"
-                            class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-5 sm:py-6 rounded-2xl flex items-center justify-center gap-3 text-base sm:text-lg transition-all">
-                        <span>Añadir al carrito</span>
-                        <span class="text-2xl">🛒</span>
-                    </button>
-                </form>
+                    @if(($producto['stock_total'] ?? 0) > 0)
+                        <form method="POST" action="{{ route('carrito.add') }}">
+                            @csrf
+                            <input type="hidden" name="codigo_item"  value="{{ $producto['codigo'] }}">
+                            <input type="hidden" name="nombre"        value="{{ $producto['descripcion'] }}">
+                            <input type="hidden" name="pvp3"          value="{{ $producto['precio'] }}">
+                            <input type="hidden" name="imagen"        value="{{ $producto['imagen'] }}">
+                            <input type="hidden" name="presentacion"  id="presentacionSeleccionada" value="0">
+                            <button type="submit"
+                                    class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-5 sm:py-6 rounded-2xl flex items-center justify-center gap-3 text-base sm:text-lg transition-all">
+                                <span>Añadir al carrito</span>
+                                <span class="text-2xl">🛒</span>
+                            </button>
+                        </form>
+                    @else
+                        <button disabled
+                                class="w-full bg-gray-300 text-gray-500 font-semibold py-5 sm:py-6 rounded-2xl flex items-center justify-center gap-3 text-base sm:text-lg cursor-not-allowed">
+                            <span>Sin stock</span>
+                        </button>
+                    @endif
 
                     <a href="{{ route('catalogo.index') }}"
-                       class="w-full block text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-5 sm:py-6 rounded-2xl transition-all">
+                    class="w-full block text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-5 sm:py-6 rounded-2xl transition-all">
                         ← Volver al catálogo
                     </a>
                 </div>
