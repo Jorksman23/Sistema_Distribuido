@@ -9,7 +9,7 @@
         <svg class="w-7 h-7 text-red-500" fill="currentColor" viewBox="0 0 24 24">
             <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
         </svg>
-        <h1 class="text-2xl font-bold text-gray-800">Mi Lista de Deseos</h1>
+        <h1 class="text-3xl font-bold text-gray-900">Mi Lista de Deseos</h1>
         <span class="ml-2 bg-red-100 text-red-600 text-sm font-semibold px-3 py-0.5 rounded-full">
             {{ count($items) }} {{ count($items) === 1 ? 'producto' : 'productos' }}
         </span>

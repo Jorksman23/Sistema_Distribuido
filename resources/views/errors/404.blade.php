@@ -11,7 +11,7 @@
             {{ $mensaje ?? 'No encontramos la página que buscabas.' }}
         </p>
 
-        <a href="{{ route('products.index') }}"
+        <a href="{{ route('catalogo.index') }}"
            class="inline-flex rounded-full bg-indigo-600 text-white px-5 py-2 hover:bg-indigo-700">
             Volver al catálogo
         </a>

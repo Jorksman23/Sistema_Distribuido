@@ -21,30 +21,36 @@
                          alt="{{ $producto['descripcion'] ?? '' }}"
                          class="w-full h-auto max-h-[380px] sm:max-h-[450px] lg:max-h-[520px] object-contain mx-auto">
                 </div>
+                    <!-- Presentaciones -->
+        <h3 class="text-lg font-semibold mb-4 text-gray-800">Presentaciones</h3>
 
-                <!-- Presentaciones -->
-                <h3 class="text-lg font-semibold mb-4 text-gray-800">Presentaciones</h3>
-
-                <div id="thumbnails" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 sm:gap-4">
-                    @foreach($producto['presentaciones'] as $index => $pres)
-                        <div onclick="changeImage(this, '{{ $pres->foto_url }}', {{ $pres->codigo }})"
-                             class="thumbnail group cursor-pointer rounded-xl overflow-hidden border-2 transition-all hover:scale-105
-                                    {{ $index === 0 ? 'border-blue-600 shadow-md' : 'border-transparent' }}">
-                            <img src="{{ $pres->foto_url }}"
-                                 alt="{{ $pres->nombre }}"
-                                 class="w-full aspect-square object-cover">
-                            <p class="text-center text-[10px] sm:text-xs font-medium text-gray-600 mt-1.5 line-clamp-2">
-                                {{ $pres->nombre }}
-                            </p>
-                        </div>
-                    @endforeach
+        <div id="carouselContainer"
+            class="flex overflow-x-auto gap-4 scroll-smooth px-2 py-2 no-scrollbar">
+            @foreach($producto['presentaciones'] as $index => $pres)
+                <div onclick="changeImage(this, '{{ $pres->foto_url }}', {{ $pres->codigo }})"
+                    class="thumbnail flex-shrink-0 w-32 sm:w-36 md:w-40 cursor-pointer rounded-xl overflow-hidden border-2 transition-all hover:scale-105
+                            {{ $index === 0 ? 'border-blue-600 shadow-md' : 'border-transparent' }}">
+                    <img src="{{ $pres->foto_url }}"
+                        alt="{{ $pres->nombre }}"
+                        class="w-full aspect-square object-cover">
+                    <p class="text-center text-[10px] sm:text-xs font-medium text-gray-600 mt-1.5 line-clamp-2">
+                        {{ $pres->nombre }}
+                    </p>
                 </div>
+            @endforeach
+        </div>
+
+<style>
+/* Oculta la barra de scroll */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
             </div>
 
             <!-- === LADO DERECHO - INFORMACIÓN === -->
             <div class="p-5 sm:p-8 lg:p-10 flex flex-col">
                 <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
-                    {{ $producto['descripcion'] ?? 'Perfumes economicos para caballero 100 ML' }}
+                    {{ $producto['descripcion'] ?? 'Descripcion' }}
                 </h1>
 
                 <div class="mt-6 flex items-baseline gap-2">
