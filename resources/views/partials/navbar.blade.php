@@ -152,5 +152,23 @@ document.addEventListener('click', function(e) {
         menu.classList.add('hidden');
     }
 });
+document.addEventListener('DOMContentLoaded', function () {
+    const searchDesktop = document.getElementById('search');
+    const searchMobile  = document.getElementById('search-mobile');
+    if (searchDesktop) {
+        searchDesktop.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && this.value.trim()) {
+                window.location.href = '{{ route("catalogo.index") }}?q=' + encodeURIComponent(this.value.trim());
+            }
+        });
+    }
+    if (searchMobile) {
+        searchMobile.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && this.value.trim()) {
+                window.location.href = '{{ route("catalogo.index") }}?q=' + encodeURIComponent(this.value.trim());
+            }
+        });
+    }
+});
 
 </script>
