@@ -14,7 +14,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
                 </svg>
-                <h2 class="font-bold text-gray-800 text-base">Filtros</h2>
+                <h2 class="font-extrabold text-gray-900 text-base">Filtros</h2>
             </div>
 
             <form method="GET" action="{{ route('catalogo.index') }}">
@@ -102,7 +102,7 @@
 
                 {{-- BOTONES --}}
                 <button type="submit"
-                        class="w-full bg-[#0300a3] hover:bg-[#0200cc] text-white font-semibold py-2.5 rounded-xl transition mb-2">
+                        class="w-full bg-[#0300a3] hover:bg-[#0200cc] text-white font-semibold py-2 rounded-xl transition mb-2">
                     Aplicar filtros
                 </button>
                 <a href="{{ route('catalogo.index') }}"
@@ -119,13 +119,13 @@
         {{-- HEADER --}}
         <div class="flex items-center justify-between mb-5">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">Catálogo de Productos</h1>
+                <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900">Catálogo de Productos</h1>
                 <p class="text-sm text-gray-400 mt-1">{{ $total }} productos encontrados</p>
             </div>
         </div>
 
         {{-- GRID --}}
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             @forelse($productos as $prod)
                 <div class="min-w-0 bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 group">
 
@@ -170,18 +170,19 @@
                     </div>
 
                     <div class="p-3">
-                    <h3 class="text-xs font-semibold text-gray-800 leading-snug mb-2 line-clamp-2 min-h-[2rem]">
+                    <h3 class="text-sm font-bold text-gray-900 leading-snug mb-2 line-clamp-2 min-h-[2rem]">
                         {{ $prod->descripcion1 }}
                     </h3>
                     <p class="text-base font-bold text-gray-900">${{ $prod->pvp1 }}</p>
 
-                    <div class="mt-2 flex gap-1.5">
+                    <div class="mt-2 flex flex-col sm:flex-row gap-1.5">
                         <a href="{{ route('products.show', $prod->codigo) }}"
-                        class="flex-1 text-center text-xs text-white bg-gray-800 px-2 py-1.5 rounded-lg hover:bg-gray-900 transition font-medium">
+                        class="flex-1 min-h-[42px] flex items-center justify-center text-center text-xs whitespace-nowrap text-white bg-gray-800 px-2 py-2 rounded-lg hover:bg-gray-900 transition font-medium">
                         Ver detalle
                         </a>
                         @if($prod->stock_total > 0)
-                            <form method="POST" action="{{ route('carrito.add') }}">
+                            <form method="POST" action="{{ route('carrito.add') }}"
+                                  class="flex-1">
                                 @csrf
                                 <input type="hidden" name="codigo_item"  value="{{ $prod->codigo }}">
                                 <input type="hidden" name="nombre"       value="{{ $prod->descripcion1 }}">
@@ -189,13 +190,13 @@
                                 <input type="hidden" name="imagen"       value="{{ $prod->imagen }}">
                                 <input type="hidden" name="presentacion" value="0">
                                 <button type="submit"
-                                        class="flex-1 text-xs text-white bg-[#0300a3] px-2 py-1.5 rounded-lg hover:bg-[#0200cc] transition font-medium">
+                                        class="w-full min-h-[42px] flex items-center justify-center text-xs whitespace-nowrap text-white bg-[#0300a3] px-2 py-2 rounded-lg hover:bg-[#0200cc] transition font-medium">
                                     + Carrito
                                 </button>
                             </form>
                         @else
                             <button disabled
-                                    class="flex-1 text-xs text-gray-400 bg-gray-100 px-2 py-1.5 rounded-lg cursor-not-allowed font-medium">
+                                    class="w-full sm:flex-1 text-xs text-gray-400 bg-gray-100 px-2 py-2 rounded-lg cursor-not-allowed font-medium">
                                 Sin stock
                             </button>
                         @endif
