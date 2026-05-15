@@ -74,8 +74,7 @@ class ProductsModel
     }
 
     // ── Listar productos activos ─────────────────────────
-    public function getActiveProducts(int $limit = 50, string $empresa = null): array
-    {
+    public function getActiveProducts(int $limit = 50, string $empresa = null): array{
         $empresa = $empresa ?? currentCompany();
 
         $rows = DB::connection($this->connection)->select("
@@ -173,8 +172,7 @@ class ProductsModel
 
     //Trabajando en el filtrado de productos por grupo, línea, ubicación y rango de precios
     //Obtener Grupos - con caché de cada 6 hrs para optimizar
-    public function getGrupos(string $empresa = null): array
-{
+    public function getGrupos(string $empresa = null): array{
     $empresa = $empresa ?? currentCompany();
     return cache()->remember("grupos_{$empresa}", now()->addHours(6), function () use ($empresa) {
         $rows = DB::connection($this->connection)->select("
@@ -217,7 +215,6 @@ class ProductsModel
             return array_map(fn($r) => (array) $r, $rows);
         });
     }
-
         public function getPaginatedProducts(
         int     $page      = 1,
         int     $perPage   = 12,

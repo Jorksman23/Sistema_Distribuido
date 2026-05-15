@@ -19,16 +19,13 @@ class ProductPresentation
     /**
      * Obtener producto + presentaciones
      */
-    public function getByProduct(string $codigoProducto, string $empresa = null, int $limit = 8): array
-{
+    public function getByProduct(string $codigoProducto, string $empresa = null, int $limit = 8): array{
     $empresa = $empresa ?? currentCompany();
-
     // Buscar el producto principal
     $producto = (new ProductsModel())->findByCodigo($codigoProducto, $empresa);
     if (!$producto) {
         return [];
     }
-
     // ── Stock total sumando todas las ubicaciones ────────
     $stockRow = DB::connection($this->connection)->selectOne("
         SELECT SUM(existencia) AS total
