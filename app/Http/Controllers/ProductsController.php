@@ -53,8 +53,8 @@ class ProductsController extends Controller
             $filters['grupo'],
             $filters['linea'],
             $filters['ubicacion'],
-            $filters['precioMin'],
-            $filters['precioMax'],
+            (float) $filters['precioMin'],
+            (float) $filters['precioMax'],
             $filters['orden'],
         );
 

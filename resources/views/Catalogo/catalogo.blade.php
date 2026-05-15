@@ -140,7 +140,16 @@
                                 {{ $prod->categoria }}
                             </span>
                         @endif
-
+                        {{-- ETIQUETA STOCK --}}
+                        @if($prod->stock_total > 0)
+                            <span class="absolute bottom-2 left-2 text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                                En stock
+                            </span>
+                        @else
+                            <span class="absolute bottom-2 left-2 text-xs font-semibold text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
+                                Sin stock
+                            </span>
+                        @endif
                         <form method="POST" action="{{ route('wishlist.toggle') }}">
                         @csrf
                         <input type="hidden" name="codigo_item" value="{{ $prod->codigo }}">
@@ -161,15 +170,17 @@
                     </div>
 
                     <div class="p-3">
-                        <h3 class="text-xs font-semibold text-gray-800 leading-snug mb-2 line-clamp-2 min-h-[2rem]">
-                            {{ $prod->descripcion1 }}
-                        </h3>
-                        <p class="text-base font-bold text-gray-900">${{ $prod->pvp1 }}</p>
-                        <div class="mt-2 flex gap-1.5">
-                            <a href="{{ route('products.show', $prod->codigo) }}"
-                               class="flex-1 text-center text-xs text-white bg-gray-800 px-2 py-1.5 rounded-lg hover:bg-gray-900 transition font-medium">
-                               Ver detalle
-                            </a>
+                    <h3 class="text-xs font-semibold text-gray-800 leading-snug mb-2 line-clamp-2 min-h-[2rem]">
+                        {{ $prod->descripcion1 }}
+                    </h3>
+                    <p class="text-base font-bold text-gray-900">${{ $prod->pvp1 }}</p>
+
+                    <div class="mt-2 flex gap-1.5">
+                        <a href="{{ route('products.show', $prod->codigo) }}"
+                        class="flex-1 text-center text-xs text-white bg-gray-800 px-2 py-1.5 rounded-lg hover:bg-gray-900 transition font-medium">
+                        Ver detalle
+                        </a>
+                        @if($prod->stock_total > 0)
                             <form method="POST" action="{{ route('carrito.add') }}">
                                 @csrf
                                 <input type="hidden" name="codigo_item"  value="{{ $prod->codigo }}">
@@ -182,8 +193,14 @@
                                     + Carrito
                                 </button>
                             </form>
-                        </div>
+                        @else
+                            <button disabled
+                                    class="flex-1 text-xs text-gray-400 bg-gray-100 px-2 py-1.5 rounded-lg cursor-not-allowed font-medium">
+                                Sin stock
+                            </button>
+                        @endif
                     </div>
+                </div>
                 </div>
             @empty
                 <div class="col-span-4 text-center py-20 text-gray-400">

@@ -24,6 +24,7 @@ class ProductsModel
     public $stock;
     public $categoria;
     public $imagen_url;
+    public $stock_total;
 
     //Normalizador de cadenas para búsqueda
     private function normalizeString(string $text): string{
@@ -124,7 +125,7 @@ class ProductsModel
         $instance->stock        = $row->stock;
         $instance->categoria    = self::cleanString($row->categoria ?? null);
         $instance->imagen_url   = productImageUrl($row->imagen);
-
+        $instance->stock_total  = (float) ($row->stock_total ?? 0);
         return $instance;
     }
 
@@ -217,18 +218,18 @@ class ProductsModel
         });
     }
 
-    public function getPaginatedProducts(
-        int    $page      = 1,
-        int    $perPage   = 12,
-        string $empresa   = null,
-        string $search    = '',
-        string $grupo     = '',
-        string $linea     = '',
-        string $ubicacion = '',
-        float  $precioMin = 0,
-        float  $precioMax = 0,
-        string $orden     = 'codigo'
-        ): array {
+        public function getPaginatedProducts(
+        int     $page      = 1,
+        int     $perPage   = 12,
+        ?string $empresa   = null,
+        string  $search    = '',
+        string  $grupo     = '',
+        string  $linea     = '',
+        string  $ubicacion = '',
+        float   $precioMin = 0,
+        float   $precioMax = 0,
+        string  $orden     = 'codigo'
+    ): array {
         $empresa = $empresa ?? currentCompany();
         $startAt = (($page - 1) * $perPage) + 1;
 
@@ -250,6 +251,11 @@ class ProductsModel
         if ($linea !== '') {
             $where   .= " AND i.linea = ?";
             $params[] = $linea;
+        }
+
+        if ($ubicacion !== '') {
+            $where   .= " AND i.ubicacion = ?";
+            $params[] = $ubicacion;
         }
 
         if ($precioMin > 0) {
@@ -286,11 +292,23 @@ class ProductsModel
                 i.imagen,
                 i.stock,
                 i.grupo,
-                l.linea AS categoria
+                l.linea AS categoria,
+                COALESCE(SUM(e.existencia), 0) AS stock_total
             FROM DBA.in_item i
             LEFT JOIN DBA.in_linea l
                 ON i.linea = l.codigo AND l.empresa = i.empresa
+            LEFT JOIN DBA.in_existencia e
+                ON e.producto = i.codigo AND e.empresa = i.empresa
             {$where}
+            GROUP BY
+                i.codigo,
+                i.empresa,
+                i.descripcion1,
+                i.pvp1,
+                i.imagen,
+                i.stock,
+                i.grupo,
+                l.linea
             ORDER BY {$orderBy}
         ", $params);
 
@@ -300,7 +318,7 @@ class ProductsModel
             'per_page'     => $perPage,
             'current_page' => $page,
             'last_page'    => (int) ceil($total / $perPage),
-       ];
+        ];
     }
 
     //Carrusel de productos destacados
