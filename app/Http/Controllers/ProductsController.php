@@ -16,7 +16,7 @@ class ProductsController extends Controller
             $empresa  = $request->query('empresa', currentCompany());
 
             // Usamos directamente ProductPresentation para obtener producto + presentaciones
-            $producto = (new ProductPresentation())->getByProduct($codigo, $empresa, 5);
+           $producto = (new ProductPresentation())->getByProduct($codigo, $empresa, null);
 
             if (empty($producto)) {
                 return view('errores.404', ['mensaje' => 'Producto no encontrado']);

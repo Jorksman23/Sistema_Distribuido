@@ -46,6 +46,10 @@ Route::middleware('auth.custom')->group(function () {
     Route::put('/cart/update',      [CarritoController::class, 'update'])->name('carrito.update');
     Route::delete('/cart/remove',   [CarritoController::class, 'remove'])->name('carrito.remove');
     Route::post('/cart/vaciar',     [CarritoController::class, 'vaciar'])->name('carrito.vaciar');
+    Route::get('/cart/pagar',       [CarritoController::class, 'pagar'])->name('pedidos.pagar');
 });
+
+
+
 
 

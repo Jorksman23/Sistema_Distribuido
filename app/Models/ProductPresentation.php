@@ -19,7 +19,7 @@ class ProductPresentation
     /**
      * Obtener producto + presentaciones
      */
-    public function getByProduct(string $codigoProducto, string $empresa = null, int $limit = 8): array
+    public function getByProduct(string $codigoProducto, string $empresa = null, ?int $limit = 8): array
 {
     $empresa = $empresa ?? currentCompany();
 
@@ -39,8 +39,21 @@ class ProductPresentation
 
     $stockTotal = (float) ($stockRow->total ?? 0);
 
-    // Buscar presentaciones
-    $rows = DB::connection($this->connection)->select("
+   $sql = "
+    SELECT
+        producto,
+        codigo,
+        nombre,
+        foto
+    FROM {$this->table}
+    WHERE empresa = ?
+      AND producto = ?
+      AND mostrar = 'S'
+    ORDER BY nombre
+";
+
+if (!empty($limit)) {
+    $sql = "
         SELECT TOP {$limit}
             producto,
             codigo,
@@ -51,7 +64,11 @@ class ProductPresentation
           AND producto = ?
           AND mostrar = 'S'
         ORDER BY nombre
-    ", [$empresa, $codigoProducto]);
+    ";
+}
+
+
+$rows = DB::connection($this->connection)->select($sql, [$empresa, $codigoProducto]);
 
     $presentaciones = array_map(
         fn($row) => $this->mapRowToInstance($row, $codigoProducto),

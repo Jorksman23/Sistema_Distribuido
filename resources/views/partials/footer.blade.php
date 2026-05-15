@@ -1,3 +1,3 @@
-<footer class="bg-white mt-16 py-6 text-center text-sm text-gray-400">
+<footer class="py-4 text-sm text-center text-gray-600">
     © {{ date('Y') }} {{ $empresaNombre }}. Todos los derechos reservados.
 </footer>

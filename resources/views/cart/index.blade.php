@@ -156,10 +156,11 @@
             </div>
 
             {{-- BOTÓN CHECKOUT --}}
-            <a href="#"
-            class="block w-full text-center bg-[#0300a3] hover:bg-[#0200cc] text-white font-semibold py-3 rounded-xl transition">
-                Proceder al pago
+            <a href="{{ route('pedidos.pagar') }}"
+            class="bg-blue-600 text-white w-full py-3 rounded hover:bg-blue-700 font-semibold block text-center">
+            Proceder al pago
             </a>
+
 
             {{-- SEGUIR COMPRANDO --}}
             <a href="{{ route('catalogo.index') }}"

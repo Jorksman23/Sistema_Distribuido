@@ -178,4 +178,29 @@ class CarritoController extends Controller
 
         return redirect()->route('carrito.index');
     }
+    // ── Ir a pagar ─────────────────────────────────────────
+    // ── Vista de pago ──────────────────────────────────────
+public function pagar()
+{
+    $codCliente = (string) session('user_id');
+
+    try {
+        $items = $this->carrito->getCarritoByUser($codCliente);
+        $total = $this->carrito->getTotal($codCliente);
+        $count = count($items);
+
+        return view('pedidos.pagar', [
+            'items' => $items,
+            'total' => number_format($total, 2, '.', ''),
+            'count' => $count,
+        ]);
+    } catch (Throwable $e) {
+        return view('errors.500', [
+            'mensaje' => 'Error al preparar pago: ' . $e->getMessage(),
+        ]);
+    }
+}
+
+
+
 }
