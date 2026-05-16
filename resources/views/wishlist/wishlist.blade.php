@@ -39,6 +39,16 @@
                     {{-- IMAGEN --}}
                     <div class="relative overflow-hidden bg-gray-50">
                         <a href="{{ route('products.show', $item->codigo_item) }}">
+                            {{-- ETIQUETA STOCK --}}
+                            @if($item->stock_total > 0)
+                                <span class="absolute bottom-2 left-2 text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                                    En stock
+                                </span>
+                            @else
+                                <span class="absolute bottom-2 left-2 text-xs font-semibold text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
+                                    Sin stock
+                                </span>
+                            @endif
                             <img src="{{ $item->imagen_url }}"
                                  alt="{{ $item->nombre }}"
                                  class="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
@@ -67,15 +77,31 @@
                             {{ $item->nombre }}
                         </h3>
                         <p class="text-sm font-bold text-gray-900">${{ $item->pvp3 }}</p>
+
                         <div class="mt-2 flex gap-1.5">
                             <a href="{{ route('products.show', $item->codigo_item) }}"
                             class="flex-1 text-center text-xs text-white bg-gray-800 hover:bg-gray-900 py-1.5 rounded-lg transition font-medium">
                                 Ver detalle
                             </a>
-                            <button onclick="addToCart('{{ $item->codigo_item }}')"
-                                    class="flex-1 text-xs text-white bg-[#0300a3] hover:bg-[#0200cc] py-1.5 px-2 rounded-lg transition font-medium">
-                                + Carrito
-                            </button>
+                            @if($item->stock_total > 0)
+                                <form method="POST" action="{{ route('carrito.add') }}">
+                                    @csrf
+                                    <input type="hidden" name="codigo_item"  value="{{ $item->codigo_item }}">
+                                    <input type="hidden" name="nombre"       value="{{ $item->nombre }}">
+                                    <input type="hidden" name="pvp3"         value="{{ $item->pvp3 }}">
+                                    <input type="hidden" name="imagen"       value="{{ $item->imagen }}">
+                                    <input type="hidden" name="presentacion" value="0">
+                                    <button type="submit"
+                                            class="flex-1 text-xs text-white bg-[#0300a3] hover:bg-[#0200cc] py-1.5 px-2 rounded-lg transition font-medium">
+                                        + Carrito
+                                    </button>
+                                </form>
+                            @else
+                                <button disabled
+                                        class="flex-1 text-xs text-gray-400 bg-gray-100 py-1.5 px-2 rounded-lg cursor-not-allowed font-medium">
+                                    Sin stock
+                                </button>
+                            @endif
                         </div>
                     </div>
                 </div>

@@ -21,10 +21,23 @@ class WishListModel
                 w.pvp3,
                 w.imagen,
                 w.empresa,
-                w.created_at
+                w.created_at,
+                COALESCE (SUM(e.existencia),0) AS stock_total
             FROM {$this->table} w
+            LEFT JOIN DBA.in_existencia e
+                ON e.producto = w.codigo_item
+                AND e.empresa = w.empresa
             WHERE w.cod_cliente = ?
             AND   w.empresa     = ?
+            GROUP BY
+                w.id_wish,
+                w.cod_cliente,
+                w.codigo_item,
+                w.nombre,
+                w.pvp3,
+                w.imagen,
+                w.empresa,
+                w.created_at
             ORDER BY w.created_at DESC
         ", [$codCliente, $empresa]);
 
@@ -92,6 +105,7 @@ class WishListModel
         $instance->codigo_item  = $row->codigo_item;
         $instance->nombre       = ProductsModel::cleanString($row->nombre ?? null);
         $instance->pvp3         = number_format((float)($row->pvp3 ?? 0), 2, '.', '');
+        $instance->stock_total = (float) ($row->stock_total ?? 0);
         $instance->imagen       = $row->imagen;
         $instance->imagen_url   = productImageUrl($row->imagen);
         $instance->empresa      = $row->empresa;
@@ -108,4 +122,5 @@ class WishListModel
     public $imagen_url;
     public $empresa;
     public $created_at;
+    public $stock_total;
 }
