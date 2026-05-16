@@ -38,7 +38,9 @@
                     <div id="carouselContainer"
                         class="flex overflow-x-auto gap-4 scroll-smooth px-12 py-2 no-scrollbar">
                         @foreach($producto['presentaciones'] as $index => $pres)
-                            <div onclick="changeImage(this, '{{ $pres->foto_url }}', {{ $pres->codigo }})"
+
+                            <div onclick="changeImage(this, '{{ $pres->foto_url }}', {{ $pres->codigo }}, {{ $pres->stock_presentacion }})"
+                                data-stock="{{ $pres->stock_presentacion}}"
                                 class="thumbnail flex-shrink-0 w-32 sm:w-36 md:w-40 cursor-pointer rounded-xl overflow-hidden border-2 transition-all hover:scale-105
                                         {{ $index === 0 ? 'border-blue-600 shadow-md' : 'border-transparent' }}">
                                 <img src="{{ $pres->foto_url }}"
@@ -48,6 +50,7 @@
                                     {{ $pres->nombre }}
                                 </p>
                             </div>
+
                         @endforeach
                     </div>
 
@@ -78,7 +81,7 @@
                     </span>
                 </div>
 
-                <p class="mt-3 text-base font-medium">
+                <p class="mt-3 text-base font-medium" id="stockContainer">
                     @if(($producto['stock_total'] ?? 0) > 0)
                         <span class="text-green-600">
                             Stock disponible: <span class="font-bold">{{ (int) $producto['stock_total'] }}</span> unidades
@@ -96,23 +99,23 @@
                 <div class="my-10 border-t border-gray-100 pt-8 text-gray-600 leading-relaxed text-sm sm:text-base">
                 </div>
 
-                <div class="mt-auto space-y-4">
+                <div class="mt-auto space-y-4" id="botonCarrito">
                     @if(($producto['stock_total'] ?? 0) > 0)
-                        <form method="POST" action="{{ route('carrito.add') }}">
+                        <form method="POST" action="{{ route('carrito.add') }}" id="formCarrito">
                             @csrf
                             <input type="hidden" name="codigo_item"  value="{{ $producto['codigo'] }}">
                             <input type="hidden" name="nombre"        value="{{ $producto['descripcion'] }}">
                             <input type="hidden" name="pvp3"          value="{{ $producto['precio'] }}">
                             <input type="hidden" name="imagen"        value="{{ $producto['imagen'] }}">
                             <input type="hidden" name="presentacion"  id="presentacionSeleccionada" value="0">
-                            <button type="submit"
+                            <button type="submit" id="btnAgregar"
                                     class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-5 sm:py-6 rounded-2xl flex items-center justify-center gap-3 text-base sm:text-lg transition-all">
                                 <span>Añadir al carrito</span>
                                 <span class="text-2xl">🛒</span>
                             </button>
                         </form>
                     @else
-                        <button disabled
+                        <button disabled id="btnAgregar"
                                 class="w-full bg-gray-300 text-gray-500 font-semibold py-5 sm:py-6 rounded-2xl flex items-center justify-center gap-3 text-base sm:text-lg cursor-not-allowed">
                             <span>Sin stock</span>
                         </button>
@@ -133,18 +136,45 @@
 </div>
 
 <script>
-function changeImage(element, newSrc, codigoPresentacion) {
+function changeImage(element, newSrc, codigoPresentacion, stockPresentacion) {
+    //Cambiar imagen principal
     document.getElementById('mainImage').src = newSrc;
-
+    //Marcar miniatura seleccionada
     document.querySelectorAll('.thumbnail').forEach(thumb => {
         thumb.classList.remove('border-blue-600', 'shadow-md');
         thumb.classList.add('border-transparent');
     });
 
     element.classList.add('border-blue-600', 'shadow-md');
-
     // Guardar la presentación seleccionada
     document.getElementById('presentacionSeleccionada').value = codigoPresentacion ?? 0;
+    //Actualiza stock dinamicamente
+    const stockContainer = document.getElementById('stockContainer');
+    const btnAgregar = document.getElementById('btnAgregar');
+    if(stockPresentacion >0 ){
+        stockContainer.innerHTML = `
+            <span class="text-green-600">
+                Stock disponible: <span class="font-bold">${Math.floor(stockPresentacion)}</span> unidades
+            </span>
+        `;
+
+        //Hailitar boton
+        btnAgregar.ariaDisabled = false;
+        btnAgregar.classList.remove('bg-gray-300','text-gray-500','cursor-not-allowed');
+        btnAgregar.classList.add('bg-blue-700', 'hover:bg-blue-800', 'text-white');
+        btnAgregar.innerHTML = '<span>Añadir al carrito</span><span class="text-2xl">🛒</span>';
+    }else{
+        stockContainer.innerHTML = `
+            <span class="text-red-500 font-bold">
+                Sin stock disponible
+            </span>
+        `;
+        // Deshabilitar botón
+        btnAgregar.disabled = true;
+        btnAgregar.classList.remove('bg-blue-700', 'hover:bg-blue-800', 'text-white');
+        btnAgregar.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+        btnAgregar.innerHTML = '<span>Sin stock</span>';
+    }
 }
 
 // Carrusel con flechas y teclado

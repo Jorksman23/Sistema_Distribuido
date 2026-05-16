@@ -27,6 +27,7 @@ class ProductsController extends Controller
                 'producto' => $producto,
             ]);
         } catch (Throwable $e) {
+            //dd($e->getMessage());
             return redirect()->route('catalogo.index')
                 ->withErrors(['error' => 'Error al obtener producto: ' . $e->getMessage()]);
         }
