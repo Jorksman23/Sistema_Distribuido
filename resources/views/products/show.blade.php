@@ -21,30 +21,49 @@
                          alt="{{ $producto['descripcion'] ?? '' }}"
                          class="w-full h-auto max-h-[380px] sm:max-h-[450px] lg:max-h-[520px] object-contain mx-auto">
                 </div>
-                    <!-- Presentaciones -->
-        <h3 class="text-lg font-semibold mb-4 text-gray-800">Presentaciones</h3>
 
-        <div id="carouselContainer"
-            class="flex overflow-x-auto gap-4 scroll-smooth px-2 py-2 no-scrollbar">
-            @foreach($producto['presentaciones'] as $index => $pres)
-                <div onclick="changeImage(this, '{{ $pres->foto_url }}', {{ $pres->codigo }})"
-                    class="thumbnail flex-shrink-0 w-32 sm:w-36 md:w-40 cursor-pointer rounded-xl overflow-hidden border-2 transition-all hover:scale-105
-                            {{ $index === 0 ? 'border-blue-600 shadow-md' : 'border-transparent' }}">
-                    <img src="{{ $pres->foto_url }}"
-                        alt="{{ $pres->nombre }}"
-                        class="w-full aspect-square object-cover">
-                    <p class="text-center text-[10px] sm:text-xs font-medium text-gray-600 mt-1.5 line-clamp-2">
-                        {{ $pres->nombre }}
-                    </p>
+                <!-- Presentaciones -->
+                <h3 class="text-lg font-semibold mb-4 text-gray-800">Presentaciones</h3>
+
+                <div class="relative">
+                    <!-- Flecha izquierda -->
+                    <button id="prevBtn"
+                        class="absolute left-0 top-1/2 transform -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-orange-50 hover:text-orange-600 transition shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+
+                    <!-- Carrusel -->
+                    <div id="carouselContainer"
+                        class="flex overflow-x-auto gap-4 scroll-smooth px-12 py-2 no-scrollbar">
+                        @foreach($producto['presentaciones'] as $index => $pres)
+                            <div onclick="changeImage(this, '{{ $pres->foto_url }}', {{ $pres->codigo }})"
+                                class="thumbnail flex-shrink-0 w-32 sm:w-36 md:w-40 cursor-pointer rounded-xl overflow-hidden border-2 transition-all hover:scale-105
+                                        {{ $index === 0 ? 'border-blue-600 shadow-md' : 'border-transparent' }}">
+                                <img src="{{ $pres->foto_url }}"
+                                    alt="{{ $pres->nombre }}"
+                                    class="w-full aspect-square object-cover">
+                                <p class="text-center text-[10px] sm:text-xs font-medium text-gray-600 mt-1.5 line-clamp-2">
+                                    {{ $pres->nombre }}
+                                </p>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <!-- Flecha derecha -->
+                    <button id="nextBtn"
+                        class="absolute right-0 top-1/2 transform -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-orange-50 hover:text-orange-600 transition shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
                 </div>
-            @endforeach
-        </div>
 
-<style>
-/* Oculta la barra de scroll */
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-</style>
+                <style>
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+                .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+                </style>
             </div>
 
             <!-- === LADO DERECHO - INFORMACIÓN === -->
@@ -127,5 +146,26 @@ function changeImage(element, newSrc, codigoPresentacion) {
     // Guardar la presentación seleccionada
     document.getElementById('presentacionSeleccionada').value = codigoPresentacion ?? 0;
 }
+
+// Carrusel con flechas y teclado
+const container = document.getElementById('carouselContainer');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const scrollAmount = 200;
+
+prevBtn.addEventListener('click', () => {
+    container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+});
+nextBtn.addEventListener('click', () => {
+    container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') {
+        container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    } else if (e.key === 'ArrowRight') {
+        container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+});
 </script>
 @endsection
