@@ -23,46 +23,43 @@
                 </div>
 
                 <!-- Presentaciones -->
-                <h3 class="text-lg font-semibold mb-4 text-gray-800">Presentaciones</h3>
+                @if(count($producto['presentaciones']) > 0)
+                    <h3 class="text-lg font-semibold mb-4 text-gray-800">Presentaciones</h3>
+                    <div class="relative">
+                        <!-- Flecha izquierda -->
+                        <button id="prevBtn"
+                            class="absolute left-0 top-1/2 transform -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-orange-50 hover:text-orange-600 transition shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+                        <!-- Carrusel -->
+                        <div id="carouselContainer"
+                            class="flex overflow-x-auto gap-4 scroll-smooth px-12 py-2 no-scrollbar">
+                            @foreach($producto['presentaciones'] as $index => $pres)
 
-                <div class="relative">
-                    <!-- Flecha izquierda -->
-                    <button id="prevBtn"
-                        class="absolute left-0 top-1/2 transform -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-orange-50 hover:text-orange-600 transition shadow-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-
-                    <!-- Carrusel -->
-                    <div id="carouselContainer"
-                        class="flex overflow-x-auto gap-4 scroll-smooth px-12 py-2 no-scrollbar">
-                        @foreach($producto['presentaciones'] as $index => $pres)
-
-                            <div onclick="changeImage(this, '{{ $pres->foto_url }}', {{ $pres->codigo }}, {{ $pres->stock_presentacion }})"
-                                data-stock="{{ $pres->stock_presentacion}}"
-                                class="thumbnail flex-shrink-0 w-32 sm:w-36 md:w-40 cursor-pointer rounded-xl overflow-hidden border-2 transition-all hover:scale-105
-                                        {{ $index === 0 ? 'border-blue-600 shadow-md' : 'border-transparent' }}">
-                                <img src="{{ $pres->foto_url }}"
-                                    alt="{{ $pres->nombre }}"
-                                    class="w-full aspect-square object-cover">
-                                <p class="text-center text-[10px] sm:text-xs font-medium text-gray-600 mt-1.5 line-clamp-2">
-                                    {{ $pres->nombre }}
-                                </p>
-                            </div>
-
-                        @endforeach
+                                <div onclick="changeImage(this, '{{ $pres->foto_url }}', {{ $pres->codigo }}, {{ $pres->stock_presentacion }})"
+                                    data-stock="{{ $pres->stock_presentacion}}"
+                                    class="thumbnail flex-shrink-0 w-32 sm:w-36 md:w-40 cursor-pointer rounded-xl overflow-hidden border-2 transition-all hover:scale-105
+                                            {{ $index === 0 ? 'border-blue-600 shadow-md' : 'border-transparent' }}">
+                                    <img src="{{ $pres->foto_url }}"
+                                        alt="{{ $pres->nombre }}"
+                                        class="w-full aspect-square object-cover">
+                                    <p class="text-center text-[10px] sm:text-xs font-medium text-gray-600 mt-1.5 line-clamp-2">
+                                        {{ $pres->nombre }}
+                                    </p>
+                                </div>
+                            @endforeach
+                        </div>
+                        <!-- Flecha derecha -->
+                        <button id="nextBtn"
+                            class="absolute right-0 top-1/2 transform -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-orange-50 hover:text-orange-600 transition shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
                     </div>
-
-                    <!-- Flecha derecha -->
-                    <button id="nextBtn"
-                        class="absolute right-0 top-1/2 transform -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-orange-50 hover:text-orange-600 transition shadow-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
-                </div>
-
+                @endif
                 <style>
                 .no-scrollbar::-webkit-scrollbar { display: none; }
                 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -100,7 +97,30 @@
                 </div>
 
                 <div class="mt-auto space-y-4" id="botonCarrito">
-                    @if(($producto['stock_total'] ?? 0) > 0)
+                    @if (count($producto['presentaciones']) === 0)
+                        {{--PRODUCTO SIN PRESENTACIONES--}}
+                        @if(($producto['stock_total'] ?? 0) > 0)
+                            <form method="POST" action="{{ route('carrito.add') }}" id="formCarrito">
+                                @csrf
+                                <input type="hidden" name="codigo_item"  value="{{ $producto['codigo'] }}">
+                                <input type="hidden" name="nombre"        value="{{ $producto['descripcion'] }}">
+                                <input type="hidden" name="pvp3"          value="{{ $producto['precio'] }}">
+                                <input type="hidden" name="imagen"        value="{{ $producto['imagen'] }}">
+                                <input type="hidden" name="presentacion"  id="presentacionSeleccionada" value="0">
+                                <button type="submit" id="btnAgregar"
+                                        class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-5 sm:py-6 rounded-2xl flex items-center justify-center gap-3 text-base sm:text-lg transition-all">
+                                    <span>Añadir al carrito</span>
+                                    <span class="text-2xl">🛒</span>
+                                </button>
+                            </form>
+                        @else
+                            <button disabled id="btnAgregar"
+                                    class="w-full bg-gray-300 text-gray-500 font-semibold py-5 sm:py-6 rounded-2xl flex items-center justify-center gap-3 text-base sm:text-lg cursor-not-allowed">
+                                <span>Sin stock</span>
+                            </button>
+                        @endif
+                    @else
+                        {{-- PRODUCTO CON PRESENTACIONES - Debe elegir primero --}}
                         <form method="POST" action="{{ route('carrito.add') }}" id="formCarrito">
                             @csrf
                             <input type="hidden" name="codigo_item"  value="{{ $producto['codigo'] }}">
@@ -108,19 +128,13 @@
                             <input type="hidden" name="pvp3"          value="{{ $producto['precio'] }}">
                             <input type="hidden" name="imagen"        value="{{ $producto['imagen'] }}">
                             <input type="hidden" name="presentacion"  id="presentacionSeleccionada" value="0">
-                            <button type="submit" id="btnAgregar"
-                                    class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-5 sm:py-6 rounded-2xl flex items-center justify-center gap-3 text-base sm:text-lg transition-all">
-                                <span>Añadir al carrito</span>
-                                <span class="text-2xl">🛒</span>
+                            <button type="submit" id="btnAgregar" disabled
+                                    class="w-full bg-gray-300 text-gray-500 font-semibold py-5 sm:py-6 rounded-2xl flex items-center justify-center gap-3 text-base sm:text-lg cursor-not-allowed transition-all">
+                                <span>Elige un diseño</span>
+                                <span class="text-2xl">👆</span>
                             </button>
                         </form>
-                    @else
-                        <button disabled id="btnAgregar"
-                                class="w-full bg-gray-300 text-gray-500 font-semibold py-5 sm:py-6 rounded-2xl flex items-center justify-center gap-3 text-base sm:text-lg cursor-not-allowed">
-                            <span>Sin stock</span>
-                        </button>
                     @endif
-
                     <a href="{{ route('catalogo.index') }}"
                     class="w-full block text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-5 sm:py-6 rounded-2xl transition-all">
                         ← Volver al catálogo
