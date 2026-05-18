@@ -108,14 +108,14 @@
                                 <input type="hidden" name="imagen"        value="{{ $producto['imagen'] }}">
                                 <input type="hidden" name="presentacion"  id="presentacionSeleccionada" value="0">
                                 <button type="submit" id="btnAgregar"
-                                        class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-5 sm:py-6 rounded-2xl flex items-center justify-center gap-3 text-base sm:text-lg transition-all">
+                                        class="w-full bg-[#0300a3] hover:bg-blue-800 text-white font-semibold py-5 sm:py-6 rounded-2xl flex items-center justify-center gap-3 text-base sm:text-lg transition-all">
                                     <span>Añadir al carrito</span>
                                     <span class="text-2xl">🛒</span>
                                 </button>
                             </form>
                         @else
                             <button disabled id="btnAgregar"
-                                    class="w-full bg-gray-300 text-gray-500 font-semibold py-5 sm:py-6 rounded-2xl flex items-center justify-center gap-3 text-base sm:text-lg cursor-not-allowed">
+                                    class="w-full bg-[#0300a3] text-gray-500 font-semibold py-5 sm:py-6 rounded-2xl flex items-center justify-center gap-3 text-base sm:text-lg cursor-not-allowed">
                                 <span>Sin stock</span>
                             </button>
                         @endif
@@ -129,7 +129,7 @@
                             <input type="hidden" name="imagen"        value="{{ $producto['imagen'] }}">
                             <input type="hidden" name="presentacion"  id="presentacionSeleccionada" value="0">
                             <button type="submit" id="btnAgregar" disabled
-                                    class="w-full bg-gray-300 text-gray-500 font-semibold py-5 sm:py-6 rounded-2xl flex items-center justify-center gap-3 text-base sm:text-lg cursor-not-allowed transition-all">
+                                    class="w-full bg-gray-300 text-gray-900 font-semibold py-5 sm:py-6 rounded-2xl flex items-center justify-center gap-3 text-base sm:text-lg cursor-not-allowed transition-all">
                                 <span>Elige un diseño</span>
                                 <span class="text-2xl">👆</span>
                             </button>
@@ -171,7 +171,6 @@ function changeImage(element, newSrc, codigoPresentacion, stockPresentacion) {
                 Stock disponible: <span class="font-bold">${Math.floor(stockPresentacion)}</span> unidades
             </span>
         `;
-
         //Hailitar boton
         btnAgregar.ariaDisabled = false;
         btnAgregar.classList.remove('bg-gray-300','text-gray-500','cursor-not-allowed');

@@ -25,6 +25,7 @@ class ProductsModel
     public $categoria;
     public $imagen_url;
     public $stock_total;
+    public $tiene_presentaciones;
 
     //Normalizador de cadenas para búsqueda
     private function normalizeString(string $text): string{
@@ -125,6 +126,7 @@ class ProductsModel
         $instance->categoria    = self::cleanString($row->categoria ?? null);
         $instance->imagen_url   = productImageUrl($row->imagen);
         $instance->stock_total  = (float) ($row->stock_total ?? 0);
+        $instance->tiene_presentaciones = (bool) ($row->tiene_presentaciones ?? false);
         return $instance;
     }
 
@@ -290,7 +292,13 @@ class ProductsModel
                 i.stock,
                 i.grupo,
                 l.linea AS categoria,
-                COALESCE(SUM(e.existencia), 0) AS stock_total
+                COALESCE(SUM(e.existencia), 0) AS stock_total,
+                CASE WHEN EXISTS (
+                    SELECT 1 FROM DBA.in_item_presentacion p
+                    WHERE p.producto = i.codigo
+                    AND p.empresa = i.empresa
+                    AND p.mostrar = 'S'
+                ) THEN 1 ELSE 0 END AS tiene_presentaciones
             FROM DBA.in_item i
             LEFT JOIN DBA.in_linea l
                 ON i.linea = l.codigo AND l.empresa = i.empresa

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\CarritoModel;
 use App\Models\ProductsModel;
 use App\Models\ProductPresentation;
+use App\Helpers\CompanyHelper;
 use Throwable;
 
 class CarritoController extends Controller
@@ -62,7 +63,6 @@ class CarritoController extends Controller
                     $request->codigo_item,
                     $presentacion
                 );
-
                 if ($item) {
                     $this->carrito->updateCantidad(
                         $item->id_item_web,
@@ -116,7 +116,7 @@ class CarritoController extends Controller
         return back()->with('success_cart', '¡Producto agregado al carrito!');
     }
 
-    // ── Actualizar cantidad ──────────────────────────────
+   //── Actualizar cantidad ──────────────────────────────
     public function update(Request $request)
     {
         $request->validate([
@@ -127,17 +127,32 @@ class CarritoController extends Controller
         $codCliente = (string) session('user_id');
 
         try {
+            //Obtener el Item actual
+            $item = $this->carrito->getItemById($request->id_item_web, $codCliente);
+            if(!$item){
+                return back()->withErrors(['error'=> 'Producto no encontrado en el carrito']);
+            }
+            //Verificar stock disponible
+            $stockDisponible = $this->carrito->getStockDisponible(
+                $item->codigo_item,
+                $item->presentacion,
+                currentCompany()
+            );
+            if($request->cantidad > $stockDisponible){
+                return back()->withErrors([
+                    'error' => 'Solo hay'. (int)$stockDisponible.'unidades disponibles'
+                ]);
+            }
             $this->carrito->updateCantidad(
                 $request->id_item_web,
                 $codCliente,
                 $request->cantidad
             );
-
             session()->forget('carrito_count');
 
         } catch (Throwable $e) {
-            dd($e->getMessage());
-            //return back()->withErrors(['error' => 'Error al actualizar: ' . $e->getMessage()]);
+            //dd($e->getMessage());
+            return back()->withErrors(['error' => 'Error al actualizar: ' . $e->getMessage()]);
         }
 
         return back();

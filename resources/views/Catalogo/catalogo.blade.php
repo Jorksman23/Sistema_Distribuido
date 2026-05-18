@@ -10,9 +10,9 @@
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 lg:sticky lg:top-6">
 
             <div class="flex items-center gap-2 mb-5">
-                <svg class="w-5 h-5 text-[#0300a3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
+                <svg class="w-5 h-5 text-[#3E7CB4]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
+                        d="M6 4v10m0 0a2 2 0 1 0 0 4m0-4a2 2 0 1 1 0 4m0 0v2m6-16v2m0 0a2 2 0 1 0 0 4m0-4a2 2 0 1 1 0 4m0 0v10m6-16v10m0 0a2 2 0 1 0 0 4m0-4a2 2 0 1 1 0 4m0 0v2"/>
                 </svg>
                 <h2 class="font-extrabold text-gray-900 text-base">Filtros</h2>
             </div>
@@ -136,7 +136,7 @@
                              onerror="this.onerror=null;this.src='https://placehold.co/300x300?text=Sin+imagen'">
 
                         @if($prod->categoria)
-                            <span class="absolute top-2 left-2 bg-white/90 text-blue-600 text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+                            <span class="absolute top-2 left-2 bg-white/90 text-[#0300a3] text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
                                 {{ $prod->categoria }}
                             </span>
                         @endif
@@ -181,19 +181,27 @@
                         Ver detalle
                         </a>
                         @if($prod->stock_total > 0)
-                            <form method="POST" action="{{ route('carrito.add') }}"
-                                  class="flex-1">
-                                @csrf
-                                <input type="hidden" name="codigo_item"  value="{{ $prod->codigo }}">
-                                <input type="hidden" name="nombre"       value="{{ $prod->descripcion1 }}">
-                                <input type="hidden" name="pvp3"         value="{{ $prod->pvp1 }}">
-                                <input type="hidden" name="imagen"       value="{{ $prod->imagen }}">
-                                <input type="hidden" name="presentacion" value="0">
-                                <button type="submit"
-                                        class="w-full min-h-[42px] flex items-center justify-center text-xs whitespace-nowrap text-white bg-[#0300a3] px-2 py-2 rounded-lg hover:bg-[#0200cc] transition font-medium">
-                                    + Carrito
-                                </button>
-                            </form>
+                            @if($prod->tiene_presentaciones)
+                                {{-- Tiene presentaciones: redirigir al detalle --}}
+                                <a href="{{ route('products.show', $prod->codigo) }}"
+                                class="w-full min-h-[42px] flex items-center justify-center text-xs whitespace-nowrap text-white bg-[#0300a3] px-2 py-2 rounded-lg hover:bg-[#0200cc] transition font-medium">
+                                    Ver modelos
+                                </a>
+                            @else
+                                {{-- Sin presentaciones: agregar directo --}}
+                                <form method="POST" action="{{ route('carrito.add') }}" class="flex-1">
+                                    @csrf
+                                    <input type="hidden" name="codigo_item"  value="{{ $prod->codigo }}">
+                                    <input type="hidden" name="nombre"       value="{{ $prod->descripcion1 }}">
+                                    <input type="hidden" name="pvp3"         value="{{ $prod->pvp1 }}">
+                                    <input type="hidden" name="imagen"       value="{{ $prod->imagen }}">
+                                    <input type="hidden" name="presentacion" value="0">
+                                    <button type="submit"
+                                            class="w-full min-h-[42px] flex items-center justify-center text-xs whitespace-nowrap text-white bg-[#0300a3] px-2 py-2 rounded-lg hover:bg-[#0200cc] transition font-medium">
+                                        + Carrito
+                                    </button>
+                                </form>
+                            @endif
                         @else
                             <button disabled
                                     class="w-full sm:flex-1 text-xs text-gray-400 bg-gray-100 px-2 py-2 rounded-lg cursor-not-allowed font-medium">
