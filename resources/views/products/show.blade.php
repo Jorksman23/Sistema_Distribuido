@@ -72,6 +72,9 @@
                     {{ $producto['descripcion'] ?? 'Descripcion' }}
                 </h1>
 
+                {{-- DEBUG temporal --}}
+                <p class="text-xs text-gray-400">Presentaciones: {{ count($producto['presentaciones']) }}</p>
+
                 <div class="mt-6 flex items-baseline gap-2">
                     <span class="text-4xl sm:text-5xl font-bold text-blue-600">
                         ${{ number_format($producto['precio'] ?? 1.40, 2) }}
@@ -129,6 +132,7 @@
                             <input type="hidden" name="imagen"        value="{{ $producto['imagen'] }}">
                             <input type="hidden" name="presentacion"  id="presentacionSeleccionada" value="0">
                             <button type="submit" id="btnAgregar" disabled
+
                                     class="w-full bg-gray-300 text-gray-900 font-semibold py-5 sm:py-6 rounded-2xl flex items-center justify-center gap-3 text-base sm:text-lg cursor-not-allowed transition-all">
                                 <span>Elige un diseño</span>
                                 <span class="text-2xl">👆</span>
@@ -150,65 +154,63 @@
 </div>
 
 <script>
-function changeImage(element, newSrc, codigoPresentacion, stockPresentacion) {
-    //Cambiar imagen principal
-    document.getElementById('mainImage').src = newSrc;
-    //Marcar miniatura seleccionada
-    document.querySelectorAll('.thumbnail').forEach(thumb => {
-        thumb.classList.remove('border-blue-600', 'shadow-md');
-        thumb.classList.add('border-transparent');
+    function changeImage(element, newSrc, codigoPresentacion, stockPresentacion) {
+        document.getElementById('mainImage').src = newSrc;
+
+        document.querySelectorAll('.thumbnail').forEach(thumb => {
+            thumb.classList.remove('border-blue-600', 'shadow-md');
+            thumb.classList.add('border-transparent');
+        });
+
+        element.classList.add('border-blue-600', 'shadow-md');
+        document.getElementById('presentacionSeleccionada').value = codigoPresentacion ?? 0;
+
+        const stockContainer = document.getElementById('stockContainer');
+        const btnAgregar     = document.getElementById('btnAgregar');
+
+        if (stockPresentacion > 0) {
+            stockContainer.innerHTML = `
+                <span class="text-green-600">
+                    Stock disponible: <span class="font-bold">${Math.floor(stockPresentacion)}</span> unidades
+                </span>
+            `;
+            btnAgregar.disabled   = false;
+            btnAgregar.className  = 'w-full bg-[#0300a3] hover:bg-blue-800 text-white font-semibold py-5 sm:py-6 rounded-2xl flex items-center justify-center gap-3 text-base sm:text-lg transition-all';
+            btnAgregar.innerHTML  = '<span>Añadir al carrito</span><span class="text-2xl">🛒</span>';
+        } else {
+            stockContainer.innerHTML = `
+                <span class="text-red-500 font-bold">Sin stock disponible</span>
+            `;
+            btnAgregar.disabled  = true;
+            btnAgregar.className = 'w-full bg-gray-300 text-gray-900 font-semibold py-5 sm:py-6 rounded-2xl flex items-center justify-center gap-3 text-base sm:text-lg cursor-not-allowed transition-all';
+            btnAgregar.innerHTML = '<span>Sin stock</span>';
+        }
+    }
+
+    // Evitar envíos múltiples del formulario
+    const formCarrito = document.getElementById('formCarrito');
+    const btnAgregar = document.getElementById('btnAgregar')
+    if (btnAgregar && formCarrito) {
+        btnAgregar.addEventListener('click', function() {
+            if (this.disabled) return; // evita doble clic
+            this.disabled  = true;
+            this.innerHTML = '<span>Agregando...</span>';
+            formCarrito.submit();
+        });
+    }
+    // Carrusel con flechas y teclado
+    const container    = document.getElementById('carouselContainer');
+    const prevBtn      = document.getElementById('prevBtn');
+    const nextBtn      = document.getElementById('nextBtn');
+    const scrollAmount = 200;
+
+    if (prevBtn) prevBtn.addEventListener('click', () => container.scrollBy({ left: -scrollAmount, behavior: 'smooth' }));
+    if (nextBtn) nextBtn.addEventListener('click', () => container.scrollBy({ left: scrollAmount,  behavior: 'smooth' }));
+
+    document.addEventListener('keydown', (e) => {
+        if (!container) return;
+        if (e.key === 'ArrowLeft')  container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        if (e.key === 'ArrowRight') container.scrollBy({ left: scrollAmount,  behavior: 'smooth' });
     });
-
-    element.classList.add('border-blue-600', 'shadow-md');
-    // Guardar la presentación seleccionada
-    document.getElementById('presentacionSeleccionada').value = codigoPresentacion ?? 0;
-    //Actualiza stock dinamicamente
-    const stockContainer = document.getElementById('stockContainer');
-    const btnAgregar = document.getElementById('btnAgregar');
-    if(stockPresentacion >0 ){
-        stockContainer.innerHTML = `
-            <span class="text-green-600">
-                Stock disponible: <span class="font-bold">${Math.floor(stockPresentacion)}</span> unidades
-            </span>
-        `;
-        //Hailitar boton
-        btnAgregar.ariaDisabled = false;
-        btnAgregar.classList.remove('bg-gray-300','text-gray-500','cursor-not-allowed');
-        btnAgregar.classList.add('bg-blue-700', 'hover:bg-blue-800', 'text-white');
-        btnAgregar.innerHTML = '<span>Añadir al carrito</span><span class="text-2xl">🛒</span>';
-    }else{
-        stockContainer.innerHTML = `
-            <span class="text-red-500 font-bold">
-                Sin stock disponible
-            </span>
-        `;
-        // Deshabilitar botón
-        btnAgregar.disabled = true;
-        btnAgregar.classList.remove('bg-blue-700', 'hover:bg-blue-800', 'text-white');
-        btnAgregar.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
-        btnAgregar.innerHTML = '<span>Sin stock</span>';
-    }
-}
-
-// Carrusel con flechas y teclado
-const container = document.getElementById('carouselContainer');
-const prevBtn = document.getElementById('prevBtn');
-const nextBtn = document.getElementById('nextBtn');
-const scrollAmount = 200;
-
-prevBtn.addEventListener('click', () => {
-    container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-});
-nextBtn.addEventListener('click', () => {
-    container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-});
-
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft') {
-        container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-    } else if (e.key === 'ArrowRight') {
-        container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
-});
 </script>
 @endsection

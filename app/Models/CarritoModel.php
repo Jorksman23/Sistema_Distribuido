@@ -47,12 +47,16 @@ class CarritoModel
                 p.foto   AS foto_presentacion
             FROM {$this->table} c
             LEFT JOIN DBA.in_item_presentacion p
-                ON  p.codigo  = c.presentacion
+                ON  p.codigo   = c.presentacion
                 AND p.producto = c.codigo_item
+                AND p.empresa  = ?
             WHERE c.cod_cliente = ?
             AND   c.estatus     = '1'
             ORDER BY c.id_item_web DESC
-        ", [$codCliente]);
+        ", [
+            currentCompany(),
+            $codCliente
+        ]);
 
         return array_map(fn($row) => $this->mapRowToInstance($row), $rows);
     }

@@ -27,6 +27,8 @@ class ProductsModel
     public $stock_total;
     public $tiene_presentaciones;
 
+ 
+
     //Normalizador de cadenas para búsqueda
     private function normalizeString(string $text): string{
             $from = ['á','é','í','ó','ú','ü','ñ','Á','É','Í','Ó','Ú','Ü','Ñ'];

@@ -169,47 +169,68 @@
                         </form>
                     </div>
 
-                    <div class="p-3">
-                    <h3 class="text-sm font-bold text-gray-900 leading-snug mb-2 line-clamp-2 min-h-[2rem]">
-                        {{ $prod->descripcion1 }}
-                    </h3>
-                    <p class="text-base font-bold text-gray-900">${{ $prod->pvp1 }}</p>
+                    <div class="p-3 flex flex-col flex-1">
+    <h3 class="text-sm font-bold text-gray-900 leading-snug mb-2 line-clamp-2 min-h-[2.8rem]">
+        {{ $prod->descripcion1 }}
+    </h3>
 
-                    <div class="mt-2 flex flex-col sm:flex-row gap-1.5">
-                        <a href="{{ route('products.show', $prod->codigo) }}"
-                        class="flex-1 min-h-[42px] flex items-center justify-center text-center text-xs whitespace-nowrap text-white bg-gray-800 px-2 py-2 rounded-lg hover:bg-gray-900 transition font-medium">
-                        Ver detalle
-                        </a>
-                        @if($prod->stock_total > 0)
-                            @if($prod->tiene_presentaciones)
-                                {{-- Tiene presentaciones: redirigir al detalle --}}
-                                <a href="{{ route('products.show', $prod->codigo) }}"
-                                class="w-full min-h-[42px] flex items-center justify-center text-xs whitespace-nowrap text-white bg-[#0300a3] px-2 py-2 rounded-lg hover:bg-[#0200cc] transition font-medium">
-                                    Ver modelos
-                                </a>
-                            @else
-                                {{-- Sin presentaciones: agregar directo --}}
-                                <form method="POST" action="{{ route('carrito.add') }}" class="flex-1">
-                                    @csrf
-                                    <input type="hidden" name="codigo_item"  value="{{ $prod->codigo }}">
-                                    <input type="hidden" name="nombre"       value="{{ $prod->descripcion1 }}">
-                                    <input type="hidden" name="pvp3"         value="{{ $prod->pvp1 }}">
-                                    <input type="hidden" name="imagen"       value="{{ $prod->imagen }}">
-                                    <input type="hidden" name="presentacion" value="0">
-                                    <button type="submit"
-                                            class="w-full min-h-[42px] flex items-center justify-center text-xs whitespace-nowrap text-white bg-[#0300a3] px-2 py-2 rounded-lg hover:bg-[#0200cc] transition font-medium">
-                                        + Carrito
-                                    </button>
-                                </form>
-                            @endif
-                        @else
-                            <button disabled
-                                    class="w-full sm:flex-1 text-xs text-gray-400 bg-gray-100 px-2 py-2 rounded-lg cursor-not-allowed font-medium">
-                                Sin stock
-                            </button>
-                        @endif
-                    </div>
-                </div>
+    <p class="text-base font-bold text-gray-900">
+        ${{ $prod->pvp1 }}
+    </p>
+
+    {{-- BOTONES --}}
+    <div class="mt-3 flex gap-2">
+
+        {{-- VER DETALLE --}}
+        <a href="{{ route('products.show', $prod->codigo) }}"
+           class="flex-1 min-h-[42px] flex items-center justify-center text-center text-xs text-white bg-gray-800 px-2 py-2 rounded-xl hover:bg-gray-900 transition font-medium">
+            Ver detalle
+        </a>
+
+        @if($prod->stock_total > 0)
+
+            @if($prod->tiene_presentaciones)
+
+                {{-- Tiene presentaciones: redirigir al detalle --}}
+                <a href="{{ route('products.show', $prod->codigo) }}"
+                   class="flex-1 min-h-[42px] flex items-center justify-center text-center text-xs text-white bg-[#0300a3] px-2 py-2 rounded-xl hover:bg-[#0200cc] transition font-medium">
+                    Ver modelos
+                </a>
+
+            @else
+
+                {{-- Sin presentaciones: agregar directo --}}
+                <form method="POST"
+                      action="{{ route('carrito.add') }}"
+                      class="flex-1">
+                    @csrf
+
+                    <input type="hidden" name="codigo_item"  value="{{ $prod->codigo }}">
+                    <input type="hidden" name="nombre"       value="{{ $prod->descripcion1 }}">
+                    <input type="hidden" name="pvp3"         value="{{ $prod->pvp1 }}">
+                    <input type="hidden" name="imagen"       value="{{ $prod->imagen }}">
+                    <input type="hidden" name="presentacion" value="0">
+
+                    <button type="submit"
+                            class="w-full min-h-[42px] flex items-center justify-center text-center text-xs text-white bg-[#0300a3] px-2 py-2 rounded-xl hover:bg-[#0200cc] transition font-medium">
+                        + Carrito
+                    </button>
+                </form>
+
+            @endif
+
+        @else
+
+            {{-- SIN STOCK --}}
+            <button disabled
+                    class="flex-1 min-h-[42px] flex items-center justify-center text-center text-xs text-gray-400 bg-gray-100 px-2 py-2 rounded-xl cursor-not-allowed font-medium">
+                Sin stock
+            </button>
+
+        @endif
+
+    </div>
+</div>
                 </div>
             @empty
                 <div class="col-span-4 text-center py-20 text-gray-400">

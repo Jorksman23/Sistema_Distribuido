@@ -41,8 +41,8 @@ class CarritoController extends Controller
     }
 
     // ── Agregar producto desde catálogo (sin variante) ───
-    public function add(Request $request)
-    {
+    public function add(Request $request){
+
         $request->validate([
             'codigo_item'  => 'required|string',
             'nombre'       => 'nullable|string',
@@ -53,7 +53,13 @@ class CarritoController extends Controller
 
         $codCliente   = (string) session('user_id');
         $presentacion = (int) ($request->presentacion ?? 0);
-
+        //$existe = $this->carrito->exists($codCliente, $request->codigo_item, $presentacion);
+        // dd([
+        //     'codigo_item'  => $request->codigo_item,
+        //     'presentacion' => $presentacion,
+        //     'cod_cliente'  => $codCliente,
+        //     'existe'       => $existe,
+        // ]);
         try {
             // Si ya existe esa combinacion producto+presentacion
             // solo incrementa cantidad
@@ -67,7 +73,7 @@ class CarritoController extends Controller
                     $this->carrito->updateCantidad(
                         $item->id_item_web,
                         $codCliente,
-                        $item->cantidad + 1
+                        $item->cantidad +1
                     );
                 }
             } else {
@@ -92,7 +98,8 @@ class CarritoController extends Controller
                     $pvp3   = $pvp3   ?? $producto->pvp1;
                     $imagen = $imagen ?? $producto->imagen;
                 }
-
+                // Limpiar encoding del nombre
+                $nombre = ProductsModel::cleanString($nombre);
                 $this->carrito->add([
                     'codigo_item'  => $request->codigo_item,
                     'nombre'       => $nombre,
@@ -110,6 +117,7 @@ class CarritoController extends Controller
             session()->forget('carrito_count');
 
         } catch (Throwable $e) {
+
             return back()->withErrors(['error' => 'Error al agregar: ' . $e->getMessage()]);
         }
 
@@ -194,27 +202,25 @@ class CarritoController extends Controller
         return redirect()->route('carrito.index');
     }
     // ── Ir a pagar ─────────────────────────────────────────
-    // ── Vista de pago ──────────────────────────────────────
-public function pagar()
-{
-    $codCliente = (string) session('user_id');
+    public function pagar(){
+        $codCliente = (string) session('user_id');
 
-    try {
-        $items = $this->carrito->getCarritoByUser($codCliente);
-        $total = $this->carrito->getTotal($codCliente);
-        $count = count($items);
+        try {
+            $items = $this->carrito->getCarritoByUser($codCliente);
+            $total = $this->carrito->getTotal($codCliente);
+            $count = count($items);
 
-        return view('pedidos.pagar', [
-            'items' => $items,
-            'total' => number_format($total, 2, '.', ''),
-            'count' => $count,
-        ]);
-    } catch (Throwable $e) {
-        return view('errors.500', [
-            'mensaje' => 'Error al preparar pago: ' . $e->getMessage(),
-        ]);
+            return view('pedidos.pagar', [
+                'items' => $items,
+                'total' => number_format($total, 2, '.', ''),
+                'count' => $count,
+            ]);
+        } catch (Throwable $e) {
+            return view('errors.500', [
+                'mensaje' => 'Error al preparar pago: ' . $e->getMessage(),
+            ]);
+        }
     }
-}
 
 
 
