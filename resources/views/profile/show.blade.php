@@ -56,7 +56,7 @@
                 </a>
 
                 {{-- Mis pedidos — negro al hover --}}
-                <a href="#"
+                <a href="{{ route('profile.show') }}#historial-pedidos"
                    class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium
                           text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -267,28 +267,71 @@
             </form>
         </div>
 
-        {{-- ===== HISTORIAL DE PEDIDOS ===== --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                {{-- ===== HISTORIAL DE PEDIDOS ===== --}}
+        <div id="historial-pedidos" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
             <h2 class="font-bold text-gray-800 mb-5">Historial de Pedidos</h2>
 
-            {{-- Estado vacío: sin pedidos aún --}}
-            <div class="text-center py-10 text-gray-400">
-                <svg class="w-12 h-12 mx-auto mb-3 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                </svg>
-                <p class="font-medium text-gray-500">Aún no tienes pedidos</p>
-                <p class="text-sm mt-1">Cuando realices una compra aparecerá aquí.</p>
+            @if(empty($pedidos))
+                {{-- Estado vacío: sin pedidos aún --}}
+                <div class="text-center py-10 text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    <p class="font-medium text-gray-500">Aún no tienes pedidos</p>
+                    <p class="text-sm mt-1">Cuando realices una compra aparecerá aquí.</p>
 
-                {{-- Botón ir al catálogo — gris oscuro --}}
-                <a href="{{ route('catalogo.index') }}"
-                   class="mt-4 inline-block bg-gray-800 hover:bg-gray-900 text-white
-                          text-sm font-medium px-5 py-2 rounded-full transition">
-                    Ir al catálogo
-                </a>
-            </div>
+                    <a href="{{ route('catalogo.index') }}"
+                       class="mt-4 inline-block bg-gray-800 hover:bg-gray-900 text-white
+                              text-sm font-medium px-5 py-2 rounded-full transition">
+                        Ir al catálogo
+                    </a>
+                </div>
+            @else
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-medium text-gray-600">Pedido</th>
+                                <th class="px-4 py-3 text-left font-medium text-gray-600">Fecha</th>
+                                <th class="px-4 py-3 text-left font-medium text-gray-600">Total</th>
+                                <th class="px-4 py-3 text-left font-medium text-gray-600">Método</th>
+                                <th class="px-4 py-3 text-center font-medium text-gray-600">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y">
+                            @foreach($pedidos as $pedido)
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-4 py-4 font-medium">
+                                    #{{ $pedido->codigo }}
+                                </td>
+                                <td class="px-4 py-4 text-gray-600">
+                                    {{ \Carbon\Carbon::parse($pedido->fecha_creacion)->format('d/m/Y H:i') }}
+                                </td>
+                                <td class="px-4 py-4 font-semibold text-gray-800">
+                                    ${{ number_format($pedido->gran_total, 2) }}
+                                </td>
+                                <td class="px-4 py-4 text-gray-600 capitalize">
+                                    {{ $pedido->tipo_pago }}
+                                </td>
+                                <td class="px-4 py-4 text-center">
+                                    @if($pedido->estatus == '2' || $pedido->estatus == 'P')
+                                        <span class="inline-block px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                                            Completado
+                                        </span>
+                                    @else
+                                        <span class="inline-block px-3 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">
+                                            Pendiente
+                                        </span>
+                                    @endif
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
         </div>
-
     </div>
 </div>
 </div>

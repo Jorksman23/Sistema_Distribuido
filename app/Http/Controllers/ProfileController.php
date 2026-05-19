@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\login_model;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class ProfileController extends Controller{
     protected $model;
@@ -12,18 +13,42 @@ class ProfileController extends Controller{
     {
         $this->model = new login_model();
     }
-    // ── Mostrar perfil ───────────────────────────────────
-    public function show(Request $request){
-        $userId = session('user_id');
-        if (!$userId)return redirect()->route('login');
+    // === Mostrar perfil ===
+public function show(Request $request)
+{
+    $userId = session('user_id');
+    if (!$userId) return redirect()->route('login');
 
-        $usuario = $this->model->findById($userId);
-        if (!$usuario)return redirect()->route('login');
+    $usuario = $this->model->findById($userId);
+    if (!$usuario) return redirect()->route('login');
 
-        return view('profile.show', ['usuario' => $usuario,]);
-    }
+    // === CARGAR HISTORIAL DE PEDIDOS ===
+    $codCliente = (string) $userId;
+    $empresa    = currentCompany();
 
-    // ── Actualizar datos personales ──────────────────────
+    $pedidos = DB::connection('odbc')->select("
+        SELECT
+            pw_id,
+            codigo,
+            n_documento,
+            tipo_pago,
+            gran_total,
+            estatus,
+            fecha_creacion,
+            observacion_compra
+        FROM DBA.PW_ORDENES_WEB
+        WHERE cod_cliente = ?
+          AND empresa = ?
+        ORDER BY fecha_creacion DESC
+    ", [$codCliente, $empresa]);
+
+    return view('profile.show', [
+        'usuario' => $usuario,
+        'pedidos' => $pedidos
+    ]);
+}
+
+    // === Actualizar datos personales ===
     public function update(Request $request)
     {
         $userId = session('user_id');
@@ -47,7 +72,7 @@ class ProfileController extends Controller{
                          ->with('success', 'Datos actualizados correctamente.');
     }
 
-    // ── Cambiar contraseña ───────────────────────────────
+    // === Cambiar contraseña ===
     public function updatePassword(Request $request){
         $userId = session('user_id');
         if (!$userId) return redirect()->route('login');
@@ -57,13 +82,15 @@ class ProfileController extends Controller{
             'password_confirmation' => 'required',
         ]);
         $usuario = $this->model->findById($userId);
-        // ── Verificar contraseña actual con bcrypt ──────────
+        // === Verificar contraseña actual con bcrypt ===
         if (!Hash::check($request->current, $usuario->contrasena)) {
             return back()->withErrors(['current' => 'La contraseña actual no es correcta.']);
         }
-        // ── Guardar nueva contraseña con bcrypt ─────────────
+        // === Guardar nueva contraseña con bcrypt ===
         $this->model->updatePassword($userId, Hash::make($request->password));
         return redirect()->route('profile.show')
                          ->with('success_pass', '¡Contraseña cambiada correctamente!');
     }
+
 }
+
