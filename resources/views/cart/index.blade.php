@@ -26,10 +26,9 @@
             ✓ {{ session('success_cart') }}
         </div>
     @endif
-
     @if($errors->any())
         <div class="mb-4 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
-            {{ $errors->first() }}
+            ⚠ {{ $errors->first() }}
         </div>
     @endif
 

@@ -129,26 +129,31 @@
                     </h3>
                     <p class="text-blue-600 font-bold mt-2">${{ $prod->pvp1 }}</p>
                     <p class="text-xs text-gray-500">Stock: {{ $prod->stock }}</p>
-
-                    <div class="mt-4 flex justify-between items-center">
+                    <div class="mt-4 flex justify-between items-center gap-2">
                         <a href="{{ route('products.show', $prod->codigo) }}"
-                           class="text-sm text-white bg-blue-600 px-3 py-1 rounded hover:bg-blue-700">
+                           class="flex-1 text-center text-sm text-white bg-gray-800 px-3 py-1.5 rounded hover:bg-gray-900 transition">
                            Ver detalle
                         </a>
-                        <button onclick="addToCart('{{ $prod->codigo }}')"
-                                class="text-sm text-white bg-green-600 px-3 py-1 rounded hover:bg-green-700">
-                            Añadir 🛒
-                        </button>
+                        <form method="POST" action="{{ route('carrito.add') }}" class="flex-1">
+                            @csrf
+                            <input type="hidden" name="codigo_item"  value="{{ $prod->codigo }}">
+                            <input type="hidden" name="nombre"       value="{{ $prod->descripcion1 }}">
+                            <input type="hidden" name="pvp3"         value="{{ $prod->pvp1 }}">
+                            <input type="hidden" name="imagen"       value="{{ $prod->imagen }}">
+                            <input type="hidden" name="presentacion" value="0">
+                            <button type="submit"
+                                    class="w-full text-sm text-white bg-[#0300a3] px-3 py-1.5 rounded hover:bg-[#0200cc] transition">
+                                + Carrito
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
         @empty
-            <p class="text-gray-500">No hay productos destacados disponibles.</p>
+            <p class="text-gray-500 col-span-4">No hay productos disponibles.</p>
         @endforelse
     </div>
 </div>
-
-@endsection
 
 @push('scripts')
 <style>
@@ -165,3 +170,5 @@
     }
 </style>
 @endpush
+
+@endsection

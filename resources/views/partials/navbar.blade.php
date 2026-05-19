@@ -73,7 +73,7 @@
                     </svg>
                 </button>
 
-                <div id="userMenu" class="hidden absolute right-0 top-8 mt-2 w-52 bg-white border border-gray-200 rounded-xl shadow-lg z-50 text-sm">
+                <div id="userMenu" class="hidden absolute right-0 top-9 w-44 sm:w-52 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden z-50 text-sm">
                     @if(session('user_id'))
                         <div class="px-4 py-3 border-b text-gray-700 font-semibold truncate">
                             {{ session('nombre') }}
@@ -93,8 +93,15 @@
                             </button>
                         </form>
                     @else
-                        <a href="{{ route('login') }}" class="block px-4 py-2 hover:bg-gray-50">Iniciar sesión</a>
-                        <a href="{{ route('register') }}" class="block px-4 py-2 hover:bg-gray-50">Registrarse</a>
+                        <a href="{{ route('login') }}"
+                        class="block px-4 py-3 text-gray-700 text-sm font-medium hover:bg-[#f3f7ff] hover:text-[#0300a3] transition border-b border-gray-100">
+                            Iniciar sesión
+                        </a>
+
+                        <a href="{{ route('register') }}"
+                        class="block px-4 py-3 text-gray-700 text-sm font-medium hover:bg-[#f3f7ff] hover:text-[#0300a3] transition">
+                            Registrarse
+                        </a>
                     @endif
                 </div>
             </div>

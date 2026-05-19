@@ -147,7 +147,7 @@ class CarritoController extends Controller
             );
             if($request->cantidad > $stockDisponible){
                 return back()->withErrors([
-                    'error' => 'Solo hay'. (int)$stockDisponible.'unidades disponibles'
+                    'error' => 'Solo hay '. (int)$stockDisponible.' unidades disponibles'
                 ]);
             }
             $this->carrito->updateCantidad(

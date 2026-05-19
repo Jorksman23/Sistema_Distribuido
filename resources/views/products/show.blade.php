@@ -198,19 +198,18 @@
             formCarrito.submit();
         });
     }
-    // Carrusel con flechas y teclado
     const container    = document.getElementById('carouselContainer');
-    const prevBtn      = document.getElementById('prevBtn');
-    const nextBtn      = document.getElementById('nextBtn');
-    const scrollAmount = 200;
+const prevBtn      = document.getElementById('prevBtn');
+const nextBtn      = document.getElementById('nextBtn');
+const scrollAmount = 200;
 
-    if (prevBtn) prevBtn.addEventListener('click', () => container.scrollBy({ left: -scrollAmount, behavior: 'smooth' }));
-    if (nextBtn) nextBtn.addEventListener('click', () => container.scrollBy({ left: scrollAmount,  behavior: 'smooth' }));
+if (prevBtn) prevBtn.addEventListener('click', () => container.scrollBy({ left: -scrollAmount, behavior: 'smooth' }));
+if (nextBtn) nextBtn.addEventListener('click', () => container.scrollBy({ left:  scrollAmount, behavior: 'smooth' }));
 
-    document.addEventListener('keydown', (e) => {
-        if (!container) return;
-        if (e.key === 'ArrowLeft')  container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-        if (e.key === 'ArrowRight') container.scrollBy({ left: scrollAmount,  behavior: 'smooth' });
-    });
+document.addEventListener('keydown', (e) => {
+    if (!container) return;
+    if (e.key === 'ArrowLeft')  container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    if (e.key === 'ArrowRight') container.scrollBy({ left:  scrollAmount, behavior: 'smooth' });
+});
 </script>
 @endsection

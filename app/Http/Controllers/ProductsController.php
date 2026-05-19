@@ -14,9 +14,8 @@ class ProductsController extends Controller
     {
         try {
             $empresa  = $request->query('empresa', currentCompany());
-
             // Usamos directamente ProductPresentation para obtener producto + presentaciones
-           $producto = (new ProductPresentation())->getByProduct($codigo, $empresa, null);
+            $producto = (new ProductPresentation())->getByProduct($codigo, $empresa, null);
 
             if (empty($producto)) {
                 return view('errores.404', ['mensaje' => 'Producto no encontrado']);
@@ -27,7 +26,7 @@ class ProductsController extends Controller
                 'producto' => $producto,
             ]);
         } catch (Throwable $e) {
-            //dd($e->getMessage());
+            dd($e->getMessage());
             return redirect()->route('catalogo.index')
                 ->withErrors(['error' => 'Error al obtener producto: ' . $e->getMessage()]);
         }
