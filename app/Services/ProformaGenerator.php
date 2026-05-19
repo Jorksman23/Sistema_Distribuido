@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
-
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -21,16 +20,16 @@ class ProformaGenerator
 
             $documento = $this->generarNumeroDocumento();
 
-            // 1. Crear Cabecera de Proforma
             $this->crearCabeceraProforma($orden, $documento, $itemsCarrito);
-
-            // 2. Crear Movimientos (Detalle)
             $this->crearMovimientosProforma($documento, $itemsCarrito);
-
-            // 3. Actualizar Orden Web
             $this->actualizarOrdenWeb($orden, $documento);
 
             DB::connection($this->connection)->commit();
+
+            Log::info("Proforma generada exitosamente", [
+                'documento' => $documento,
+                'items'     => count($itemsCarrito)
+            ]);
 
             return $documento;
 
@@ -46,7 +45,7 @@ class ProformaGenerator
         $result = DB::connection($this->connection)->selectOne("
             SELECT MAX(CAST(documento AS INTEGER)) as ultimo
             FROM DBA.IN_CABECERA_PROFORMA
-            WHERE tipo = 'FC' AND empresa = ?
+            WHERE tipo = 'TW' AND empresa = ?
         ", [$this->empresa]);
 
         $siguiente = ($result->ultimo ?? 0) + 1;
@@ -57,7 +56,7 @@ class ProformaGenerator
     {
         $granTotal = 0;
         foreach ($itemsCarrito as $item) {
-            $granTotal += (float)$item->pvp3 * (int)$item->cantidad;
+            $granTotal += (float)($item->pvp3 ?? 0) * (int)($item->cantidad ?? 1);
         }
 
         DB::connection($this->connection)->table('DBA.IN_CABECERA_PROFORMA')->insert([
@@ -66,10 +65,10 @@ class ProformaGenerator
             'empresa'       => $this->empresa,
             'fecha'         => now()->format('Y-m-d'),
             'pro_cli'       => '1',
-            'vendedor'      => '10',
+            'vendedor'      => '1',
             'descuento'     => 0,
             'impuesto'      => 0,
-            'comentario'    => $orden->observacion_compra ?? 'Venta Web',
+            'comentario'    => $orden->observacion_compra ?? 'TRANSFERENCIA DE ORDEN DE COMPRA REGISTRADA EN LA PAGINA WEB',
             'caja'          => '1',
             'fechav'        => now()->format('Y-m-d'),
             'referencia'    => $orden->codigo ?? $documento,
@@ -83,21 +82,67 @@ class ProformaGenerator
     private function crearMovimientosProforma(string $documento, array $itemsCarrito)
     {
         foreach ($itemsCarrito as $item) {
+            $codigoItem     = $item->codigo_item;
+            $cantidad       = (int)$item->cantidad;
+            $presentacion   = $item->presentacion ?? 0;
+            $nombre         = $item->nombre ?? 'Sin nombre';
+
+            $ubicacion = $this->buscarUbicacionConStock($codigoItem, $presentacion, $cantidad);
+
+            if (!$ubicacion) {
+                Log::warning("Stock insuficiente detectado", [
+                    'producto' => $codigoItem,
+                    'nombre'   => $nombre,
+                    'cantidad' => $cantidad
+                ]);
+                throw new \Exception("No hay stock suficiente para: {$nombre}");
+            }
+
             DB::connection($this->connection)->table('DBA.IN_MOVIMIENTO_PROFORMA')->insert([
                 'empresa'      => $this->empresa,
                 'tipo'         => 'TW',
                 'documento'    => $documento,
-                'cantidad'     => (int)$item->cantidad,
+                'cantidad'     => $cantidad,
                 'valor'        => (float)$item->pvp3,
                 'descuento'    => 0,
                 'impuesto'     => 0,
-                'producto'     => $item->codigo_item,
-                'presentacion' => isset($item->presentacion) && $item->presentacion !== 0? $item->presentacion: null,
-                'ubicacion'    => '4',
+                'lista'        => '1',
+                'producto'     => $codigoItem,
+                'presentacion' => $presentacion > 0 ? $presentacion : null,
+                'ubicacion'    => $ubicacion,
                 'numprecio'    => 1,
                 'fechae'       => now()->format('Y-m-d'),
+                'valor1'       => (float)$item->pvp3,
+                'bonificacion' => 0,
             ]);
         }
+    }
+
+    private function buscarUbicacionConStock(string $codigoItem, int $presentacion, int $cantidadNecesaria): ?string
+    {
+        if ($presentacion > 0) {
+            // Stock por Presentación
+            $result = DB::connection($this->connection)->selectOne("
+                SELECT TOP 1 e.ubicacion
+                FROM DBA.in_existencia_presentacion e
+                INNER JOIN DBA.in_item_presentacion p ON p.codigo = e.item_presentacion
+                WHERE p.producto = ?
+                  AND p.codigo = ?
+                  AND e.cantidad >= ?
+                ORDER BY e.cantidad DESC
+            ", [$codigoItem, $presentacion, $cantidadNecesaria]);
+        } else {
+            // Stock Normal
+            $result = DB::connection($this->connection)->selectOne("
+                SELECT TOP 1 ubicacion
+                FROM DBA.in_existencia
+                WHERE producto = ?
+                  AND existencia >= ?
+                ORDER BY existencia DESC
+            ", [$codigoItem, $cantidadNecesaria]);
+        }
+
+        return $result->ubicacion ?? null;
     }
 
     private function actualizarOrdenWeb($orden, string $documento)
