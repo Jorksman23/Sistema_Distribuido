@@ -8,7 +8,7 @@ class WishListModel
 {
     protected $connection = 'odbc';
     protected $table      = 'DBA.pw_wishlist';
-
+    public $tiene_presentaciones;
     //Obtener wishlist de un cliente
     public function getByCliente(string $codCliente, string $empresa): array
     {
@@ -22,7 +22,13 @@ class WishListModel
                 w.imagen,
                 w.empresa,
                 w.created_at,
-                COALESCE (SUM(e.existencia),0) AS stock_total
+                COALESCE(SUM(e.existencia), 0) AS stock_total,
+                CASE WHEN EXISTS (
+                    SELECT 1 FROM DBA.in_item_presentacion p
+                    WHERE p.producto = w.codigo_item
+                    AND p.empresa    = w.empresa
+                    AND p.mostrar    = 'S'
+                ) THEN 1 ELSE 0 END AS tiene_presentaciones
             FROM {$this->table} w
             LEFT JOIN DBA.in_existencia e
                 ON e.producto = w.codigo_item
@@ -109,6 +115,7 @@ class WishListModel
         $instance->imagen       = $row->imagen;
         $instance->imagen_url   = productImageUrl($row->imagen);
         $instance->empresa      = $row->empresa;
+        $instance->tiene_presentaciones = (bool)($row->tiene_presentaciones ?? false);
         $instance->created_at   = $row->created_at;
 
         return $instance;

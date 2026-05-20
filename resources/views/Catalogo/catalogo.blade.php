@@ -125,7 +125,7 @@
         </div>
 
         {{-- GRID --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             @forelse($productos as $prod)
                 <div class="min-w-0 bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 group">
 
@@ -170,7 +170,7 @@
                     </div>
 
                     <div class="p-3 flex flex-col flex-1">
-    <h3 class="text-sm font-bold text-gray-900 leading-snug mb-2 line-clamp-2 min-h-[2.8rem]">
+    <h3 class="text-sm font-bold text-gray-900 leading-snug mb-2 line-clamp-2 break-words min-h-[2.8rem]">
         {{ $prod->descripcion1 }}
     </h3>
 
@@ -183,7 +183,7 @@
 
         {{-- VER DETALLE --}}
         <a href="{{ route('products.show', $prod->codigo) }}"
-           class="flex-1 min-h-[42px] flex items-center justify-center text-center text-xs text-white bg-gray-800 px-2 py-2 rounded-xl hover:bg-gray-900 transition font-medium">
+           class="flex-1 min-h-[42px] flex items-center justify-center text-center text-[11px] whitespace-nowrap text-white bg-gray-800 px-2 py-2 rounded-xl hover:bg-gray-900 transition font-medium">
             Ver detalle
         </a>
 
@@ -193,7 +193,7 @@
 
                 {{-- Tiene presentaciones: redirigir al detalle --}}
                 <a href="{{ route('products.show', $prod->codigo) }}"
-                   class="flex-1 min-h-[42px] flex items-center justify-center text-center text-xs text-white bg-[#0300a3] px-2 py-2 rounded-xl hover:bg-[#0200cc] transition font-medium">
+                   class="flex-1 min-h-[42px] flex items-center justify-center text-center text-[11px] whitespace-nowrap text-white bg-[#0300a3] px-2 py-2 rounded-xl hover:bg-[#0200cc] transition font-medium">
                     Ver modelos
                 </a>
 
@@ -212,7 +212,7 @@
                     <input type="hidden" name="presentacion" value="0">
 
                     <button type="submit"
-                            class="w-full min-h-[42px] flex items-center justify-center text-center text-xs text-white bg-[#0300a3] px-2 py-2 rounded-xl hover:bg-[#0200cc] transition font-medium">
+                            class="w-full min-h-[42px] flex items-center justify-center text-center text-[11px] whitespace-nowrap text-white bg-[#0300a3] px-2 py-2 rounded-xl hover:bg-[#0200cc] transition font-medium">
                         + Carrito
                     </button>
                 </form>
