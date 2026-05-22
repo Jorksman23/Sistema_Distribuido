@@ -1,3 +1,169 @@
-<footer class="py-4 text-sm text-center text-gray-600">
- © {{ date('Y') }} {{ $empresaNombre }}. Todos los derechos reservados.
+<footer class="bg-[#020817] text-gray-300 mt-16">
+
+    <div class="max-w-7xl mx-auto px-6 py-12">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+
+            {{-- LOGO + DESCRIPCIÓN --}}
+            <div>
+                <!-- @if($footerData['logo'])
+                        <img src="{{ $footerData['logo'] }}"
+                            class="w-10 h-10 object-contain">
+                    @endif -->
+                <h2 class="text-2xl font-bold text-white">
+                    {{ $empresaNombre}}
+                </h2>
+
+                <p class="mt-4 text-sm leading-6 text-gray-400">
+                    Tu mejor aliado para equipar tu hogar con estilo y economía.
+                </p>
+
+                {{-- REDES --}}
+                <div class="flex items-center gap-5 mt-6">
+                    {{-- FACEBOOK --}}
+                    <a href="{{ $footerData['facebook'] }}"
+                    target="_blank"
+                    class="text-gray-300 hover:text-sky-400 transition duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            class="w-8 h-8"
+                            fill="currentColor"
+                            viewBox="0 0 24 24">
+                            <path d="M22 12.07C22 6.49 17.52 2 12 2S2 6.49 2 12.07c0 5.02 3.66 9.18 8.44 9.93v-7.03H7.9v-2.9h2.54V9.84c0-2.52 1.49-3.92 3.78-3.92 1.1 0 2.25.2 2.25.2v2.48h-1.27c-1.25 0-1.64.78-1.64 1.58v1.9h2.79l-.45 2.9h-2.34V22c4.78-.75 8.44-4.91 8.44-9.93z"/>
+                        </svg>
+                    </a>
+                    {{-- INSTAGRAM --}}
+                    <a href="{{ $footerData['instagram'] }}"
+                    target="_blank"
+                    class="text-gray-300 hover:text-sky-400 transition duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            class="w-8 h-8"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="1.8">
+                            <rect x="2" y="2" width="20" height="20" rx="5"/>
+                            <path d="M16 11.37a4 4 0 1 1-7.75 1.26 4 4 0 0 1 7.75-1.26z"/>
+                            <line x1="17.5" y1="6.5" x2="17.5" y2="6.5"/>
+                        </svg>
+                    </a>
+                    {{-- X / TWITTER --}}
+                    <a href="{{ $footerData['twitter'] }}"
+                    target="_blank"
+                    class="text-gray-300 hover:text-sky-400 transition duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            class="w-8 h-8"
+                            fill="currentColor"
+                            viewBox="0 0 24 24">
+                            <path d="M18.244 2H21l-6.56 7.5L22.5 22h-6.67l-5.22-6.82L4.5 22H1.74l7.02-8.02L1.5 2h6.84l4.72 6.23L18.244 2zm-2.34 18h1.85L7.1 3.9H5.14L15.904 20z"/>
+                        </svg>
+                    </a>
+
+                </div>
+            </div>
+
+            {{-- EMPRESA --}}
+            <div>
+                <h3 class="text-white font-semibold mb-4 uppercase text-sm">
+                    Empresa
+                </h3>
+
+                <ul class="space-y-3 text-sm">
+                    <li>
+                        <a href="#" class="hover:text-white transition">
+                            Nosotros
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="#" class="hover:text-white transition">
+                            Progreso
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="#" class="hover:text-white transition">
+                            Términos y condiciones
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            {{-- CLIENTE --}}
+            <div>
+                <h3 class="text-white font-semibold mb-4 uppercase text-sm">
+                    Servicio al cliente
+                </h3>
+
+                <ul class="space-y-3 text-sm">
+                    <li>
+                        <a href="#" class="hover:text-white transition">
+                            Preguntas frecuentes
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="#" class="hover:text-white transition">
+                            Envíos
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="#" class="hover:text-white transition">
+                            Soporte
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            {{-- CONTACTO --}}
+            <div>
+                <h3 class="text-white font-semibold mb-4 uppercase text-sm">
+                    Contacto
+                </h3>
+                <div class="flex items-center gap-2 text-gray-300">
+                    <svg class="w-5 h-5 text-sky-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M16 12H8m8 0l-8 0m8 0l-8 0M4 6h16v12H4z"/>
+                    </svg>
+
+                    <a href="mailto:{{ $footerData['correo'] }}"
+                    class="hover:text-sky-400 transition">
+                        {{ $footerData['correo'] }}
+                    </a>
+                </div>
+                <div class="flex items-center gap-2 text-gray-300">
+                    <svg class="w-5 h-5 text-sky-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+
+                    <a href="{{ $footerData['direccion'] }}"
+                    target="_blank"
+                    class="hover:text-sky-400 transition">
+                        Ver ubicación
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {{-- COPYRIGHT --}}
+        <div class="border-t border-gray-800 mt-10 pt-6 text-center text-sm text-gray-500">
+            © {{ date('Y') }} {{ $empresaNombre }}. Todos los derechos reservados.
+        </div>
+    </div>
+
 </footer>

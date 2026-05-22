@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\View;
 use App\Models\Empresa;
 use App\Models\WishListModel;
 use App\Models\CarritoModel;
+use App\Models\Parametro;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -14,8 +15,7 @@ class AppServiceProvider extends ServiceProvider
     {
         //
     }
-    public function boot(): void
-    {
+    public function boot(): void{
         // Cargar nuestro Helper de Empresa e Imágenes
         require_once app_path('Helpers/CompanyHelper.php');
         // Compartir nombre de empresa en todas las vistas (lo que ya tenías)

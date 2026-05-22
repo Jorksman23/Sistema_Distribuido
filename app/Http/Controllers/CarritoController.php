@@ -58,13 +58,6 @@ class CarritoController extends Controller
 
         $codCliente   = (string) session('user_id');
         $presentacion = (int) ($request->presentacion ?? 0);
-        //$existe = $this->carrito->exists($codCliente, $request->codigo_item, $presentacion);
-        // dd([
-        //     'codigo_item'  => $request->codigo_item,
-        //     'presentacion' => $presentacion,
-        //     'cod_cliente'  => $codCliente,
-        //     'existe'       => $existe,
-        // ]);
         try {
             if ($this->carrito->exists($codCliente, $request->codigo_item, $presentacion)) {
                 $item = $this->carrito->getItemByProducto(
