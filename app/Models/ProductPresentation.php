@@ -3,43 +3,45 @@
 namespace App\Models;
 
 use Illuminate\Support\Facades\DB;
-use App\Models\ProductsModel;
 
 class ProductPresentation
 {
     protected $connection = 'odbc';
     protected $table = 'DBA.in_item_presentacion';
-    //protected $codigo;
+
+    // Propiedades públicas
     public $codigo;
     public $producto;
     public $nombre;
     public $foto;
     public $foto_url;
     public $stock_presentacion;
+
     /**
      * Obtener producto + presentaciones
      */
     public function getByProduct(string $codigoProducto, string $empresa = null, ?int $limit = null): array
-{
-    $empresa = $empresa ?? currentCompany();
+    {
+        $empresa = $empresa ?? currentCompany();
 
-    $producto = (new ProductsModel())->findByCodigo($codigoProducto, $empresa);
-    if (!$producto) {
-        return [];
-    }
+        // Producto base
+        $producto = (new ProductsModel())->findByCodigo($codigoProducto, $empresa);
+        if (!$producto) {
+            return [];
+        }
 
-    $stockRow = DB::connection($this->connection)->selectOne("
-        SELECT SUM(existencia) AS total
-        FROM DBA.in_existencia
-        WHERE producto = ?
-        AND   empresa  = ?
-    ", [$codigoProducto, $empresa]);
+        // Stock total del producto
+        $stockRow = DB::connection($this->connection)->selectOne("
+            SELECT SUM(existencia) AS total
+            FROM DBA.in_existencia
+            WHERE producto = ? AND empresa = ?
+        ", [$codigoProducto, $empresa]);
 
-    $stockTotal = (float) ($stockRow->total ?? 0);
+        $stockTotal = (float) ($stockRow->total ?? 0);
 
-    if (!empty($limit)) {
+        // SQL dinámico según límite
         $sql = "
-            SELECT TOP {$limit}
+            SELECT " . (!empty($limit) ? "TOP {$limit}" : "") . "
                 p.producto,
                 p.codigo,
                 p.nombre,
@@ -52,72 +54,49 @@ class ProductPresentation
             WHERE p.empresa = ?
               AND p.producto = ?
               AND p.mostrar = 'S'
-            GROUP BY
-                p.producto,
-                p.codigo,
-                p.nombre,
-                p.foto
+            GROUP BY p.producto, p.codigo, p.nombre, p.foto
             ORDER BY p.nombre
         ";
-    } else {
-        $sql = "
-            SELECT
-                p.producto,
-                p.codigo,
-                p.nombre,
-                p.foto,
-                COALESCE(SUM(e.cantidad), 0) AS stock_presentacion
-            FROM {$this->table} p
-            LEFT JOIN DBA.in_existencia_presentacion e
-                ON e.item_presentacion = p.codigo
-                AND e.empresa = p.empresa
-            WHERE p.empresa = ?
-              AND p.producto = ?
-              AND p.mostrar = 'S'
-            GROUP BY
-                p.producto,
-                p.codigo,
-                p.nombre,
-                p.foto
-            ORDER BY p.nombre
-        ";
+
+        $rows = DB::connection($this->connection)->select($sql, [$empresa, $codigoProducto]);
+
+        $presentaciones = array_map(
+            fn($row) => $this->mapRowToInstance($row, $codigoProducto),
+            $rows
+        );
+
+        return [
+            'codigo'         => $producto->codigo,
+            'empresa'        => $producto->empresa,
+            'descripcion'    => $producto->descripcion1,
+            'precio'         => $producto->pvp1,
+            'imagen'         => $producto->imagen,
+            'imagen_url'     => $producto->imagen_url,
+            'stock'          => $producto->stock,
+            'stock_total'    => $stockTotal,
+            'categoria'      => $producto->categoria,
+            'presentaciones' => $presentaciones,
+        ];
     }
 
-    $rows = DB::connection($this->connection)->select($sql, [$empresa, $codigoProducto]);
-
-    $presentaciones = array_map(
-        fn($row) => $this->mapRowToInstance($row, $codigoProducto),
-        $rows
-    );
-
-    return [
-        'codigo'         => $producto->codigo,
-        'empresa'        => $producto->empresa,
-        'descripcion'    => $producto->descripcion1,
-        'precio'         => $producto->pvp1,
-        'imagen'         => $producto->imagen,
-        'imagen_url'     => $producto->imagen_url,
-        'stock'          => $producto->stock,
-        'stock_total'    => $stockTotal,
-        'categoria'      => $producto->categoria,
-        'presentaciones' => $presentaciones,
-    ];
-}
     /**
-     * Mapea cada presentación
+     * Mapear fila de presentación a objeto
      */
-    private function mapRowToInstance($row, string $codigoProducto)
+    private function mapRowToInstance($row, string $codigoProducto): self
     {
         $instance = new self();
         $instance->codigo    = $row->codigo;
         $instance->producto  = $row->producto;
         $instance->nombre    = self::cleanString($row->nombre);
         $instance->foto      = $row->foto;
-        $instance->foto_url  = presentationImageUrl($row->foto, $codigoProducto); // ← Clave aquí
+        $instance->foto_url  = presentationImageUrl($row->foto, $codigoProducto);
         $instance->stock_presentacion = (float)($row->stock_presentacion ?? 0);
         return $instance;
     }
 
+    /**
+     * Limpieza de cadenas
+     */
     public static function cleanString(?string $value): ?string
     {
         if ($value === null || $value === '') return $value;

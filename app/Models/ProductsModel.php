@@ -27,7 +27,7 @@ class ProductsModel
     public $stock_total;
     public $tiene_presentaciones;
 
- 
+
 
     //Normalizador de cadenas para búsqueda
     private function normalizeString(string $text): string{

@@ -14,7 +14,7 @@
             <p class="text-2xl font-bold text-[#0F52BA]">{{ $documento ?? request('documento') }}</p>
         </div>
 
-        <a href="{{ route('pedidos.verp', ['documento' => $documento ?? request('documento')]) }}"
+        <a href="{{ route('profile.show') }}#historial-pedidos"
             class="inline-block bg-[#0F52BA] text-white px-8 py-3 rounded-xl hover:bg-[#003087]">
             Ver Mis Pedidos
         </a>

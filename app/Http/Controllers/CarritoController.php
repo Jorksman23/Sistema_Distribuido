@@ -6,8 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\CarritoModel;
 use App\Models\ProductsModel;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use App\Services\ProformaGenerator;
+use App\Services\PaymentService;
 use App\Helpers\CompanyHelper;
 use Throwable;
 
@@ -221,112 +221,34 @@ class CarritoController extends Controller
     }
 
     // === PROCESAR PAGO ===
+
     public function procesarPago(Request $request)
-    {
-        $codCliente = (string) session('user_id');
-        $empresa    = currentCompany();
+{
+    $codCliente = (string) session('user_id');
+    $empresa    = currentCompany();
 
-        $request->validate([
-            'tipo_pago'   => 'required|in:payphone,transferencia,contraentrega',
-            'cedula'      => 'required|string|max:15',
-            'nombre'      => 'required|string|max:180',
-            'email'       => 'required|email|max:250',
-            'telefono'    => 'required|string|max:15',
-            'direccion'   => 'required|string|max:500',
-            'observacion' => 'nullable|string|max:500',
-        ]);
+    $request->validate([
+        'tipo_pago' => 'required|in:payphone,transferencia,contraentrega',
+        'cedula'    => 'required|string|max:15',
+        'nombre'    => 'required|string|max:180',
+        'email'     => 'required|email|max:250',
+        'telefono'  => 'required|string|max:15',
+        'direccion' => 'required|string|max:500',
+        'observacion' => 'nullable|string|max:500',
+    ]);
 
-        try {
-            DB::connection('odbc')->beginTransaction();
+    try {
+        $service     = new PaymentService();
+        $codigoOrden = $service->procesarPago($request->all(), $codCliente, $empresa);
 
-            $items = $this->carrito->getCarritoByUser($codCliente);
-            if (empty($items)) {
-                throw new \Exception('El carrito está vacío');
-            }
-
-            $granTotal   = $this->carrito->getTotal($codCliente);
-            $codigoOrden = $this->generarCodigoOrden($empresa);
-
-            // === MAPEO DE TIPO DE PAGO A SECUENCIA (cxc_forma_pago) ===
-            $secuenciaPago = match(strtolower($request->tipo_pago)) {
-                'payphone'       => 5,   // Tarjetas de Crédito
-                'transferencia'  => 7,   // Transferencia Bancaria
-                'contraentrega'  => 1,   // Contra Entrega / Efectivo
-                default          => 1,
-            };
-
-            // 1. Insertar Orden Web
-            $ordenData = [
-                'codigo'            => $codigoOrden,
-                'cod_cliente'       => $codCliente,
-                'n_documento'       => $codigoOrden,
-                'tipo'              => 'TW',
-                'empresa'           => $empresa,
-                'uuid_session'      => md5(uniqid(rand(), true)),
-                'tipo_pago'         => $secuenciaPago,
-                'items_carrito'     => count($items),
-                'gran_total'        => $granTotal,
-                'estatus'           => '1',
-                'cedula_cliente'    => $request->cedula,
-                'nombre_cliente'    => $request->nombre,
-                'email_cliente'     => $request->email,
-                'telefono_cliente'  => $request->telefono,
-                'direccion_cliente' => $request->direccion,
-                'observacion_compra'=> $request->observacion,
-                'fecha_creacion'    => now(),
-                'fecha_modificacion'=> now(),
-            ];
-
-            DB::connection('odbc')->table('DBA.PW_ORDENES_WEB')->insert($ordenData);
-
-            // 2. Obtener pw_id recién creado
-            $orden = DB::connection('odbc')->selectOne("
-                SELECT TOP 1 pw_id
-                FROM DBA.PW_ORDENES_WEB
-                WHERE codigo = ? AND empresa = ?
-                ORDER BY pw_id DESC
-            ", [$codigoOrden, $empresa]);
-
-            if (!$orden || empty($orden->pw_id)) {
-                throw new \Exception('No se pudo recuperar el ID de la orden');
-            }
-
-            $pw_id = $orden->pw_id;
-
-            Log::info("Orden Web creada", ['pw_id' => $pw_id, 'codigo' => $codigoOrden]);
-
-            // 3. Marcar items del carrito como procesados
-            DB::connection('odbc')->table('DBA.pw_carrito_web')
-                ->where('cod_cliente', $codCliente)
-                ->where('estatus', '1')
-                ->update(['orden_id' => $pw_id, 'estatus' => '2']);
-
-            // 4. Generar Proforma + Descontar Stock
-            $proformaService = new ProformaGenerator();
-            $documento = $proformaService->generarDesdeOrden(
-                (object) ['pw_id' => $pw_id, 'codigo' => $codigoOrden, 'observacion_compra' => $request->observacion],
-                $items,
-                $empresa
-            );
-
-            // 5. Vaciar carrito
-            $this->carrito->vaciar($codCliente);
-
-            DB::connection('odbc')->commit();
-
-            Log::info("Compra completada exitosamente", ['codigo' => $codigoOrden]);
-
-            return redirect()->route('pedidos.verp', ['documento' => $codigoOrden])
-                             ->with('success', '¡Compra realizada exitosamente!');
-
-        } catch (Throwable $e) {
-            DB::connection('odbc')->rollBack();
-            Log::error('ERROR PROCESAR PAGO: ' . $e->getMessage());
-            Log::error($e->getTraceAsString());
-
-            return back()->withErrors(['error' => 'Error al procesar la compra: ' . $e->getMessage()]);
-        }
+        return redirect()->route('pedidos.verp', ['documento' => $codigoOrden])
+            ->with('success', '¡Compra realizada exitosamente!');
+    } catch (Throwable $e) {
+        return back()->withErrors(['error' => 'Error al procesar la compra: ' . $e->getMessage()]);
     }
+}
+
+
 
     private function generarCodigoOrden(string $empresa): string
     {
