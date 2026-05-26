@@ -60,7 +60,7 @@ class ProformaGenerator
         }
 
         DB::connection($this->connection)->table('DBA.IN_CABECERA_PROFORMA')->insert([
-            'tipo'          => companyDefaultOrderType(),
+            'tipo'          => companyDefaultOrderType('proforma_web'),
             'documento'     => $documento,
             'empresa'       => $this->empresa,
             'fecha'         => now()->format('Y-m-d'),
@@ -100,7 +100,7 @@ class ProformaGenerator
 
             DB::connection($this->connection)->table('DBA.IN_MOVIMIENTO_PROFORMA')->insert([
                 'empresa'      => $this->empresa,
-                'tipo'         => companyDefaultOrderType(),
+                'tipo'         => companyDefaultOrderType('proforma_web'),
                 'documento'    => $documento,
                 'cantidad'     => $cantidad,
                 'valor'        => (float)$item->pvp3,
@@ -115,6 +115,26 @@ class ProformaGenerator
                 'valor1'       => (float)$item->pvp3,
                 'bonificacion' => 0,
             ]);
+            // Descuento de stock
+            if ($presentacion > 0) {
+                DB::connection($this->connection)->update("
+                    UPDATE DBA.in_existencia_presentacion
+                    SET cantidad = cantidad - ?
+                    WHERE empresa = ? AND item_presentacion = ? AND ubicacion = ?
+                ", [$cantidad, $this->empresa, $presentacion, $ubicacion]);
+                DB::connection($this->connection)->update("
+                    UPDATE DBA.in_existencia
+                    SET existencia = existencia - ?
+                    WHERE empresa = ? AND producto = ? AND ubicacion = ?
+                ", [$cantidad, $this->empresa, $codigoItem, $ubicacion]);}
+            else {
+                // Solo descuento general
+                DB::connection($this->connection)->update("
+                    UPDATE DBA.in_existencia
+                    SET existencia = existencia - ?
+                    WHERE empresa = ? AND producto = ? AND ubicacion = ?
+                ", [$cantidad, $this->empresa, $codigoItem, $ubicacion]);
+            }
         }
     }
 
