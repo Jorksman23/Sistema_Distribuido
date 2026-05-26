@@ -60,7 +60,7 @@ class ProformaGenerator
         }
 
         DB::connection($this->connection)->table('DBA.IN_CABECERA_PROFORMA')->insert([
-            'tipo'          => 'TW',
+            'tipo'          => companyDefaultOrderType(),
             'documento'     => $documento,
             'empresa'       => $this->empresa,
             'fecha'         => now()->format('Y-m-d'),
@@ -100,7 +100,7 @@ class ProformaGenerator
 
             DB::connection($this->connection)->table('DBA.IN_MOVIMIENTO_PROFORMA')->insert([
                 'empresa'      => $this->empresa,
-                'tipo'         => 'TW',
+                'tipo'         => companyDefaultOrderType(),
                 'documento'    => $documento,
                 'cantidad'     => $cantidad,
                 'valor'        => (float)$item->pvp3,

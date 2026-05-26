@@ -61,4 +61,19 @@ if (!function_exists('presentationImageUrl')) {
 
         return $base . ltrim($filename, '/');
     }
+
+
+    if (!function_exists('companyDefaultOrderType')) {
+    function companyDefaultOrderType(string $tipo = 'proforma_web'): string
+    {
+        $documentTypes = [
+            'proforma_web' => 'TW',
+            'invoice'      => 'FC',
+        ];
+
+        return $documentTypes[$tipo] ?? 'TW';
+    }
+    }
+
+
 }

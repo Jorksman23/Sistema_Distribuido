@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Support\Facades\DB;
-
+use App\Models\ProductsModel;
 class ProductPresentation
 {
     protected $connection = 'odbc';

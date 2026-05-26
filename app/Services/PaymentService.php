@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\CarritoModel;
 use App\Services\ProformaGenerator;
+use App\Models\FormaPago;
+
 use Throwable;
 
 class PaymentService
@@ -32,12 +34,14 @@ class PaymentService
             $granTotal   = $this->carrito->getTotal($codCliente);
             $codigoOrden = $this->generarCodigoOrden($empresa);
 
-            $secuenciaPago = match(strtolower($data['tipo_pago'])) {
-                'payphone'      => 5,
-                'transferencia' => 7,
-                'contraentrega' => 1,
-                default         => 1,
-            };
+            $row = DB::connection('odbc')->selectOne("
+            SELECT TOP 1 secuencia
+            FROM cxc_forma_pago
+            WHERE forma_pago = ? AND empresa = ?
+            ", [$data['tipo_pago'], $empresa]);
+
+             $secuenciaPago = $row?->secuencia ?? 1;
+
 
             // Insertar orden
 
@@ -45,7 +49,7 @@ class PaymentService
             'codigo'            => $codigoOrden,
             'cod_cliente'       => $codCliente,
             'n_documento'       => $codigoOrden,
-            'tipo'              => 'TW',   // ← ESTA ES LA CLAVE
+            'tipo'              => companyDefaultOrderType('invoice'),
             'empresa'           => $empresa,
             'uuid_session'      => md5(uniqid(rand(), true)),
             'tipo_pago'         => $secuenciaPago,
