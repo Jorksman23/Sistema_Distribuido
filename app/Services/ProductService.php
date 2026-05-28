@@ -23,7 +23,7 @@ class ProductService
     {
         return $this->productsModel->getPaginatedProducts(
             $page,
-            20, // productos por página
+            40, // productos por página
             $empresa,
             $filters['search']    ?? '',
             $filters['grupo']     ?? '',

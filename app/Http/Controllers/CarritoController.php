@@ -4,22 +4,37 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\CarritoModel;
-use App\Models\ProductsModel;
-use Illuminate\Support\Facades\DB;
-use App\Services\ProformaGenerator;
+use App\Services\CartService;
 use App\Services\PaymentService;
-use App\Helpers\CompanyHelper;
+use App\Services\CheckoutService;
+use App\Services\PaymentMethodService;
+use App\Repositories\CartRepository;
 use Throwable;
 
 class CarritoController extends Controller
 {
-    protected $carrito;
-    protected $proformaGenerator;
 
-    public function __construct()
-    {
-        $this->carrito = new CarritoModel();
-        $this->proformaGenerator = new ProformaGenerator();
+    protected CarritoModel $carrito;
+    protected CartRepository $cartRepository;
+    protected CartService $cartService;
+    protected CheckoutService $checkoutService;
+    protected PaymentMethodService $paymentMethodService;
+    protected PaymentService $paymentService;
+
+    public function __construct(
+        CarritoModel $carrito,
+        CartRepository $cartRepository,
+        CartService $cartService,
+        CheckoutService $checkoutService,
+        PaymentMethodService $paymentMethodService,
+        PaymentService $paymentService
+    ) {
+        $this->carrito = $carrito;
+        $this->cartRepository = $cartRepository;
+        $this->cartService = $cartService;
+        $this->checkoutService = $checkoutService;
+        $this->paymentMethodService = $paymentMethodService;
+        $this->paymentService = $paymentService;
     }
 
     // === Mostrar carrito ===
@@ -28,26 +43,16 @@ class CarritoController extends Controller
         $codCliente = (string) session('user_id');
 
         try {
-            $items = $this->carrito->getCarritoByUser($codCliente);
-            $total = $this->carrito->getTotal($codCliente);
-            $count = count($items);
-
-            return view('cart.index', [
-                'items' => $items,
-                'total' => number_format($total, 2, '.', ''),
-                'count' => $count,
-            ]);
+            $resumen = $this->cartService->obtenerResumenCarrito($codCliente);
+            return view('cart.index', $resumen);
         } catch (Throwable $e) {
             return view('errors.500', [
                 'mensaje' => 'Error al obtener carrito: ' . $e->getMessage(),
             ]);
         }
     }
-
-
     // === Agregar producto desde catálogo ===
-    public function add(Request $request)
-    {
+    public function add(Request $request){
         $request->validate([
             'codigo_item'  => 'required|string',
             'nombre'       => 'nullable|string',
@@ -55,208 +60,115 @@ class CarritoController extends Controller
             'imagen'       => 'nullable|string',
             'presentacion' => 'nullable|integer',
         ]);
-
-        $codCliente   = (string) session('user_id');
-        $presentacion = (int) ($request->presentacion ?? 0);
         try {
-            if ($this->carrito->exists($codCliente, $request->codigo_item, $presentacion)) {
-                $item = $this->carrito->getItemByProducto(
-                    $codCliente,
-                    $request->codigo_item,
-                    $presentacion
-                );
-                if ($item) {
-                    $this->carrito->updateCantidad(
-                        $item->id_item_web,
-                        $codCliente,
-                        $item->cantidad +1
-                    );
-                }
-            } else {
-                $nombre = $request->nombre;
-                $pvp3   = $request->pvp3;
-                $imagen = $request->imagen;
-
-                if (!$nombre || !$pvp3) {
-                    $producto = (new ProductsModel())->findByCodigo(
-                        $request->codigo_item,
-                        currentCompany()
-                    );
-
-                    if (!$producto) {
-                        return back()->withErrors(['error' => 'Producto no encontrado']);
-                    }
-
-                    $nombre = $nombre ?? $producto->descripcion1;
-                    $pvp3   = $pvp3   ?? $producto->pvp1;
-                    $imagen = $imagen ?? $producto->imagen;
-                }
-                // Limpiar encoding del nombre
-                $nombre = ProductsModel::cleanString($nombre);
-                $this->carrito->add([
-                    'codigo_item'  => $request->codigo_item,
-                    'nombre'       => $nombre,
-                    'costo_real'   => $pvp3,
-                    'pvp3'         => $pvp3,
-                    'cantidad'     => 1,
-                    'cod_cliente'  => $codCliente,
-                    'imagen'       => $imagen,
-                    'iva'          => 'N',
-                    'presentacion' => $presentacion,
-                ]);
-            }
-
-            // Limpiar caché del contador
+            $this->cartService->agregarProducto($request->all(),(string) session('user_id'));
             session()->forget('carrito_count');
-
+            return back()->with('success_cart','¡Producto agregado al carrito!'
+            );
         } catch (Throwable $e) {
-
-            return back()->withErrors(['error' => 'Error al agregar: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => $e->getMessage()
+            ]);
         }
-
-        return back()->with('success_cart', '¡Producto agregado al carrito!');
     }
 
-    public function update(Request $request)
-    {
+    public function update(Request $request){
         $request->validate([
             'id_item_web' => 'required|integer',
             'cantidad'    => 'required|integer|min:1|max:99',
         ]);
-
-        $codCliente = (string) session('user_id');
-
         try {
-               //Obtener el Item actual
-            $item = $this->carrito->getItemById($request->id_item_web, $codCliente);
-            if(!$item){
-                return back()->withErrors(['error'=> 'Producto no encontrado en el carrito']);
-            }
-            //Verificar stock disponible
-            $stockDisponible = $this->carrito->getStockDisponible(
-                $item->codigo_item,
-                $item->presentacion,
-                currentCompany()
-            );
-            if($request->cantidad > $stockDisponible){
-                return back()->withErrors([
-                    'error' => 'Solo hay '. (int)$stockDisponible.' unidades disponibles'
-                ]);
-            }
-            $this->carrito->updateCantidad(
-                $request->id_item_web,
-                $codCliente,
-                $request->cantidad
-            );
+            $this->cartService->actualizarCantidad($request->id_item_web,$request->cantidad,(string) session('user_id'));
             session()->forget('carrito_count');
-
+            return back();
         } catch (Throwable $e) {
-            return back()->withErrors(['error' => 'Error al actualizar: ' . $e->getMessage()]);
-
+            return back()->withErrors(['error' => $e->getMessage()]);
         }
-
-        return back();
     }
 
     // === Eliminar producto ===
-    public function remove(Request $request)
-    {
-        $request->validate([
-            'id_item_web' => 'required|integer',
-        ]);
-
-        $codCliente = (string) session('user_id');
-
-        try {
-            $this->carrito->remove($request->id_item_web, $codCliente);
-            session()->forget('carrito_count');
-
-        } catch (Throwable $e) {
-            return back()->withErrors(['error' => 'Error al eliminar: ' . $e->getMessage()]);
-        }
-
+    public function remove(Request $request){
+    $request->validate([
+        'id_item_web' => 'required|integer',
+    ]);
+    try {
+        $this->cartService->eliminarProducto($request->id_item_web,(string) session('user_id'));
+        session()->forget('carrito_count');
         return back();
+    } catch (Throwable $e) {
+        return back()->withErrors(['error' => $e->getMessage()]);
     }
+}
 
     // === Vaciar carrito ===
-    public function vaciar()
-    {
-        $codCliente = (string) session('user_id');
-
+    public function vaciar(){
         try {
-            $this->carrito->vaciar($codCliente);
-            session()->forget('carrito_count');
-
-        } catch (Throwable $e) {
-            return back()->withErrors(['error' => 'Error al vaciar: ' . $e->getMessage()]);
-        }
-
+        $this->cartService->vaciarCarrito((string) session('user_id'));
+        session()->forget('carrito_count');
         return redirect()->route('carrito.index');
+        } catch (Throwable $e) {
+        return back()->withErrors(['error' => $e->getMessage()]);
     }
 
-   public function pagar()
-    {
+    }
+
+   public function pagar(){
         $codCliente = (string) session('user_id');
-
         try {
-            $items = $this->carrito->getCarritoByUser($codCliente);
-            $total = $this->carrito->getTotal($codCliente);
-            $count = count($items);
-
-            if (empty($items)) {
-                return redirect()->route('carrito.index')
-                    ->withErrors(['error' => 'El carrito está vacío']);
+            $checkout = $this->checkoutService->obtenerCheckout($codCliente);
+            if (empty($checkout['items'])) {
+                return redirect()->route('carrito.index')->withErrors(['error' => 'El carrito está vacío']);
             }
-
-            return view('pedidos.pagar', [
-                'items' => $items,
-                'total' => number_format($total, 2, '.', ''),
-                'count' => $count,
-            ]);
+            $formasPago = $this->paymentMethodService->obtenerFormasPago(currentCompany());
+            return view('pedidos.pagar', [...$checkout,'formasPago' => $formasPago,]);
         } catch (Throwable $e) {
-            return view('errors.500', [
-                'mensaje' => 'Error al preparar pago: ' . $e->getMessage(),
-            ]);
+            return view('errors.500', ['mensaje' => 'Error al preparar pago: ' . $e->getMessage(),]);
         }
     }
 
     // === PROCESAR PAGO ===
+    public function procesarPago(Request $request){
+        $codCliente = (string) session('user_id');
+        $empresa    = currentCompany();
 
-    public function procesarPago(Request $request)
-{
-    $codCliente = (string) session('user_id');
-    $empresa    = currentCompany();
+        $request->validate([
+            'tipo_pago' => 'required|integer',
+            'cedula'    => 'required|string|max:15',
+            'nombre'    => 'required|string|max:180',
+            'email'     => 'required|email|max:250',
+            'telefono'  => 'required|string|max:15',
+            'direccion' => 'required|string|max:500',
+            'observacion' => 'nullable|string|max:500',
+        ]);
 
-    $request->validate([
-        'tipo_pago' => 'required|in:payphone,transferencia,contraentrega',
-        'cedula'    => 'required|string|max:15',
-        'nombre'    => 'required|string|max:180',
-        'email'     => 'required|email|max:250',
-        'telefono'  => 'required|string|max:15',
-        'direccion' => 'required|string|max:500',
-        'observacion' => 'nullable|string|max:500',
-    ]);
+        $formaPago = $this->paymentMethodService->obtenerFormaPago($request->tipo_pago,$empresa);
 
-    try {
-        $service     = new PaymentService();
-        $codigoOrden = $service->procesarPago($request->all(), $codCliente, $empresa);
+        if (!$formaPago) {
+            return back()->withErrors(['error' => 'Forma de pago inválida']);
+        }
+        $cuentaBanco = $this->paymentMethodService->obtenerCuentaBanco($formaPago,$empresa);
+        try {
+            $codigoOrden = $this->paymentService->procesarPago([
+                'tipo_pago'   => $request->tipo_pago,
+                'cedula'      => $request->cedula,
+                'nombre'      => $request->nombre,
+                'email'       => $request->email,
+                'telefono'    => $request->telefono,
+                'direccion'   => $request->direccion,
+                'observacion' => $request->observacion,
+            ],
+            $codCliente,
+            $empresa
+        );
 
-        return redirect()->route('pedidos.verp', ['documento' => $codigoOrden])
-            ->with('success', '¡Compra realizada exitosamente!');
-    } catch (Throwable $e) {
-        return back()->withErrors(['error' => 'Error al procesar la compra: ' . $e->getMessage()]);
+            return redirect()->route('pedidos.verp', [
+                'documento' => $codigoOrden
+            ])->with('success', '¡Compra realizada exitosamente!');
+
+        } catch (Throwable $e) {
+            return back()->withErrors([
+                'error' => 'Error al procesar la compra: ' . $e->getMessage()
+            ]);
+        }
     }
-}
 
-
-
-    private function generarCodigoOrden(string $empresa): string
-    {
-        $max = DB::connection('odbc')->selectOne("
-            SELECT MAX(CAST(codigo AS INTEGER)) as maxc
-            FROM DBA.PW_ORDENES_WEB WHERE empresa = ?
-        ", [$empresa]);
-
-        return str_pad(($max->maxc ?? 0) + 1, 6, '0', STR_PAD_LEFT);
-    }
 }

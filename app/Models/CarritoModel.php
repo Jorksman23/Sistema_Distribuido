@@ -60,22 +60,6 @@ class CarritoModel
 
         return array_map(fn($row) => $this->mapRowToInstance($row), $rows);
     }
-
-    // ── Verificar si un producto ya está en el carrito ───
-    public function exists(string $codCliente, string $codigoItem, int $presentacion = 0): bool
-    {
-        $row = DB::connection($this->connection)->selectOne("
-            SELECT TOP 1 id_item_web
-            FROM {$this->table}
-            WHERE cod_cliente = ?
-            AND   codigo_item = ?
-            AND   presentacion = ?
-            AND   estatus     = '1'
-        ", [$codCliente, $codigoItem, $presentacion]);
-
-        return $row !== null;
-    }
-
     // ── Obtener item específico ──────────────────────────
     public function getItemByProducto(string $codCliente, string $codigoItem, int $presentacion = 0): ?self
     {
@@ -147,67 +131,6 @@ class CarritoModel
             $data['iva']          ?? 'N',
             $data['presentacion'] ?? 0,
         ]);
-    }
-
-    // ── Actualizar cantidad ──────────────────────────────
-    public function updateCantidad(int $idItemWeb, string $codCliente, int $cantidad): int
-    {
-        return DB::connection($this->connection)->update("
-            UPDATE {$this->table}
-            SET cantidad  = ?
-            WHERE id_item_web = ?
-            AND   cod_cliente = ?
-            AND   estatus     = '1'
-        ", [$cantidad, $idItemWeb, $codCliente]);
-    }
-
-    // ── Eliminar producto ────────────────────────────────
-    public function remove(int $idItemWeb, string $codCliente): int
-    {
-        return DB::connection($this->connection)->delete("
-            DELETE FROM {$this->table}
-            WHERE id_item_web = ?
-            AND   cod_cliente = ?
-        ", [$idItemWeb, $codCliente]);
-    }
-
-    // ── Vaciar carrito ───────────────────────────────────
-    public function vaciar(string $codCliente): int
-    {
-        return DB::connection($this->connection)->delete("
-            DELETE FROM {$this->table}
-            WHERE cod_cliente = ?
-            AND   estatus     = '1'
-        ", [$codCliente]);
-    }
-
-    // ── Contar items ─────────────────────────────────────
-    public function count(string $codCliente): int
-    {
-        $row = DB::connection($this->connection)->selectOne("
-            SELECT COUNT(*) AS total
-            FROM {$this->table}
-            WHERE cod_cliente = ?
-            AND   estatus     = '1'
-        ", [$codCliente]);
-
-        return (int) ($row->total ?? 0);
-    }
-
-    // ── Calcular total ───────────────────────────────────
-    public function getTotal(string $codCliente): float
-    {
-        $row = DB::connection($this->connection)->selectOne("
-            SELECT SUM(
-                CAST(pvp3 AS NUMERIC(15,6)) *
-                CAST(cantidad AS INTEGER)
-            ) AS total
-            FROM {$this->table}
-            WHERE cod_cliente = ?
-            AND   estatus     = '1'
-        ", [$codCliente]);
-
-        return (float) ($row->total ?? 0);
     }
 
     // ── Mapear fila a objeto ─────────────────────────────

@@ -87,12 +87,21 @@
 
                     <!-- Combo Box -->
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Selecciona método de pago</label>
-                        <select id="tipo_pago" name="tipo_pago" required
-                                class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
-                            <option value="payphone">💳 PayPhone / Tarjeta</option>
-                            <option value="transferencia">🏦 Transferencia Bancaria</option>
-                            <option value="contraentrega">📦 Contra Entrega (Efectivo)</option>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Selecciona método de pago
+                        </label>
+                        <select
+                            id="tipo_pago"
+                            name="tipo_pago"
+                            required
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
+                            <option value="">Seleccione método de pago</option>
+
+                            @foreach($formasPago as $forma)
+                                <option value="{{ $forma->secuencia }}">
+                                    {{ $forma->forma_pago }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
 

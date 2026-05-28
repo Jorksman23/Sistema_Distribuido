@@ -9,5 +9,11 @@ class FormaPago extends Model
     protected $table = 'cxc_forma_pago';
     protected $primaryKey = 'secuencia';
     public $timestamps = false;
-    protected $fillable = ['secuencia', 'forma_pago', 'empresa'];
+    protected $fillable = [
+        'forma_pago',
+        'empresa',
+        'tipo',
+        'cuenta',
+        'xml_forma_pago',
+    ];
 }
