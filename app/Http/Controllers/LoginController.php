@@ -5,14 +5,20 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\login_model;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Auth\Events\Registered;
+use App\Services\BrevoMailer;
+use Illuminate\Support\Facades\URL;
+
 
 class LoginController extends Controller
 {
     protected $model;
+     protected $mailer;
 
-    public function __construct()
+    public function __construct(BrevoMailer $mailer)
     {
         $this->model = new login_model();
+         $this->mailer = $mailer;
     }
 
     // Mostrar formulario login
@@ -53,6 +59,11 @@ class LoginController extends Controller
                 'email' => 'No tienes acceso a esta empresa.'
             ]);
         }
+        if (is_null($user->email_verified_at)) {
+        return back()->withErrors([
+            'email' => 'Debes verificar tu correo antes de iniciar sesión.'
+        ]);
+    }
         // Guardar en sesión
         session([
             'user_id'  => $user->user_id,
@@ -88,8 +99,22 @@ class LoginController extends Controller
                 'telefono'            => $request->telefono,
                 'tipo_identificacion' => $request->tipo_identificacion,
                 'empresa'             => config('app.company_code', '001'),
+                'email_verified_at'   => null,
         ]);
-            return redirect('/login')->with('success', 'Cuenta creada, puedes iniciar sesión');
+         $user = $this->model->findByEmail($request->email);
+
+            $verificationUrl = URL::temporarySignedRoute(
+                'verification.verify',
+                now()->addMinutes(60),
+                ['id' => $user->user_id, 'hash' => sha1($user->email)]
+            );
+            $htmlContent = view('email.verify', compact('user', 'verificationUrl'))->render();
+
+            $this->mailer->sendEmail(
+            $user->email,
+            'Verifica tu correo en ' . config('app.name'),
+            $htmlContent
+        );
         }catch (\Exception $e) {
             return back()->withErrors(['error' => 'Error al crear cuenta: ' . $e->getMessage()]);
         }

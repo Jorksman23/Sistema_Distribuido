@@ -12,7 +12,6 @@ class login_model implements AuthenticatableContract
 
     protected $connection = 'odbc';
 
-    // Datos del usuario cargados manualmente
     public $user_id;
     public $pw_codigo;
     public $nombre;
@@ -24,6 +23,8 @@ class login_model implements AuthenticatableContract
     public $telefono;
     public $tipo_identificacion;
     public $empresa;
+    public $email_verified_at;
+
     //Requeridos por Authenticatable
     public function getAuthIdentifierName(): string
     {
@@ -67,6 +68,8 @@ class login_model implements AuthenticatableContract
         $instance->direccion          = $row->direccion          ?? null;
         $instance->telefono           = $row->telefono           ?? null;
         $instance->tipo_identificacion= $row->tipo_identificacion ?? null;
+        $instance->email_verified_at  = $row->email_verified_at ?? null;
+
 
         return $instance;
     }
@@ -87,7 +90,8 @@ class login_model implements AuthenticatableContract
             $data['direccion']            ?? null,
             $data['telefono']             ?? null,
             $data['tipo_identificacion']  ?? null,
-            $data['empresa'] ,
+            $data['empresa'],
+            null,
         ]);
     }
 
@@ -132,10 +136,11 @@ class login_model implements AuthenticatableContract
             $instance->direccion           = $row->direccion           ?? null;
             $instance->telefono            = $row->telefono            ?? null;
             $instance->tipo_identificacion = $row->tipo_identificacion ?? null;
+            $instance->email_verified_at = $row->email_verified_at ?? null;
 
             return $instance;
         }
-//Actualizar contraseña
+    //Actualizar contraseña
         public function updatePassword($userId, string $nuevaContrasena){
             return DB::connection($this->connection)->update("
                 UPDATE DBA.pw_ge_usuarios

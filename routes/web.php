@@ -6,6 +6,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\WhishListController;
+use App\Http\Controllers\PasswordController;
+use App\Http\Controllers\VerificationController;
+use Illuminate\Http\Request;
 
 
 // HOME
@@ -48,6 +51,23 @@ Route::middleware('auth.custom')->group(function () {
 Route::get('/pedidos/verp/{documento}', function($documento) {return view('pedidos.verp', ['documento' => $documento]);})->name('pedidos.verp');
 Route::get('/profile/pedidos', [ProfileController::class, 'pedidos'])->name('profile.pedidos');
 
+// PASSWORD RESET
+Route::middleware('guest')->group(function () {
+    Route::get('/password/request', [PasswordController::class, 'requestForm'])->name('password.request.form');
+    Route::post('/password/send',   [PasswordController::class, 'sendLink'])->name('password.send.link');
+    Route::get('/password/sent', [PasswordController::class, 'sent'])->name('password.sent');
+    Route::get('/password/reset/{token}', [PasswordController::class, 'showResetForm'])->name('password.reset.form');
+    Route::post('/password/reset',  [PasswordController::class, 'reset'])->name('password.reset.submit');
+});
+
+Route::get('/email/verify', function () {return view('auth.verify-email');
+})->middleware('auth')->name('verification.notice');
+
+Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])->middleware(['signed'])
+    ->name('verification.verify');
 
 
-
+Route::post('/email/verification-notification', function (Request $request) {
+    $request->user()->sendEmailVerificationNotification();
+    return back()->with('message', 'Se envió un nuevo enlace de verificación.');
+})->middleware(['auth', 'throttle:6,1'])->name('verification.send');

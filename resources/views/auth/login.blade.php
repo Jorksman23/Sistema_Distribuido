@@ -86,6 +86,9 @@
             ¿No tienes cuenta?
             <a href="{{ route('register') }}" class="text-indigo-600 hover:underline">Regístrate</a>
         </p>
+        <p class="text-sm text-center mt-2">
+            <a href="{{ route('password.request.form') }}" class="text-indigo-600 hover:underline">¿Olvidaste tu contraseña?</a>
+        </p>
     </div>
 </div>
     @push('scripts')
