@@ -9,7 +9,7 @@ class BancoCuenta extends Model
     protected $table = 'te_cuentas_bancos';
 
     public $timestamps = false;
-
+    public $cod_sistema;
     protected $fillable = [
         'cod_sistema',
         'empresa',

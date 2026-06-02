@@ -36,7 +36,7 @@ class CartRepository
             ]);
         return $row !== null;
     }
-    
+
     //Eliminar producto del carrito
     public function delete(int $idItemWeb,string $codCliente): int {
         return DB::connection($this->connection)
@@ -102,7 +102,6 @@ class CartRepository
                 ", [
                 $codCliente
             ]);
-
         return (int) ($row->total ?? 0);
     }
 

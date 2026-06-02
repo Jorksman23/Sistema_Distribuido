@@ -86,7 +86,7 @@
                     <h2 class="text-xl font-semibold text-gray-800 mb-6">Forma de Pago</h2>
 
                     <!-- Combo Box -->
-                    <div class="mb-6">
+                    <div class="mb-6" >
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Selecciona método de pago
                         </label>

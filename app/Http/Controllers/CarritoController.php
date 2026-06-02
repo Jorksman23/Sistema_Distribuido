@@ -9,6 +9,8 @@ use App\Services\PaymentService;
 use App\Services\CheckoutService;
 use App\Services\PaymentMethodService;
 use App\Repositories\CartRepository;
+use App\Repositories\OrderRepository;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class CarritoController extends Controller
@@ -20,6 +22,7 @@ class CarritoController extends Controller
     protected CheckoutService $checkoutService;
     protected PaymentMethodService $paymentMethodService;
     protected PaymentService $paymentService;
+    protected OrderRepository $orderRepository;
 
     public function __construct(
         CarritoModel $carrito,
@@ -27,7 +30,8 @@ class CarritoController extends Controller
         CartService $cartService,
         CheckoutService $checkoutService,
         PaymentMethodService $paymentMethodService,
-        PaymentService $paymentService
+        PaymentService $paymentService,
+        OrderRepository $orderRepository
     ) {
         $this->carrito = $carrito;
         $this->cartRepository = $cartRepository;
@@ -35,6 +39,7 @@ class CarritoController extends Controller
         $this->checkoutService = $checkoutService;
         $this->paymentMethodService = $paymentMethodService;
         $this->paymentService = $paymentService;
+        $this->orderRepository = $orderRepository;
     }
 
     // === Mostrar carrito ===
@@ -129,7 +134,6 @@ class CarritoController extends Controller
     public function procesarPago(Request $request){
         $codCliente = (string) session('user_id');
         $empresa    = currentCompany();
-
         $request->validate([
             'tipo_pago' => 'required|integer',
             'cedula'    => 'required|string|max:15',
@@ -145,9 +149,8 @@ class CarritoController extends Controller
         if (!$formaPago) {
             return back()->withErrors(['error' => 'Forma de pago inválida']);
         }
-        $cuentaBanco = $this->paymentMethodService->obtenerCuentaBanco($formaPago,$empresa);
         try {
-            $codigoOrden = $this->paymentService->procesarPago([
+            $this->paymentService->procesarPago([
                 'tipo_pago'   => $request->tipo_pago,
                 'cedula'      => $request->cedula,
                 'nombre'      => $request->nombre,
@@ -159,16 +162,160 @@ class CarritoController extends Controller
             $codCliente,
             $empresa
         );
-
-            return redirect()->route('pedidos.verp', [
-                'documento' => $codigoOrden
-            ])->with('success', '¡Compra realizada exitosamente!');
-
+         // Guardar temporalmente datos del checkout
+        session([
+            'checkout_data' => [
+                'empresa'     => $empresa,
+                'tipo_pago'   => $request->tipo_pago,
+                'cedula'      => $request->cedula,
+                'nombre'      => $request->nombre,
+                'email'       => $request->email,
+                'telefono'    => $request->telefono,
+                'direccion'   => $request->direccion,
+                'observacion' => $request->observacion,
+            ]
+        ]);
+            return redirect()->route('pedidos.comprobante')->with(
+                'success',
+                'Ahora suba su comprobante de pago.'
+            );
         } catch (Throwable $e) {
             return back()->withErrors([
                 'error' => 'Error al procesar la compra: ' . $e->getMessage()
             ]);
         }
+    }
+
+    public function obtenerCuentaBanco(int $secuencia)
+{
+    $empresa = currentCompany();
+
+    $formaPago = $this->paymentMethodService->obtenerFormaPago($secuencia, currentCompany());
+
+    if (!$formaPago) {
+        return response()->json([
+            'success' => false
+        ], 404);
+    }
+
+    $cuentaBanco = $this->paymentMethodService->obtenerCuentaBanco($formaPago, currentCompany());
+
+    if (!$cuentaBanco) {
+        return response()->json([
+        'success' => false,
+        'message' => 'Esta forma de pago no requiere datos bancarios.'
+        ]);
+    }
+
+    return response()->json([
+        'success' => true,
+        'data' => [
+            'descripcion'   => $cuentaBanco->descripcion ?? '',
+            'cuenta'        => $cuentaBanco->cuenta ?? '',
+            'tipo'          => $cuentaBanco->tipo ?? '',
+            'cta_contable'  => $cuentaBanco->cta_contable ?? '',
+        ]
+    ]);
+    }
+
+    public function mostrarComprobante(){
+        $checkoutData = session('checkout_data');
+        if (!$checkoutData) {
+            return redirect()
+                ->route('pedidos.pagar')
+                ->withErrors([
+                    'error' => 'No hay datos de pago.'
+                ]);
+        }
+        $formaPago = $this->paymentMethodService->obtenerFormaPago(
+            $checkoutData['tipo_pago'],
+            currentCompany()
+        );
+        $cuentaBanco = $this->paymentMethodService->obtenerCuentaBanco(
+            $formaPago,
+            currentCompany()
+        );
+
+        return view('pedidos.comprobante', [
+            'formaPago'   => $formaPago,
+            'cuentaBanco' => $cuentaBanco,
+        ]);
+    }
+
+    public function guardarComprobante(Request $request){
+        $request->validate(['comprobante' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120']);
+        $checkoutData = session('checkout_data');
+        if (!$checkoutData) {
+            return redirect()->route('pedidos.pagar')->withErrors([
+                    'error' => 'No existen datos de checkout.'
+                ]);
+        }
+
+        $codCliente = (string) session('user_id');
+        $empresa    = currentCompany();
+        $items = $this->carrito->getCarritoByUser($codCliente);
+        if (empty($items)) {
+            return redirect()->route('carrito.index')->withErrors([
+                    'error' => 'El carrito está vacío.'
+                ]);
+        }
+        // Generar código de orden
+        $codigoOrden = $this->orderRepository->generarCodigoOrden($empresa);
+        // Total carrito
+        $granTotal = $this->cartRepository->getTotal($codCliente);
+        // Guardar comprobante
+        $archivo = $request->file('comprobante');
+        $nombreArchivo =$codigoOrden . '_' .time() . '.' .$archivo->getClientOriginalExtension();
+        $ruta = $archivo->storeAs('comprobantes/'.$empresa, $nombreArchivo,'public');
+        // Crear orden
+        DB::connection('odbc')
+            ->table('DBA.PW_ORDENES_WEB')
+            ->insert([
+                'codigo'             => $codigoOrden,
+                'cod_cliente'        => $codCliente,
+                'n_documento'        => $codigoOrden,
+                'tipo'               => companyDefaultOrderType('invoice'),
+                'empresa'            => $empresa,
+                'uuid_session'       => md5(uniqid(rand(), true)),
+                'tipo_pago'          => $checkoutData['tipo_pago'],
+                'items_carrito'      => count($items),
+                'gran_total'         => $granTotal,
+                'estatus'            => '1',
+                'cedula_cliente'     => $checkoutData['cedula'],
+                'nombre_cliente'     => $checkoutData['nombre'],
+                'email_cliente'      => $checkoutData['email'],
+                'telefono_cliente'   => $checkoutData['telefono'],
+                'direccion_cliente'  => $checkoutData['direccion'],
+                'observacion_compra' => $checkoutData['observacion'] ?? null,
+                'fecha_creacion'     => now(),
+                'fecha_modificacion' => now(),
+            ]);
+        // Historial
+        DB::connection('odbc')
+            ->table('DBA.PW_HISTORICO_PEDIDO')
+            ->insert([
+                'cod_orden'        => $codigoOrden,
+                'codigo_cliente'   => $codCliente,
+                'cod_estado'       => '2',
+                'observacion'      => 'Se esta revisando el estado del pago',
+                'fecha_cambio'     => now(),
+                'created_at'       => now(),
+                'update_at'        => now(),
+                'empresa'          => $empresa,
+                'comprobante_pago' => $ruta,
+            ]);
+        // Asociar carrito a la orden
+        $this->cartRepository->marcarComoProcesado(
+            $codCliente,
+            $codigoOrden
+        );
+
+        // Limpiar sesión checkout
+        session()->forget('checkout_data');
+        return redirect()->route('profile.show')->with(
+                'success',
+                'Comprobante enviado correctamente.'
+            );
     }
 
 }

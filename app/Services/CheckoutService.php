@@ -20,10 +20,12 @@ class CheckoutService
     public function obtenerCheckout(string $codCliente): array{
         $items = $this->carrito->getCarritoByUser($codCliente);
         $total = $this->cartRepository->getTotal($codCliente);
+        $count = $this->cartRepository->count($codCliente);
         return [
             'items' => $items,
             'total' => number_format($total, 2, '.', ''),
-            'count' => count($items),
+            'count' => $count,
         ];
     }
+
 }

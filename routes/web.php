@@ -48,6 +48,7 @@ Route::middleware('auth.custom')->group(function () {
     Route::get('/cart/pagar',       [CarritoController::class, 'pagar'])->name('pedidos.pagar');
     Route::post('/carrito/procesar-pago', [CarritoController::class, 'procesarPago'])->name('carrito.procesar.pago');
 });
+<<<<<<< Updated upstream
 Route::get('/pedidos/verp/{documento}', function($documento) {return view('pedidos.verp', ['documento' => $documento]);})->name('pedidos.verp');
 Route::get('/profile/pedidos', [ProfileController::class, 'pedidos'])->name('profile.pedidos');
 
@@ -66,6 +67,18 @@ Route::get('/email/verify', function () {return view('auth.verify-email');
 Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])->middleware(['signed'])
     ->name('verification.verify');
 
+=======
+//Route::get('/pedidos/verp/{documento}', function($documento) {return view('pedidos.verp', ['documento' => $documento]);})->name('pedidos.verp');
+//Route::get('/profile/pedidos', [ProfileController::class, 'pedidos'])->name('profile.pedidos');
+
+//Checkout
+Route::get('/formas-pago/{secuencia}/cuenta-banco', [CarritoController::class,'obtenerCuentaBanco'])->name('formas-pago.cuenta');
+// Comprobante de pago
+Route::middleware('auth.custom')->group(function () {
+    Route::get('/pedido/comprobante',[CarritoController::class, 'mostrarComprobante'])->name('pedidos.comprobante');
+    Route::post('/pedido/comprobante',[CarritoController::class, 'guardarComprobante'])->name('pedidos.comprobante.guardar');
+});
+>>>>>>> Stashed changes
 
 Route::post('/email/verification-notification', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
