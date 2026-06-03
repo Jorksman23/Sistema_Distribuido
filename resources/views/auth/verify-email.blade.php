@@ -22,16 +22,49 @@
             </div>
         @endif
 
+        @if($errors->any())
+            <div class="mb-4 rounded-lg bg-rose-50 border border-rose-200 p-3 text-rose-800 text-sm">
+                {{ $errors->first() }}
+            </div>
+        @endif
+
         <form method="POST" action="{{ route('verification.send') }}">
             @csrf
-            <button class="w-full rounded-full bg-indigo-600 text-white py-2.5 font-medium hover:bg-indigo-700">
+            <button id="resendBtn" type="submit"
+                class="w-full rounded-full bg-indigo-600 text-white py-2.5 font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed">
                 Reenviar enlace de verificación
             </button>
         </form>
+
+        <p id="countdown" class="text-sm text-slate-500 mt-2 hidden"></p>
 
         <p class="text-sm text-slate-500 mt-4">
             Si ya verificaste tu correo, <a href="{{ route('login') }}" class="text-indigo-600 hover:underline">inicia sesión aquí</a>.
         </p>
     </div>
 </div>
+
+<script>
+    const resendBtn = document.getElementById('resendBtn');
+    const countdown = document.getElementById('countdown');
+
+    // Si se envió el formulario, activar el contador
+    resendBtn.addEventListener('click', function() {
+        let seconds = 60;
+        resendBtn.disabled = true;
+        countdown.classList.remove('hidden');
+        countdown.textContent = `Puedes reenviar otro correo en ${seconds} segundos`;
+
+        const interval = setInterval(() => {
+            seconds--;
+            countdown.textContent = `Puedes reenviar otro correo en ${seconds} segundos`;
+
+            if (seconds <= 0) {
+                clearInterval(interval);
+                resendBtn.disabled = false;
+                countdown.classList.add('hidden');
+            }
+        }, 1000);
+    });
+</script>
 @endsection

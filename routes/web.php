@@ -9,7 +9,6 @@ use App\Http\Controllers\WhishListController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\VerificationController;
 use App\Services\OrderApprovalService;
-use Illuminate\Http\Request;
 
 
 // HOME
@@ -20,7 +19,6 @@ Route::middleware('auth.custom')->group(function () {
     Route::put('/profile/update',   [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
 });
-
 // AUTH
 Route::get('/login',    [LoginController::class, 'showLogin'])->name('login');
 Route::post('/login',   [LoginController::class, 'login'])->name('login.post');
@@ -38,7 +36,7 @@ Route::middleware('auth.custom')->group(function () {
     Route::get('/wishlist',         [WhishListController::class, 'index'])->name('wishlist.index');
     Route::post('/wishlist/toggle', [WhishListController::class, 'toggle'])->name('wishlist.toggle');
 });
-//Carrito
+//CARS
 Route::middleware('auth.custom')->group(function () {
     Route::get('/cart',             [CarritoController::class, 'index'])->name('carrito.index');
     Route::post('/cart/add',        [CarritoController::class, 'add'])->name('carrito.add');
@@ -61,12 +59,15 @@ Route::middleware('guest')->group(function () {
     Route::get('/password/reset/{token}', [PasswordController::class, 'showResetForm'])->name('password.reset.form');
     Route::post('/password/reset',  [PasswordController::class, 'reset'])->name('password.reset.submit');
 });
-//Correo de verificación
-Route::get('/email/verify', function () {return view('auth.verify-email');})->middleware('auth')->name('verification.notice');
-Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])->middleware(['signed'])->name('verification.verify');
 
-//Route::get('/pedidos/verp/{documento}', function($documento) {return view('pedidos.verp', ['documento' => $documento]);})->name('pedidos.verp');
-//Route::get('/profile/pedidos', [ProfileController::class, 'pedidos'])->name('profile.pedidos');
+//EMAIL VERIFY
+Route::get('/email/verify', function () {return view('auth.verify-email');})
+    ->name('verification.notice');
+Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])->middleware(['signed'])
+    ->name('verification.verify');
+Route::post('/email/verification-notification', [LoginController::class, 'resendVerification'])
+    ->name('verification.send');
+
 
 //Checkout
 Route::get('/formas-pago/{secuencia}/cuenta-banco', [CarritoController::class,'obtenerCuentaBanco'])->name('formas-pago.cuenta');
@@ -75,13 +76,6 @@ Route::middleware('auth.custom')->group(function () {
     Route::get('/pedido/comprobante',[CarritoController::class, 'mostrarComprobante'])->name('pedidos.comprobante');
     Route::post('/pedido/comprobante',[CarritoController::class, 'guardarComprobante'])->name('pedidos.comprobante.guardar');
 });
-
-
-Route::post('/email/verification-notification', function (Request $request) {
-    $request->user()->sendEmailVerificationNotification();
-    return back()->with('message', 'Se envió un nuevo enlace de verificación.');
-})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
-
 
 //Prueba tecnica aprobación de pedidos temporal
 Route::get('/test-aprobar/{codigo}', function (
