@@ -35,8 +35,13 @@ class ProformaGenerator
 
         } catch (Throwable $e) {
             DB::connection($this->connection)->rollBack();
-            Log::error("ProformaGenerator Error: " . $e->getMessage());
-            throw new \Exception("Error al generar proforma: " . $e->getMessage());
+            // Log::error("ProformaGenerator Error: " . $e->getMessage());
+            // throw new \Exception("Error al generar proforma: " . $e->getMessage());
+            dd([
+                'mensaje' => $e->getMessage(),
+                'archivo' => $e->getFile(),
+                'linea'   => $e->getLine(),
+            ]);
         }
     }
 
@@ -87,17 +92,25 @@ class ProformaGenerator
             $presentacion   = $item->presentacion ?? 0;
             $nombre         = $item->nombre ?? 'Sin nombre';
 
-            $ubicacion = $this->buscarUbicacionConStock($codigoItem, $presentacion, $cantidad);
-
+            //$ubicacion = $this->buscarUbicacionConStock($codigoItem, $presentacion, $cantidad);
+            $ubicacion = $this->buscarUbicacionConStock(
+            $codigoItem,
+            $presentacion,
+            $cantidad
+            );
+            Log::info('UBICACION ENCONTRADA', [
+                'producto' => $codigoItem,
+                'cantidad' => $cantidad,
+                'ubicacion' => $ubicacion,
+            ]);
             if (!$ubicacion) {
-                Log::warning("Stock insuficiente detectado", [
-                    'producto' => $codigoItem,
-                    'nombre'   => $nombre,
-                    'cantidad' => $cantidad
-                ]);
                 throw new \Exception("No hay stock suficiente para: {$nombre}");
             }
-
+            Log::info('ANTES INSERT', [
+                'producto' => $codigoItem,
+                'documento' => $documento,
+                'ubicacion' => $ubicacion,
+            ]);
             DB::connection($this->connection)->table('DBA.IN_MOVIMIENTO_PROFORMA')->insert([
                 'empresa'      => $this->empresa,
                 'tipo'         => companyDefaultOrderType('proforma_web'),
@@ -114,6 +127,10 @@ class ProformaGenerator
                 'fechae'       => now()->format('Y-m-d'),
                 'valor1'       => (float)$item->pvp3,
                 'bonificacion' => 0,
+            ]);
+            Log::info('PASO 1', [
+                'codigoItem' => $codigoItem,
+                'ubicacion' => $ubicacion
             ]);
             // Descuento de stock
             if ($presentacion > 0) {
@@ -146,23 +163,24 @@ class ProformaGenerator
                 SELECT TOP 1 e.ubicacion
                 FROM DBA.in_existencia_presentacion e
                 INNER JOIN DBA.in_item_presentacion p ON p.codigo = e.item_presentacion
-                WHERE p.producto = ?
+                WHERE e.empresa = ?
+                  AND p.producto = ?
                   AND p.codigo = ?
                   AND e.cantidad >= ?
                 ORDER BY e.cantidad DESC
-            ", [$codigoItem, $presentacion, $cantidadNecesaria]);
+            ", [$this->empresa, $codigoItem, $presentacion, $cantidadNecesaria]);
         } else {
             // Stock Normal
             $result = DB::connection($this->connection)->selectOne("
                 SELECT TOP 1 ubicacion
                 FROM DBA.in_existencia
-                WHERE producto = ?
+                WHERE empresa = ?
+                  AND producto = ?
                   AND existencia >= ?
                 ORDER BY existencia DESC
-            ", [$codigoItem, $cantidadNecesaria]);
+            ", [$this->empresa, $codigoItem, $cantidadNecesaria]);
         }
-
-        return $result->ubicacion ?? null;
+            return $result->ubicacion ?? null;
     }
 
     private function actualizarOrdenWeb($orden, string $documento)

@@ -8,6 +8,7 @@ use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\WhishListController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\VerificationController;
+use App\Services\OrderApprovalService;
 use Illuminate\Http\Request;
 
 
@@ -48,7 +49,7 @@ Route::middleware('auth.custom')->group(function () {
     Route::get('/cart/pagar',       [CarritoController::class, 'pagar'])->name('pedidos.pagar');
     Route::post('/carrito/procesar-pago', [CarritoController::class, 'procesarPago'])->name('carrito.procesar.pago');
 });
-<<<<<<< Updated upstream
+
 Route::get('/pedidos/verp/{documento}', function($documento) {return view('pedidos.verp', ['documento' => $documento]);})->name('pedidos.verp');
 Route::get('/profile/pedidos', [ProfileController::class, 'pedidos'])->name('profile.pedidos');
 
@@ -60,14 +61,10 @@ Route::middleware('guest')->group(function () {
     Route::get('/password/reset/{token}', [PasswordController::class, 'showResetForm'])->name('password.reset.form');
     Route::post('/password/reset',  [PasswordController::class, 'reset'])->name('password.reset.submit');
 });
+//Correo de verificación
+Route::get('/email/verify', function () {return view('auth.verify-email');})->middleware('auth')->name('verification.notice');
+Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])->middleware(['signed'])->name('verification.verify');
 
-Route::get('/email/verify', function () {return view('auth.verify-email');
-})->middleware('auth')->name('verification.notice');
-
-Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])->middleware(['signed'])
-    ->name('verification.verify');
-
-=======
 //Route::get('/pedidos/verp/{documento}', function($documento) {return view('pedidos.verp', ['documento' => $documento]);})->name('pedidos.verp');
 //Route::get('/profile/pedidos', [ProfileController::class, 'pedidos'])->name('profile.pedidos');
 
@@ -78,9 +75,21 @@ Route::middleware('auth.custom')->group(function () {
     Route::get('/pedido/comprobante',[CarritoController::class, 'mostrarComprobante'])->name('pedidos.comprobante');
     Route::post('/pedido/comprobante',[CarritoController::class, 'guardarComprobante'])->name('pedidos.comprobante.guardar');
 });
->>>>>>> Stashed changes
+
 
 Route::post('/email/verification-notification', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
     return back()->with('message', 'Se envió un nuevo enlace de verificación.');
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
+
+//Prueba tecnica aprobación de pedidos temporal
+Route::get('/test-aprobar/{codigo}', function (
+    $codigo,
+    OrderApprovalService $service
+) {
+    return $service->aprobar(
+        $codigo,
+        currentCompany()
+    );
+});
