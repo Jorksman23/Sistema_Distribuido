@@ -90,7 +90,7 @@ class ProductPresentation
         $instance->nombre    = self::cleanString($row->nombre);
         $instance->foto      = $row->foto;
         $instance->foto_url  = presentationImageUrl($row->foto, $codigoProducto);
-        $instance->stock_presentacion = (float)($row->stock_presentacion ?? 0);
+        $instance->stock_presentacion = (float) $row->stock_presentacion;
         return $instance;
     }
 

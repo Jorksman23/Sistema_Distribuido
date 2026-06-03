@@ -91,26 +91,13 @@ class ProformaGenerator
             $cantidad       = (int)$item->cantidad;
             $presentacion   = $item->presentacion ?? 0;
             $nombre         = $item->nombre ?? 'Sin nombre';
+            
+            $ubicacion = $this->buscarUbicacionConStock($codigoItem, $presentacion, $cantidad);
 
-            //$ubicacion = $this->buscarUbicacionConStock($codigoItem, $presentacion, $cantidad);
-            $ubicacion = $this->buscarUbicacionConStock(
-            $codigoItem,
-            $presentacion,
-            $cantidad
-            );
-            Log::info('UBICACION ENCONTRADA', [
-                'producto' => $codigoItem,
-                'cantidad' => $cantidad,
-                'ubicacion' => $ubicacion,
-            ]);
             if (!$ubicacion) {
                 throw new \Exception("No hay stock suficiente para: {$nombre}");
             }
-            Log::info('ANTES INSERT', [
-                'producto' => $codigoItem,
-                'documento' => $documento,
-                'ubicacion' => $ubicacion,
-            ]);
+
             DB::connection($this->connection)->table('DBA.IN_MOVIMIENTO_PROFORMA')->insert([
                 'empresa'      => $this->empresa,
                 'tipo'         => companyDefaultOrderType('proforma_web'),
@@ -128,10 +115,7 @@ class ProformaGenerator
                 'valor1'       => (float)$item->pvp3,
                 'bonificacion' => 0,
             ]);
-            Log::info('PASO 1', [
-                'codigoItem' => $codigoItem,
-                'ubicacion' => $ubicacion
-            ]);
+
             // Descuento de stock
             if ($presentacion > 0) {
                 DB::connection($this->connection)->update("

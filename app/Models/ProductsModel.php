@@ -255,7 +255,29 @@ class ProductsModel
         }
 
         if ($ubicacion !== '') {
-            $where   .= " AND i.ubicacion = ?";
+             $where .= "
+                AND (
+                    EXISTS (
+                        SELECT 1
+                        FROM DBA.in_existencia e
+                        WHERE e.empresa = i.empresa
+                        AND e.producto = i.codigo
+                        AND e.ubicacion = ?
+                    )
+                    OR
+                    EXISTS (
+                        SELECT 1
+                        FROM DBA.in_item_presentacion p
+                        INNER JOIN DBA.in_existencia_presentacion ep
+                            ON ep.item_presentacion = p.codigo
+                            AND ep.empresa = p.empresa
+                        WHERE p.empresa = i.empresa
+                        AND p.producto = i.codigo
+                        AND ep.ubicacion = ?
+                    )
+                )
+            ";
+            $params[] = $ubicacion;
             $params[] = $ubicacion;
         }
 
