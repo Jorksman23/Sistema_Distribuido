@@ -38,8 +38,17 @@
                     @endforeach
 
                     <div class="mt-8 pt-6 border-t text-right">
-                        <p class="text-lg text-gray-600">Subtotal: <span class="font-medium">${{ $total }}</span></p>
-                        <p class="text-2xl font-bold text-[#003087]">Total a pagar: ${{ $total }}</p>
+                        <p class="text-lg text-gray-600">
+                            Subtotal:
+                            <span class="font-medium">${{ $subtotal }}</span>
+                        </p>
+                        <p class="text-lg text-gray-600">
+                            IVA:
+                            <span class="font-medium">${{ $iva }}</span>
+                        </p>
+                        <p class="text-2xl font-bold text-[#003087]">
+                            Total a pagar: ${{ $total }}
+                        </p>
                     </div>
                 </div>
 

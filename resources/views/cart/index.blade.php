@@ -145,15 +145,16 @@
                     <div class="space-y-3 mb-5">
                         <div class="flex justify-between text-sm text-gray-500">
                             <span>Subtotal</span>
-                            <span class="font-medium text-gray-800">${{ $total }}</span>
+                            <span class="font-medium text-gray-800">${{ $subtotal }}</span>
                         </div>
-                        <!-- <div class="flex justify-between text-sm text-gray-500">
-                            <span>Descuento</span>
-                            <span class="text-red-500 font-medium">-$0.00</span>
-                        </div> -->
+                        <div class="flex justify-between text-sm text-gray-500">
+                            <span>IVA</span>
+                            <span class="font-medium text-gray-800">${{ $iva }}</span>
+                        </div>
                         <div class="border-t border-gray-100 pt-3 flex justify-between font-bold text-gray-900">
                             <span>Total</span>
                             <span class="text-xl">${{ $total }}</span>
+
                         </div>
                     </div>
 

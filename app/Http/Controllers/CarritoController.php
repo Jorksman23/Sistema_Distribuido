@@ -52,9 +52,14 @@ class CarritoController extends Controller
             $resumen = $this->cartService->obtenerResumenCarrito($codCliente);
             return view('cart.index', $resumen);
         } catch (Throwable $e) {
-            return view('errors.500', [
-                'mensaje' => 'Error al obtener carrito: ' . $e->getMessage(),
-            ]);
+            // return view('errors.500', [
+            //     'mensaje' => 'Error al obtener carrito: ' . $e->getMessage(),
+            // ]);
+            dd([
+            'mensaje' => $e->getMessage(),
+            'archivo' => $e->getFile(),
+            'linea'   => $e->getLine(),
+        ]);
         }
     }
     // === Agregar producto desde catálogo ===
@@ -72,7 +77,12 @@ class CarritoController extends Controller
             return back()->with('success_cart','¡Producto agregado al carrito!'
             );
         } catch (Throwable $e) {
-            return back()->withErrors(['error' => $e->getMessage()
+            // return back()->withErrors(['error' => $e->getMessage()
+            // ]);
+            dd([
+                'mensaje' => $e->getMessage(),
+                'archivo' => $e->getFile(),
+                'linea'   => $e->getLine(),
             ]);
         }
     }
@@ -263,8 +273,9 @@ class CarritoController extends Controller
         }
         // Generar código de orden
         $codigoOrden = $this->orderRepository->generarCodigoOrden($empresa);
-        // Total carrito
-        $granTotal = $this->cartRepository->getTotal($codCliente);
+        // Total carrito con IVA
+        $checkout = $this->checkoutService->obtenerCheckout($codCliente);
+        $granTotal = (float) $checkout['total'];
         // Guardar archivo físico
         $archivo = $request->file('comprobante');
         $nombreArchivo = $codigoOrden . '_' . time() . '.' .$archivo->getClientOriginalExtension();

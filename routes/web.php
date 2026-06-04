@@ -43,7 +43,7 @@ Route::middleware('auth.custom')->group(function () {
     Route::put('/cart/update',      [CarritoController::class, 'update'])->name('carrito.update');
     Route::delete('/cart/remove',   [CarritoController::class, 'remove'])->name('carrito.remove');
     Route::post('/cart/vaciar',     [CarritoController::class, 'vaciar'])->name('carrito.vaciar');
-    Route::get('/cart/checkout',    [CarritoController::class, 'pagar'])->name('pedidos.pagar');
+    //Route::get('/cart/checkout',    [CarritoController::class, 'pagar'])->name('pedidos.pagar');
     Route::get('/cart/pagar',       [CarritoController::class, 'pagar'])->name('pedidos.pagar');
     Route::post('/carrito/procesar-pago', [CarritoController::class, 'procesarPago'])->name('carrito.procesar.pago');
 });

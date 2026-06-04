@@ -123,6 +123,7 @@ class ProductsModel
         $instance->empresa      = $row->empresa;
         $instance->descripcion1 = self::cleanString($row->descripcion1);
         $instance->pvp1         = number_format((float)$row->pvp1, 2, '.', '');
+        $instance->iva = $row->iva ?? 'N';
         $instance->imagen       = $row->imagen;
         $instance->stock        = $row->stock;
         $instance->categoria    = self::cleanString($row->categoria ?? null);

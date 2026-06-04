@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\CarritoModel;
 use App\Models\ProductsModel;
 use App\Repositories\CartRepository;
+use Illuminate\Support\Facades\DB;
 class CartService
 {
     protected CarritoModel $carrito;
@@ -32,18 +33,19 @@ class CartService
             }
             return;
         }
-            $nombre = $data['nombre'] ?? null;
-            $pvp3   = $data['pvp3'] ?? null;
-            $imagen = $data['imagen'] ?? null;
-        if (!$nombre || !$pvp3) {
-            $producto = (new ProductsModel())->findByCodigo($data['codigo_item'],currentCompany());
-            if (!$producto) {
-                throw new \Exception('Producto no encontrado');
-            }
-            $nombre = $producto->descripcion1;
-            $pvp3   = $producto->pvp1;
-            $imagen = $producto->imagen;
+            //Obtener Produto siempre
+            $producto = (new ProductsModel())->findByCodigo(
+                $data['codigo_item'],
+                currentCompany()
+            );
+            //dd($producto);
+        if (!$producto) {
+            throw new \Exception('Producto no encontrado');
         }
+        $nombre = $data['nombre'] ?? $producto->descripcion1;
+        $pvp3 = $data['pvp3'] ?? $producto->pvp1;
+        $imagen = $data['imagen'] ?? $producto->imagen;
+
         $this->carrito->add([
             'codigo_item'  => $data['codigo_item'],
             'nombre'       => ProductsModel::cleanString($nombre),
@@ -52,7 +54,7 @@ class CartService
             'cantidad'     => 1,
             'cod_cliente'  => $codCliente,
             'imagen'       => $imagen,
-            'iva'          => 'N',
+            'iva'          => $producto->iva ?? 'N',
             'presentacion' => $presentacion,
         ]);
     }
@@ -90,11 +92,27 @@ class CartService
 
     public function obtenerResumenCarrito(string $codCliente): array{
         $items = $this->carrito->getCarritoByUser($codCliente);
-        $total = $this->cartRepository->getTotal($codCliente);
+        $subtotal = 0;
+        $ivaTotal = 0;
+        $ivaConfig = DB::connection('odbc')
+            ->select("SELECT TOP 1 * FROM DBA.GE_PARAMETROS WHERE empresa = ? AND codigo = 17", [currentCompany()]);
+
+            //Cambios
+            $porcentajeIva = (float)(isset($ivaConfig[0]) ? $ivaConfig[0]->parametro : 0);
+        foreach ($items as $item) {
+            $subtotalLinea =(float)$item->pvp3 *(int)$item->cantidad;
+            $subtotal += $subtotalLinea;
+            if (($item->iva ?? 'N') === 'S') {
+                $ivaTotal += ($subtotalLinea *$porcentajeIva) / 100;
+            }
+        }
+        $total = $subtotal + $ivaTotal;
         return [
-            'items' => $items,
-            'total' => number_format($total, 2, '.', ''),
-            'count' => count($items),
+            'items'     => $items,
+            'subtotal' => number_format($subtotal, 2, '.', ''),
+            'iva'      => number_format($ivaTotal, 2, '.', ''),
+            'total'    => number_format($total, 2, '.', ''),
+            'count'    => count($items),
         ];
     }
 }
