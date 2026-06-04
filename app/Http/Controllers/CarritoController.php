@@ -11,6 +11,7 @@ use App\Services\PaymentMethodService;
 use App\Repositories\CartRepository;
 use App\Repositories\OrderRepository;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 class CarritoController extends Controller
@@ -243,79 +244,106 @@ class CarritoController extends Controller
     }
 
     public function guardarComprobante(Request $request){
-        $request->validate(['comprobante' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120']);
+        $request->validate([
+            'comprobante' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120'
+        ]);
         $checkoutData = session('checkout_data');
         if (!$checkoutData) {
             return redirect()->route('pedidos.pagar')->withErrors([
-                    'error' => 'No existen datos de checkout.'
-                ]);
+                'error' => 'No existen datos de checkout.'
+            ]);
         }
-
         $codCliente = (string) session('user_id');
         $empresa    = currentCompany();
         $items = $this->carrito->getCarritoByUser($codCliente);
         if (empty($items)) {
             return redirect()->route('carrito.index')->withErrors([
-                    'error' => 'El carrito está vacío.'
-                ]);
+                'error' => 'El carrito está vacío.'
+            ]);
         }
         // Generar código de orden
         $codigoOrden = $this->orderRepository->generarCodigoOrden($empresa);
         // Total carrito
         $granTotal = $this->cartRepository->getTotal($codCliente);
-        // Guardar comprobante
+        // Guardar archivo físico
         $archivo = $request->file('comprobante');
-        $nombreArchivo =$codigoOrden . '_' .time() . '.' .$archivo->getClientOriginalExtension();
-        $ruta = $archivo->storeAs('comprobantes/'.$empresa, $nombreArchivo,'public');
-        // Crear orden
-        DB::connection('odbc')
-            ->table('DBA.PW_ORDENES_WEB')
-            ->insert([
-                'codigo'             => $codigoOrden,
-                'cod_cliente'        => $codCliente,
-                'n_documento'        => $codigoOrden,
-                'tipo'               => companyDefaultOrderType('invoice'),
-                'empresa'            => $empresa,
-                'uuid_session'       => md5(uniqid(rand(), true)),
-                'tipo_pago'          => $checkoutData['tipo_pago'],
-                'items_carrito'      => count($items),
-                'gran_total'         => $granTotal,
-                'estatus'            => '1',
-                'cedula_cliente'     => $checkoutData['cedula'],
-                'nombre_cliente'     => $checkoutData['nombre'],
-                'email_cliente'      => $checkoutData['email'],
-                'telefono_cliente'   => $checkoutData['telefono'],
-                'direccion_cliente'  => $checkoutData['direccion'],
-                'observacion_compra' => $checkoutData['observacion'] ?? null,
-                'fecha_creacion'     => now(),
-                'fecha_modificacion' => now(),
-            ]);
-        // Historial
-        DB::connection('odbc')
-            ->table('DBA.PW_HISTORICO_PEDIDO')
-            ->insert([
-                'cod_orden'        => $codigoOrden,
-                'codigo_cliente'   => $codCliente,
-                'cod_estado'       => '2',
-                'observacion'      => 'Se esta revisando el estado del pago',
-                'fecha_cambio'     => now(),
-                'created_at'       => now(),
-                'update_at'        => now(),
-                'empresa'          => $empresa,
-                'comprobante_pago' => $ruta,
-            ]);
-        // Asociar carrito a la orden
-        $this->cartRepository->marcarComoProcesado(
-            $codCliente,
-            $codigoOrden
+        $nombreArchivo = $codigoOrden . '_' . time() . '.' .$archivo->getClientOriginalExtension();
+        $ruta = $archivo->storeAs(
+            'comprobantes/' . $empresa,
+            $nombreArchivo,
+            'public'
         );
+        try {
 
-        // Limpiar sesión checkout
-        session()->forget('checkout_data');
-        return redirect()->route('profile.show')->with(
+            DB::connection('odbc')->beginTransaction();
+            // Crear orden
+            DB::connection('odbc')
+                ->table('DBA.PW_ORDENES_WEB')
+                ->insert([
+                    'codigo'             => $codigoOrden,
+                    'cod_cliente'        => $codCliente,
+                    'n_documento'        => $codigoOrden,
+                    'tipo'               => companyDefaultOrderType('invoice'),
+                    'empresa'            => $empresa,
+                    'uuid_session'       => md5(uniqid(rand(), true)),
+                    'tipo_pago'          => $checkoutData['tipo_pago'],
+                    'items_carrito'      => count($items),
+                    'gran_total'         => $granTotal,
+                    'estatus'            => '1',
+                    'cedula_cliente'     => $checkoutData['cedula'],
+                    'nombre_cliente'     => $checkoutData['nombre'],
+                    'email_cliente'      => $checkoutData['email'],
+                    'telefono_cliente'   => $checkoutData['telefono'],
+                    'direccion_cliente'  => $checkoutData['direccion'],
+                    'observacion_compra' => $checkoutData['observacion'] ?? null,
+                    'fecha_creacion'     => now(),
+                    'fecha_modificacion' => now(),
+                ]);
+            // Adjunto
+            DB::connection('odbc')
+                ->table('DBA.PW_ADJUNTO_WEB')
+                ->insert([
+                    'empresa'         => $empresa,
+                    'cod_orden'       => $codigoOrden,
+                    'cod_cliente'     => $codCliente,
+                    'foto'            => $ruta,
+                    'foto_id'         => $nombreArchivo,
+                    'nombre_archivo'  => $archivo->getClientOriginalName(),
+                    'tipo_archivo'    => $archivo->getClientOriginalExtension(),
+                    'created_at'      => now(),
+                    'update_at'       => now(),
+                ]);
+            // Historial
+            DB::connection('odbc')
+                ->table('DBA.PW_HISTORICO_PEDIDO')
+                ->insert([
+                    'cod_orden'      => $codigoOrden,
+                    'codigo_cliente' => $codCliente,
+                    'cod_estado'     => '2',
+                    'observacion'    => 'Comprobante cargado por el cliente',
+                    'fecha_cambio'   => now(),
+                    'created_at'     => now(),
+                    'update_at'      => now(),
+                    'empresa'        => $empresa,
+                ]);
+            // Asociar carrito a la orden
+            $this->cartRepository->marcarComoProcesado($codCliente,$codigoOrden);
+            DB::connection('odbc')->commit();
+            // Limpiar sesión checkout
+            session()->forget('checkout_data');
+            return redirect()->route('profile.show')->with(
                 'success',
                 'Comprobante enviado correctamente.'
             );
+        } catch (\Throwable $e) {
+            DB::connection('odbc')->rollBack();
+            // Eliminar archivo físico si la BD falló
+            if (!empty($ruta)) {
+                Storage::disk('public')->delete($ruta);
+            }
+            return back()->withErrors([
+                'error' => 'Error al guardar el comprobante: ' . $e->getMessage()
+            ]);
+        }
     }
-
 }
