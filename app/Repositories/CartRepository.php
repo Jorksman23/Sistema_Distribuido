@@ -20,7 +20,7 @@ class CartRepository
     }
 
     //Existe producto en el carrito
-    public function exists(string $codCliente,string $codigoItem,int $presentacion): bool {
+    public function exists(string $codCliente,string $codigoItem,int $presentacion, ?string $ubicacion): bool {
         $row = DB::connection($this->connection)
             ->selectOne("
                 SELECT TOP 1 id_item_web
@@ -29,11 +29,11 @@ class CartRepository
                 AND codigo_item = ?
                 AND presentacion = ?
                 AND estatus = '1'
-            ", [
-                $codCliente,
-                $codigoItem,
-                $presentacion
-            ]);
+                ". ($ubicacion ? "AND ubicacion = ?" : "") . "
+            ", $ubicacion
+            ? [$codCliente, $codigoItem, $presentacion, $ubicacion]
+            : [$codCliente, $codigoItem, $presentacion]
+        );
         return $row !== null;
     }
 

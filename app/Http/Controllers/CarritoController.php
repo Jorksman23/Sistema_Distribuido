@@ -77,12 +77,7 @@ class CarritoController extends Controller
             return back()->with('success_cart','¡Producto agregado al carrito!'
             );
         } catch (Throwable $e) {
-            // return back()->withErrors(['error' => $e->getMessage()
-            // ]);
-            dd([
-                'mensaje' => $e->getMessage(),
-                'archivo' => $e->getFile(),
-                'linea'   => $e->getLine(),
+            return back()->withErrors(['error' => $e->getMessage()
             ]);
         }
     }
@@ -197,20 +192,15 @@ class CarritoController extends Controller
         }
     }
 
-    public function obtenerCuentaBanco(int $secuencia)
-{
+    public function obtenerCuentaBanco(int $secuencia){
     $empresa = currentCompany();
-
     $formaPago = $this->paymentMethodService->obtenerFormaPago($secuencia, currentCompany());
-
     if (!$formaPago) {
         return response()->json([
             'success' => false
         ], 404);
     }
-
     $cuentaBanco = $this->paymentMethodService->obtenerCuentaBanco($formaPago, currentCompany());
-
     if (!$cuentaBanco) {
         return response()->json([
         'success' => false,

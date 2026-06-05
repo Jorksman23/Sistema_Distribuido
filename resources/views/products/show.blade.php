@@ -2,6 +2,13 @@
 @section('title', $producto['descripcion'] ?? 'Detalle del producto')
 
 @section('content')
+@if($errors->any())
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+            ⚠ {{ $errors->first() }}
+        </div>
+    </div>
+@endif
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
 
     @if(!empty($producto))

@@ -19,46 +19,34 @@ class CartService
         $this->cartRepository = $cartRepository;
     }
 
-    public function agregarProducto(array $data, string $codCliente): void{
+        public function agregarProducto(array $data, string $codCliente): void {
         $presentacion = (int) ($data['presentacion'] ?? 0);
-        $ubicacionNueva  = $data['ubicacion'] ?? null;
-
-        // Validar ubicación única
-        $ubicacionActual = session('carrito_ubicacion');
-        if ($ubicacionActual && $ubicacionNueva && $ubicacionActual !== $ubicacionNueva) {
-            throw new \Exception(
-                "Tu carrito tiene productos de '{$ubicacionActual}'. Finaliza tu compra antes de elegir otra ubicación."
-            );
-        }
-        if (!$ubicacionActual && $ubicacionNueva) {
-            session(['carrito_ubicacion' => $ubicacionNueva]);
-        }
-
-        if ($this->cartRepository->exists(
-            $codCliente,
-            $data['codigo_item'],
-            $presentacion
-        )) {
-            $item = $this->carrito->getItemByProducto($codCliente,$data['codigo_item'],$presentacion);
+        if ($this->cartRepository->exists($codCliente, $data['codigo_item'], $presentacion, $data['ubicacion'] ?? null)) {
+            $item = $this->carrito->getItemByProducto($codCliente, $data['codigo_item'], $presentacion);
             if ($item) {
-                $this->cartRepository->updateCantidad($item->id_item_web,$codCliente,$item->cantidad + 1
+                $stockDisponible = $this->carrito->getStockDisponible(
+                    $item->codigo_item,
+                    $item->presentacion,
+                    currentCompany(),
+                    $item->ubicacion
                 );
+                if ($item->cantidad >= $stockDisponible) {
+                    throw new \Exception(
+                        "No hay más stock disponible para este producto en esta ubicación."
+                    );
+                }
+                $this->cartRepository->updateCantidad($item->id_item_web, $codCliente, $item->cantidad + 1);
             }
             return;
         }
-            //Obtener Produto siempre
-            $producto = (new ProductsModel())->findByCodigo(
-                $data['codigo_item'],
-                currentCompany()
-            );
-            //dd($producto);
+        $producto = (new ProductsModel())->findByCodigo($data['codigo_item'], currentCompany());
         if (!$producto) {
             throw new \Exception('Producto no encontrado');
         }
-        $nombre = $data['nombre'] ?? $producto->descripcion1;
-        $pvp3 = $data['pvp3'] ?? $producto->pvp1;
-        $imagen = $data['imagen'] ?? $producto->imagen;
 
+        $nombre = $data['nombre'] ?? $producto->descripcion1;
+        $pvp3   = $data['pvp3']   ?? $producto->pvp1;
+        $imagen = $data['imagen'] ?? $producto->imagen;
         $this->carrito->add([
             'codigo_item'  => $data['codigo_item'],
             'nombre'       => ProductsModel::cleanString($nombre),
@@ -69,11 +57,10 @@ class CartService
             'imagen'       => $imagen,
             'iva'          => $producto->iva ?? 'N',
             'presentacion' => $presentacion,
-            'ubicacion'    =>$data['ubicacion'] ?? null,
+            'ubicacion'    => $data['ubicacion'] ?? null,
         ]);
     }
-
-    public function actualizarCantidad(int $idItemWeb,int $cantidad,string $codCliente): void {
+   public function actualizarCantidad(int $idItemWeb,int $cantidad,string $codCliente): void {
         $item = $this->carrito->getItemById($idItemWeb, $codCliente);
         if (!$item) {
             throw new \Exception('Producto no encontrado en carrito');

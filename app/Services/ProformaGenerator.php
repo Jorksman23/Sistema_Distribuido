@@ -35,13 +35,13 @@ class ProformaGenerator
 
         } catch (Throwable $e) {
             DB::connection($this->connection)->rollBack();
-            // Log::error("ProformaGenerator Error: " . $e->getMessage());
-            // throw new \Exception("Error al generar proforma: " . $e->getMessage());
-            dd([
-                'mensaje' => $e->getMessage(),
-                'archivo' => $e->getFile(),
-                'linea'   => $e->getLine(),
-            ]);
+            Log::error("ProformaGenerator Error: " . $e->getMessage());
+            throw new \Exception("Error al generar proforma: " . $e->getMessage());
+            // dd([
+            //     'mensaje' => $e->getMessage(),
+            //     'archivo' => $e->getFile(),
+            //     'linea'   => $e->getLine(),
+            // ]);
         }
     }
 
@@ -91,7 +91,7 @@ class ProformaGenerator
             $cantidad       = (int)$item->cantidad;
             $presentacion   = $item->presentacion ?? 0;
             $nombre         = $item->nombre ?? 'Sin nombre';
-            
+
             $ubicacion = $this->buscarUbicacionConStock($codigoItem, $presentacion, $cantidad);
 
             if (!$ubicacion) {
