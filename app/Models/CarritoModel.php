@@ -22,6 +22,7 @@ class CarritoModel
     public $iva;
     public $presentacion;
     public $nombre_presentacion;
+    public $ubicacion;
 
     const ESTATUS_ACTIVO = '1';
     const ESTATUS_PROCESANDO = '2';
@@ -114,12 +115,11 @@ class CarritoModel
     }
 
     // ── Agregar producto ─────────────────────────────────
-    public function add(array $data): bool
-    {
+    public function add(array $data): bool{
         return DB::connection($this->connection)->insert("
             INSERT INTO {$this->table}
-            (codigo_item, nombre, costo_real, pvp3, cantidad, cod_cliente, imagen, estatus, iva, presentacion)
-            VALUES (?, ?, ?, ?, ?, ?, ?, '1', ?, ?)
+            (codigo_item, nombre, costo_real, pvp3, cantidad, cod_cliente, imagen, estatus, iva, presentacion, ubicacion)
+            VALUES (?, ?, ?, ?, ?, ?, ?, '1', ?, ?, ?)
         ", [
             $data['codigo_item'],
             $data['nombre'],
@@ -130,6 +130,7 @@ class CarritoModel
             $data['imagen']       ?? null,
             $data['iva']          ?? 'N',
             $data['presentacion'] ?? 0,
+            $data['ubicacion']    ?? null, // ← este valor faltaba
         ]);
     }
 
@@ -149,6 +150,7 @@ class CarritoModel
         $instance->iva               = $row->iva ?? 'N';
         $instance->presentacion      = (int)($row->presentacion ?? 0);
         $instance->nombre_presentacion = ProductsModel::cleanString($row->nombre_presentacion ?? null);
+        $instance->ubicacion = $row->ubicacion ?? null;
 
         // Si tiene presentacion usa la foto de la variante
         // Si no usa la imagen principal del producto

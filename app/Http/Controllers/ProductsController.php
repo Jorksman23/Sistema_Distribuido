@@ -13,19 +13,30 @@ class ProductsController extends Controller
      */
     public function show(Request $request, string $codigo)
     {
+
         try {
             $empresa  = $request->query('empresa', currentCompany());
-
             $service  = new ProductService();
             $producto = $service->getProductWithPresentations($codigo, $empresa);
 
             if (empty($producto)) {
                 return view('errores.404', ['mensaje' => 'Producto no encontrado']);
             }
+            // Ubicaciones del producto base (sin presentación)
+            $ubicaciones = $service->getUbicacionesProducto($codigo, $empresa);
+
+            // Ubicaciones por presentación (para JS)
+            $ubicacionesPorPresentacion = [];
+            foreach ($producto['presentaciones'] as $pres) {
+                $ubicacionesPorPresentacion[$pres->codigo] =
+                    $service->getUbicacionesPresentacion($pres->codigo, $empresa);
+            }
 
             return view('products.show', [
                 'empresa'  => $empresa,
                 'producto' => $producto,
+                'ubicaciones'                => $ubicaciones,
+                'ubicacionesPorPresentacion' => $ubicacionesPorPresentacion,
             ]);
         } catch (Throwable $e) {
             return redirect()->route('catalogo.index')
@@ -69,4 +80,6 @@ class ProductsController extends Controller
             return view('errors.500', ['mensaje' => 'Error al cargar catálogo: ' . $e->getMessage()]);
         }
     }
+
+
 }

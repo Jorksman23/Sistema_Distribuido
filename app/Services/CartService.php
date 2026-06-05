@@ -21,6 +21,19 @@ class CartService
 
     public function agregarProducto(array $data, string $codCliente): void{
         $presentacion = (int) ($data['presentacion'] ?? 0);
+        $ubicacionNueva  = $data['ubicacion'] ?? null;
+
+        // Validar ubicación única
+        $ubicacionActual = session('carrito_ubicacion');
+        if ($ubicacionActual && $ubicacionNueva && $ubicacionActual !== $ubicacionNueva) {
+            throw new \Exception(
+                "Tu carrito tiene productos de '{$ubicacionActual}'. Finaliza tu compra antes de elegir otra ubicación."
+            );
+        }
+        if (!$ubicacionActual && $ubicacionNueva) {
+            session(['carrito_ubicacion' => $ubicacionNueva]);
+        }
+
         if ($this->cartRepository->exists(
             $codCliente,
             $data['codigo_item'],
@@ -56,6 +69,7 @@ class CartService
             'imagen'       => $imagen,
             'iva'          => $producto->iva ?? 'N',
             'presentacion' => $presentacion,
+            'ubicacion'    =>$data['ubicacion'] ?? null,
         ]);
     }
 

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\ProductsModel;
 use App\Models\ProductPresentation;
+use Illuminate\Support\Facades\DB;
 
 class ProductService
 {
@@ -62,4 +63,40 @@ class ProductService
             'ubicaciones' => $this->productsModel->getUbicaciones($empresa),
         ];
     }
+
+    public function getUbicacionesProducto(string $codigo, string $empresa): array
+{
+    return DB::connection('odbc')->select("
+        SELECT
+            e.ubicacion,
+            u.ubicacion AS nombre_ubicacion,
+            e.existencia AS stock
+        FROM DBA.in_existencia e
+        LEFT JOIN DBA.in_ubicacion u
+            ON u.codigo = e.ubicacion
+            AND u.empresa = e.empresa
+        WHERE e.producto = ?
+        AND e.empresa = ?
+        AND e.existencia > 0
+        ORDER BY e.existencia DESC
+    ", [$codigo, $empresa]);
+}
+
+public function getUbicacionesPresentacion(int $codigoPresentacion, string $empresa): array
+{
+    return DB::connection('odbc')->select("
+        SELECT
+            ep.ubicacion,
+            u.ubicacion AS nombre_ubicacion,
+            ep.cantidad AS stock
+        FROM DBA.in_existencia_presentacion ep
+        LEFT JOIN DBA.in_ubicacion u
+            ON u.codigo = ep.ubicacion
+            AND u.empresa = ep.empresa
+        WHERE ep.item_presentacion = ?
+        AND ep.empresa = ?
+        AND ep.cantidad > 0
+        ORDER BY ep.cantidad DESC
+    ", [$codigoPresentacion, $empresa]);
+}
 }

@@ -117,6 +117,39 @@
                         <input type="hidden" name="pvp3"         value="{{ $producto['precio'] }}">
                         <input type="hidden" name="imagen"       value="{{ $producto['imagen'] }}">
                         <input type="hidden" name="presentacion" id="presentacionSeleccionada" value="0">
+                        <input type= "hidden" name = "ubicacion" id="ubicacionSeleccionada" value = "">
+
+                        {{-- SELECTOR DE UBICACIÓN --}}
+                        @if(count($producto['presentaciones']) === 0)
+                            @if(count($ubicaciones) > 1)
+                                <div class="mb-4">
+                                    <p class="text-sm font-semibold text-gray-700 mb-2">Elige una ubicación</p>
+                                    <select id="selectUbicacion"
+                                            class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0300a3]"
+                                            onchange="document.getElementById('ubicacionSeleccionada').value = this.value">
+                                        @foreach($ubicaciones as $ub)
+                                            <option value="{{ $ub->ubicacion }}">
+                                                {{ $ub->nombre_ubicacion }} — {{ (int)$ub->stock }} unidades
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @elseif(count($ubicaciones) === 1)
+                                {{-- Una sola ubicación: se envía sin mostrar selector --}}
+                                <script>
+                                    document.getElementById('ubicacionSeleccionada').value = '{{ $ubicaciones[0]->ubicacion }}';
+                                </script>
+                            @endif
+                        @else
+                            {{-- Ubicaciones dinámicas por presentación --}}
+                            <div id="ubicacionDinamica" class="hidden mb-4">
+                                <p class="text-sm font-semibold text-gray-700 mb-2">Elige una ubicación</p>
+                                <select id="selectUbicacionDinamica"
+                                        class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0300a3]"
+                                        onchange="document.getElementById('ubicacionSeleccionada').value = this.value">
+                                </select>
+                            </div>
+                        @endif
 
                         @if(count($producto['presentaciones']) === 0)
                             {{-- Sin presentaciones --}}
@@ -157,6 +190,8 @@
 </div>
 
 <script>
+const ubicacionesPorPresentacion = @json($ubicacionesPorPresentacion);
+
 function changeImage(element, newSrc, codigoPresentacion, stockPresentacion) {
     // Cambiar imagen principal
     document.getElementById('mainImage').src = newSrc;
@@ -171,6 +206,30 @@ function changeImage(element, newSrc, codigoPresentacion, stockPresentacion) {
 
     // Guardar presentación seleccionada
     document.getElementById('presentacionSeleccionada').value = codigoPresentacion ?? 0;
+
+    // Actualizar ubicaciones dinámicas
+    const ubicacionDinamica      = document.getElementById('ubicacionDinamica');
+    const selectUbicacionDinamica = document.getElementById('selectUbicacionDinamica');
+    const ubicacionSeleccionada  = document.getElementById('ubicacionSeleccionada');
+
+    const ubicaciones = ubicacionesPorPresentacion[codigoPresentacion] ?? [];
+
+    if (ubicaciones.length > 0 && stockPresentacion > 0) {
+        selectUbicacionDinamica.innerHTML = ubicaciones.map(u =>
+            `<option value="${u.ubicacion}">${u.nombre_ubicacion} — ${Math.floor(u.stock)} unidades</option>`
+        ).join('');
+        // Preseleccionar la primera
+        ubicacionSeleccionada.value = ubicaciones[0].ubicacion;
+        ubicacionDinamica.classList.remove('hidden');
+
+        // Actualizar cuando el usuario cambia
+        selectUbicacionDinamica.onchange = function() {
+            ubicacionSeleccionada.value = this.value;
+        };
+    } else {
+        ubicacionDinamica.classList.add('hidden');
+        ubicacionSeleccionada.value = '';
+    }
 
     // Actualizar stock y botón
     const stockContainer = document.getElementById('stockContainer');
@@ -192,7 +251,8 @@ function changeImage(element, newSrc, codigoPresentacion, stockPresentacion) {
         btnAgregar.disabled  = true;
         btnAgregar.className = 'w-full bg-gray-200 text-gray-400 font-semibold py-4 rounded-2xl flex items-center justify-center gap-3 text-lg cursor-not-allowed transition-all';
         btnAgregar.innerHTML = '<span>Sin stock</span>';
-        btnAgregar.onclick   = null;
+        ubicacionDinamica.classList.add('hidden');
+        ubicacionSeleccionada.value = '';
     }
 }
 
@@ -223,5 +283,14 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowLeft')  container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
     if (e.key === 'ArrowRight') container.scrollBy({ left:  scrollAmount, behavior: 'smooth' });
 });
+
+function bloquearOtrasUbicaciones(selectElement, valorElegido) {
+    Array.from(selectElement.options).forEach(opt => {
+        if (opt.value !== valorElegido) {
+            opt.disabled = true;
+            opt.style.color = '#ccc';
+        }
+    });
+}
 </script>
 @endsection
