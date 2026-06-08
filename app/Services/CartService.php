@@ -19,7 +19,7 @@ class CartService
         $this->cartRepository = $cartRepository;
     }
 
-        public function agregarProducto(array $data, string $codCliente): void {
+    public function agregarProducto(array $data, string $codCliente): void {
         $presentacion = (int) ($data['presentacion'] ?? 0);
         if ($this->cartRepository->exists($codCliente, $data['codigo_item'], $presentacion, $data['ubicacion'] ?? null)) {
             $item = $this->carrito->getItemByProducto($codCliente, $data['codigo_item'], $presentacion);
@@ -68,7 +68,8 @@ class CartService
         $stockDisponible = $this->carrito->getStockDisponible(
                 $item->codigo_item,
                 $item->presentacion,
-                currentCompany()
+                currentCompany(),
+                $item->ubicacion
             );
         if ($cantidad > $stockDisponible) {
             throw new \Exception('Solo hay ' .(int)$stockDisponible .' unidades disponibles');
