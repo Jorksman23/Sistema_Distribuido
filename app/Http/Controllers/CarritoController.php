@@ -12,6 +12,8 @@ use App\Repositories\CartRepository;
 use App\Repositories\OrderRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\CxcAuxiliarProformaService;
 use Throwable;
 
 class CarritoController extends Controller
@@ -24,6 +26,7 @@ class CarritoController extends Controller
     protected PaymentMethodService $paymentMethodService;
     protected PaymentService $paymentService;
     protected OrderRepository $orderRepository;
+    protected CxcAuxiliarProformaService $cxcAuxiliarProformaService;
 
     public function __construct(
         CarritoModel $carrito,
@@ -32,7 +35,8 @@ class CarritoController extends Controller
         CheckoutService $checkoutService,
         PaymentMethodService $paymentMethodService,
         PaymentService $paymentService,
-        OrderRepository $orderRepository
+        OrderRepository $orderRepository,
+        CxcAuxiliarProformaService $cxcAuxiliarProformaService
     ) {
         $this->carrito = $carrito;
         $this->cartRepository = $cartRepository;
@@ -41,6 +45,7 @@ class CarritoController extends Controller
         $this->paymentMethodService = $paymentMethodService;
         $this->paymentService = $paymentService;
         $this->orderRepository = $orderRepository;
+        $this->cxcAuxiliarProformaService = $cxcAuxiliarProformaService;
     }
 
     // === Mostrar carrito ===
@@ -237,7 +242,14 @@ class CarritoController extends Controller
                     'fecha_creacion'     => now(),
                     'fecha_modificacion' => now(),
                 ]);
-
+                $this->cxcAuxiliarProformaService->registrar(
+                    $codigoOrden,
+                    (int)$checkoutData['tipo_pago'],
+                    $granTotal,
+                    $empresa,
+                    null,
+                    'Reserva web - pago en tienda'
+                );
             DB::connection('odbc')
                 ->table('DBA.PW_HISTORICO_PEDIDO')
                 ->insert([
@@ -377,7 +389,16 @@ class CarritoController extends Controller
                     'fecha_creacion'     => now(),
                     'fecha_modificacion' => now(),
                 ]);
-            // Adjunto
+                // Registrar en cxc_auxiliar_proforma 
+                $this->cxcAuxiliarProformaService->registrar(
+                    $codigoOrden,
+                    (int)$checkoutData['tipo_pago'],
+                    $granTotal,
+                    $empresa,
+                    $granTotal,
+                    'Transferencia web'
+                );
+                // Adjunto
             DB::connection('odbc')
                 ->table('DBA.PW_ADJUNTO_WEB')
                 ->insert([
@@ -424,4 +445,26 @@ class CarritoController extends Controller
             ]);
         }
     }
+
+
+    public function descargarPedido($codigo){
+        $orden = $this->paymentMethodService->obtenerOrden(
+            $codigo,
+            currentCompany()
+        );
+
+        if (!$orden) {
+            abort(404);
+        }
+
+        $pdf = Pdf::loadView(
+            'pdf.pedido-efectivo',
+            compact('orden')
+        );
+
+        return $pdf->download(
+            'Pedido_'.$orden->codigo.'.pdf'
+        );
+    }
+
 }

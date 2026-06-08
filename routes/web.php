@@ -76,14 +76,8 @@ Route::middleware('auth.custom')->group(function () {
     Route::get('/pedido/comprobante',[CarritoController::class, 'mostrarComprobante'])->name('pedidos.comprobante');
     Route::post('/pedido/comprobante',[CarritoController::class, 'guardarComprobante'])->name('pedidos.comprobante.guardar');
 });
+//Descargar pedido
+Route::get('/pedidos/{codigo}/descargar',[CarritoController::class, 'descargarPedido'])->name('pedidos.descargar');
 
-//Prueba tecnica aprobación de pedidos temporal
-Route::get('/test-aprobar/{codigo}', function (
-    $codigo,
-    OrderApprovalService $service
-) {
-    return $service->aprobar(
-        $codigo,
-        currentCompany()
-    );
-});
+//Prueba tecnica aprobación de pedidos http://127.0.0.1:8000/test-aprobar/000124 
+Route::get('/test-aprobar/{codigo}', function ($codigo,OrderApprovalService $service) {return $service->aprobar($codigo,currentCompany());});

@@ -47,7 +47,7 @@
                 {{-- Mi perfil — mismo color que Mis pedidos, negro al hover --}}
                 <a href="{{ route('profile.show') }}"
                    class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium
-                          bg-indigo-50 text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition">
+                          text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
@@ -269,7 +269,7 @@
 
                 {{-- ===== HISTORIAL DE PEDIDOS ===== --}}
         <div id="historial-pedidos" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
-            <h2 class="font-bold text-gray-800 mb-5">Historial de Pedidos</h2>
+            <h2 class="font-bold text-gray-800 mb-5 text-center">Historial de Pedidos</h2>
 
             @if(empty($pedidos))
                 {{-- Estado vacío: sin pedidos aún --}}
