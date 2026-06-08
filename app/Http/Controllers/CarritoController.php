@@ -181,6 +181,13 @@ class CarritoController extends Controller
                 'observacion' => $request->observacion,
             ]
         ]);
+            // EFECTIVO
+            if ((int)$request->tipo_pago === 1) {
+                //dd('AQUI VA LA LOGICA DE EFECTIVO');
+                return $this->crearOrdenEfectivo(session('checkout_data'));
+            }
+
+            // TRANSFERENCIAS Y DEMÁS FORMAS DE PAGO
             return redirect()->route('pedidos.comprobante')->with(
                 'success',
                 'Ahora suba su comprobante de pago.'
@@ -188,6 +195,76 @@ class CarritoController extends Controller
         } catch (Throwable $e) {
             return back()->withErrors([
                 'error' => 'Error al procesar la compra: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    private function crearOrdenEfectivo(array $checkoutData){
+        $codCliente = (string) session('user_id');
+        $empresa    = currentCompany();
+        $items = $this->carrito->getCarritoByUser($codCliente);
+
+        if (empty($items)) {
+            return redirect()->route('carrito.index')->withErrors([
+                    'error' => 'El carrito está vacío.'
+                ]);
+        }
+
+        $codigoOrden = $this->orderRepository->generarCodigoOrden($empresa);
+        $checkout = $this->checkoutService->obtenerCheckout($codCliente);
+        $granTotal = (float) $checkout['total'];
+        try {
+            DB::connection('odbc')->beginTransaction();
+            DB::connection('odbc')
+                ->table('DBA.PW_ORDENES_WEB')
+                ->insert([
+                    'codigo'             => $codigoOrden,
+                    'cod_cliente'        => $codCliente,
+                    'n_documento'        => $codigoOrden,
+                    'tipo'               => companyDefaultOrderType('invoice'),
+                    'empresa'            => $empresa,
+                    'uuid_session'       => md5(uniqid(rand(), true)),
+                    'tipo_pago'          => $checkoutData['tipo_pago'],
+                    'items_carrito'      => count($items),
+                    'gran_total'         => $granTotal,
+                    'estatus'            => '1',
+                    'cedula_cliente'     => $checkoutData['cedula'],
+                    'nombre_cliente'     => $checkoutData['nombre'],
+                    'email_cliente'      => $checkoutData['email'],
+                    'telefono_cliente'   => $checkoutData['telefono'],
+                    'direccion_cliente'  => $checkoutData['direccion'],
+                    'observacion_compra' => $checkoutData['observacion'] ?? null,
+                    'fecha_creacion'     => now(),
+                    'fecha_modificacion' => now(),
+                ]);
+
+            DB::connection('odbc')
+                ->table('DBA.PW_HISTORICO_PEDIDO')
+                ->insert([
+                    'cod_orden'      => $codigoOrden,
+                    'codigo_cliente' => $codCliente,
+                    'cod_estado'     => '1',
+                    'observacion'    => 'Pedido registrado para pago en efectivo',
+                    'fecha_cambio'   => now(),
+                    'created_at'     => now(),
+                    'update_at'      => now(),
+                    'empresa'        => $empresa,
+                ]);
+            $this->cartRepository->marcarComoProcesado(
+                $codCliente,
+                $codigoOrden
+            );
+            DB::connection('odbc')->commit();
+            session()->forget('checkout_data');
+
+            return view('pedidos.confirmacion-efectivo', [
+                'codigoOrden' => $codigoOrden,
+                'total'       => $granTotal
+            ]);
+        } catch (\Throwable $e) {
+            DB::connection('odbc')->rollBack();
+            return back()->withErrors([
+                'error' => $e->getMessage()
             ]);
         }
     }
