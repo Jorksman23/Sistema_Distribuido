@@ -78,8 +78,15 @@
                         <div class="px-4 py-3 border-b text-gray-700 font-semibold truncate">
                             {{ session('nombre') }}
                         </div>
-                        <a href="{{ route('profile.show') }}" class="block px-4 py-2 hover:bg-gray-50">Mi perfil</a>
-                        
+                        <a href="{{ route('profile.show') }}"
+                        class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium
+                                text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            Mi perfil
+                        </a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit"

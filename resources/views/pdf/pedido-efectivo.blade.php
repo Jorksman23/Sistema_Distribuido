@@ -158,6 +158,54 @@
             border-top: 1px solid #f0f0f0;
             padding-top: 12px;
         }
+        /* TABLA PRODUCTOS */
+.tabla-productos {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+.tabla-productos thead tr {
+    background: #f3f4f6;
+    border-bottom: 1px solid #ddd;
+}
+.tabla-productos th {
+    padding: 8px 10px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #888;
+    font-weight: bold;
+}
+.tabla-productos td {
+    padding: 8px 10px;
+    font-size: 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+.tabla-productos tfoot td {
+    border-top: 2px solid #ddd;
+    border-bottom: none;
+    padding: 10px;
+}
+.badge-iva {
+    display: inline-block;
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+    border-radius: 10px;
+    padding: 1px 6px;
+    font-size: 9px;
+    font-weight: bold;
+}
+.productos-titulo {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #888;
+    font-weight: bold;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #f0f0f0;
+}
     </style>
 </head>
 <body>
@@ -225,14 +273,72 @@
         </div>
 
     </div>
+    {{-- TABLA DE PRODUCTOS --}}
+    <div style="border:1px solid #e5e7eb; border-radius:6px; padding:16px; margin-bottom:20px;">
+        <div class="productos-titulo">📦 Detalle de Productos</div>
+        <table class="tabla-productos">
+            <thead>
+                <tr>
+                    <th style="text-align:left;">Producto</th>
+                    <th style="text-align:center;">Cant.</th>
+                    <th style="text-align:right;">Precio</th>
+                    <th style="text-align:center;">IVA</th>
+                    <th style="text-align:right;">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($items as $item)
+                <tr>
+                    <td style="text-align:left;">{{ $item->nombre }}</td>
+                    <td style="text-align:center;">{{ $item->cantidad }}</td>
+                    <td style="text-align:right;">${{ number_format($item->pvp3, 2) }}</td>
+                    <td style="text-align:center;">
+                        @if(($item->iva ?? 'N') === 'S')
+                            <span class="badge-iva">IVA</span>
+                        @else
+                            <span style="color:#ccc; font-size:11px;">—</span>
+                        @endif
+                    </td>
+                    <td style="text-align:right; font-weight:bold;">
+                        ${{ number_format($item->pvp3 * $item->cantidad, 2) }}
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4" style="text-align:right; color:#888; font-size:12px;">
+                        Subtotal:
+                    </td>
+                    <td style="text-align:right; font-size:12px; font-weight:bold;">
+                        ${{ number_format(collect($items)->sum(fn($i) => $i->pvp3 * $i->cantidad), 2) }}
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4" style="text-align:right; color:#888; font-size:12px;">
+                        IVA:
+                    </td>
+                    <td style="text-align:right; font-size:12px; font-weight:bold;">
+                        ${{ number_format($orden->gran_total - collect($items)->sum(fn($i) => $i->pvp3 * $i->cantidad), 2) }}
+                    </td>
+                </tr>
+                <tr style="border-top:2px solid #ddd;">
+                    <td colspan="4" style="text-align:right; color:#888; font-size:12px; font-weight:bold; padding-top:8px;">
+                        Total:
+                    </td>
+                    <td style="text-align:right; font-size:16px; font-weight:bold; color:#0300a3; padding-top:8px;">
+                        ${{ number_format($orden->gran_total, 2) }}
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
 
     {{-- IMPORTANTE --}}
     <div class="importante">
-        <div class="importante-titulo">ⓘ Importante</div>
+        <div class="importante-titulo">Importante</div>
         <p>
-            Presente este comprobante en tienda para realizar el pago y retirar su
-            pedido. Este documento es válido únicamente para la transacción
-            especificada y garantiza la reserva de sus productos por un período limitado.
+            Su pedido ha sido procesado correctamente. Conserve esta factura como comprobante oficial
         </p>
     </div>
 

@@ -389,7 +389,7 @@ class CarritoController extends Controller
                     'fecha_creacion'     => now(),
                     'fecha_modificacion' => now(),
                 ]);
-                // Registrar en cxc_auxiliar_proforma 
+                // Registrar en cxc_auxiliar_proforma
                 $this->cxcAuxiliarProformaService->registrar(
                     $codigoOrden,
                     (int)$checkoutData['tipo_pago'],
@@ -447,24 +447,22 @@ class CarritoController extends Controller
     }
 
 
-    public function descargarPedido($codigo){
-        $orden = $this->paymentMethodService->obtenerOrden(
-            $codigo,
-            currentCompany()
-        );
+    public function descargarPedido($codigo) {
+        $orden = $this->paymentMethodService->obtenerOrden($codigo, currentCompany());
 
         if (!$orden) {
             abort(404);
         }
 
-        $pdf = Pdf::loadView(
-            'pdf.pedido-efectivo',
-            compact('orden')
+        $items = $this->orderRepository->obtenerItemsOrden(
+            $codigo,
+            (string) session('user_id')
         );
+         //dd($items);
 
-        return $pdf->download(
-            'Pedido_'.$orden->codigo.'.pdf'
-        );
+        $pdf = Pdf::loadView('pdf.pedido-efectivo', compact('orden', 'items'));
+
+        return $pdf->download('Pedido_' . $orden->codigo . '.pdf');
     }
 
 }

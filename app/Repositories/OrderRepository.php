@@ -28,4 +28,14 @@ class OrderRepository
         return str_pad(($max->maxc ?? 0) + 1,6,'0',STR_PAD_LEFT
         );
     }
+
+    public function obtenerItemsOrden(string $codigo, string $codCliente): array
+    {
+        return DB::connection('odbc')->select("
+        SELECT nombre, pvp3, cantidad, presentacion, iva
+        FROM DBA.pw_carrito_web
+        WHERE orden_id = CAST(? AS INTEGER)
+        AND cod_cliente = ?
+    ", [$codigo, $codCliente]);
+    }
 }

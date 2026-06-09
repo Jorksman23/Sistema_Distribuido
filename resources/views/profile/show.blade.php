@@ -297,6 +297,7 @@
                                 <th class="px-4 py-3 text-left font-medium text-gray-600">Total</th>
                                 <th class="px-4 py-3 text-left font-medium text-gray-600">Método</th>
                                 <th class="px-4 py-3 text-center font-medium text-gray-600">Estado</th>
+                                <th class="px-4 py-3 text-center font-medium text-gray-600">Comprobante</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y">
@@ -325,6 +326,20 @@
                                         </span>
                                     @endif
                                 </td>
+                                <td class="px-4 py-4 text-center">
+                                @if($pedido->estatus == '2' || $pedido->estatus == 'P')
+                                    <a href="{{ route('pedidos.descargar', $pedido->codigo) }}"
+                                    class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700 border border-emerald-200 hover:bg-emerald-50 px-3 py-1.5 rounded-full transition">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                        </svg>
+                                        Descargar
+                                    </a>
+                                @else
+                                    <span class="text-xs text-gray-300">—</span>
+                                @endif
+                            </td>
                             </tr>
                             @endforeach
                         </tbody>
