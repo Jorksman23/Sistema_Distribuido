@@ -47,5 +47,36 @@ class AppServiceProvider extends ServiceProvider
         $view->with('carritoCount', 0);
         }
       });
-    }
+
+    $empresa = currentCompany();
+    $parametros = Parametro::where('empresa', $empresa)
+        ->pluck('descripcion', 'parametro');
+
+    View::share('homeData', [
+        'publicidad'   => $parametros['PB1'] ?? '',
+        'slider'       => [
+            $parametros['BP3'] ?? '',
+            $parametros['BP4'] ?? '',
+            $parametros['BP5'] ?? '',
+            $parametros['BP6'] ?? '',
+            $parametros['BP7'] ?? '',
+        ],
+        'tituloSeccion'=> $parametros['TL18'] ?? '',
+        'masVendidos'  => $parametros['TL2'] ?? '',
+        'ofertas'      => $parametros['TL3'] ?? '',
+        'destacados'   => $parametros['TL7'] ?? '',
+        'anuncios'     => [
+            $parametros['AN1'] ?? '',
+            $parametros['AN2'] ?? '',
+            $parametros['AN3'] ?? '',
+            $parametros['AN4'] ?? '',
+        ],
+        'informativo'  => $parametros['PB3'] ?? '',
+        'subtitulos'   => [
+            $parametros['TL4'] ?? '',
+            $parametros['TL5'] ?? '',
+            $parametros['TL6'] ?? '',
+        ],
+    ]);
+}
 }
