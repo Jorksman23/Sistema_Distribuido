@@ -90,7 +90,6 @@ class CarritoModel
         return $row ? $this->mapRowToInstance($row) : null;
     }
 
-
         public function getStockDisponible(string $codigoItem, int $presentacion, string $empresa, string $ubicacion = null): float
     {
         if ($presentacion > 0) {

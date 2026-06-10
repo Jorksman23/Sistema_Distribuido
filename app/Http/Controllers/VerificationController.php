@@ -6,8 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 
-class VerificationController
-{
+
+class VerificationController {
+
     public function verify(Request $request, $id, $hash)
     {
         $user = DB::connection('odbc')->selectOne(

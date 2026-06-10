@@ -9,8 +9,9 @@ use App\Services\BrevoMailer;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Log;
 
-class LoginController
-{
+
+class LoginController {
+
     protected $model;
      protected $mailer;
 

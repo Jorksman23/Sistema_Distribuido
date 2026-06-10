@@ -6,8 +6,9 @@ use Illuminate\Http\Request;
 use App\Models\ProductsModel;
 use App\Repositories\ProductRepository;
 
-class HomeController
-{
+
+class HomeController {
+
     //Método nuevo para el carrusel
     public function homeConCarrusel(Request $request){
         $empresa    = config('app.company_code', '001');

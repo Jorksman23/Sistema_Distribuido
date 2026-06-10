@@ -15,8 +15,9 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\CxcAuxiliarProformaService;
 use Throwable;
 
-class CarritoController
-{
+
+class CarritoController {
+
 
     protected CarritoModel $carrito;
     protected CartRepository $cartRepository;
@@ -59,14 +60,9 @@ class CarritoController
             $resumen = $this->cartService->obtenerResumenCarrito($codCliente);
             return view('cart.index', $resumen);
         } catch (Throwable $e) {
-            // return view('errors.500', [
-            //     'mensaje' => 'Error al obtener carrito: ' . $e->getMessage(),
-            // ]);
-            dd([
-            'mensaje' => $e->getMessage(),
-            'archivo' => $e->getFile(),
-            'linea'   => $e->getLine(),
-        ]);
+            return view('errors.500', [
+                'mensaje' => 'Error al obtener carrito: ' . $e->getMessage(),
+            ]);
         }
     }
     // === Agregar Producto Desde Catálogo ===

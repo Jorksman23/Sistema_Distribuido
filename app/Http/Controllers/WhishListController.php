@@ -7,8 +7,10 @@ use App\Repositories\WishListRepository;
 use App\Models\ProductsModel;
 use Throwable;
 
-class WhishListController
-{
+
+
+class WhishListController {
+
     protected $wishlist;
 
     public function __construct(WishListRepository $WishListRepository)

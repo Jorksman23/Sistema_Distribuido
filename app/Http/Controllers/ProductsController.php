@@ -6,8 +6,9 @@ use Illuminate\Http\Request;
 use App\Services\ProductService;
 use Throwable;
 
-class ProductsController
-{
+
+class ProductsController {
+
     /**
      * Mostrar un producto con sus presentaciones
      */

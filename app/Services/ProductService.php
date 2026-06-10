@@ -7,8 +7,7 @@ use App\Models\ProductPresentation;
 use App\Repositories\ProductRepository;
 
 
-class ProductService
-{
+class ProductService{
     protected ProductsModel $productsModel;
     protected ProductPresentation $presentationModel;
     protected ProductRepository $productRepository;
