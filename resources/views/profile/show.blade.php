@@ -112,19 +112,14 @@
         {{-- ===== INFORMACIÓN PERSONAL ===== --}}
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
 
-            <div class="flex items-center justify-between mb-5">
-                <h2 class="font-bold text-gray-800 text-lg flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
+            <div class="relative mb-5">
+                <h2 class="font-bold text-gray-900 text-2xl mb-6 text-center">
                     Información Personal
                 </h2>
-
                 <button type="button"
                         id="btnEditarPerfil"
                         onclick="habilitarEdicion()"
-                        class="text-gray-500 hover:text-indigo-600 transition">
+                        class="absolute top-0 right-0 text-gray-500 hover:text-indigo-600 transition">
                     <svg xmlns="http://www.w3.org/2000/svg"
                         class="w-5 h-5"
                         fill="none"
@@ -233,7 +228,7 @@
 
         {{-- ===== CAMBIAR CONTRASEÑA ===== --}}
         <div class="min-w-0 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
-            <h2 class="font-bold text-gray-800 mb-5">Cambiar contraseña</h2>
+            <h2 class="font-bold text-gray-900 text-2xl mb-6 text-center">Cambiar contraseña</h2>
             <form method="POST" action="{{ route('profile.password') }}">
                 @csrf
                 @method('PUT')
@@ -241,7 +236,7 @@
 
                     {{-- Contraseña actual --}}
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Contraseña actual</label>
+                        <label class="block text-sm font-semibold text-gray-900 mb-2">Contraseña actual</label>
                         <div class="relative">
                             <input type="password" name="current" id="current" required
                                    class="profile-input w-full border border-gray-200 rounded-xl px-3 py-2 pr-10 text-sm transition">
@@ -259,7 +254,7 @@
 
                     {{-- Nueva contraseña --}}
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Nueva contraseña</label>
+                        <label class="block text-sm font-semibold text-gray-900 mb-2">Nueva contraseña</label>
                         <div class="relative">
                             <input type="password" name="password" id="password" required
                                    class="profile-input w-full border border-gray-200 rounded-xl px-3 py-2 pr-10 text-sm transition">
@@ -277,7 +272,7 @@
 
                     {{-- Confirmar nueva contraseña --}}
                     <div>
-                        <label class="block text-xs text-gray-500 mb-1">Confirmar nueva contraseña</label>
+                        <label class="block text-sm font-semibold text-gray-900 mb-2">Confirmar nueva contraseña</label>
                         <div class="relative">
                             <input type="password" name="password_confirmation" id="password_confirmation" required
                                    class="profile-input w-full border border-gray-200 rounded-xl px-3 py-2 pr-10 text-sm transition">
