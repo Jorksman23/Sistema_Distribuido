@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\PasswordResetService;
 use Illuminate\Http\Request;
 
-class PasswordController extends Controller
+class PasswordController
 {
     public function __construct(protected PasswordResetService $resetService) {}
 

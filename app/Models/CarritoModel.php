@@ -90,29 +90,6 @@ class CarritoModel
         return $row ? $this->mapRowToInstance($row) : null;
     }
 
-// ── Obtener stock disponible ─────────────────────────
-    // public function getStockDisponible(string $codigoItem, int $presentacion, string $empresa): float
-    // {
-    //     if ($presentacion > 0) {
-    //         // Stock de la presentación específica
-    //         $row = DB::connection($this->connection)->selectOne("
-    //             SELECT COALESCE(SUM(cantidad), 0) AS total
-    //             FROM DBA.in_existencia_presentacion
-    //             WHERE item_presentacion = ?
-    //             AND   empresa           = ?
-    //         ", [$presentacion, $empresa]);
-    //     } else {
-    //         // Stock del producto principal
-    //         $row = DB::connection($this->connection)->selectOne("
-    //             SELECT COALESCE(SUM(existencia), 0) AS total
-    //             FROM DBA.in_existencia
-    //             WHERE producto = ?
-    //             AND   empresa  = ?
-    //         ", [$codigoItem, $empresa]);
-    //     }
-
-    //     return (float) ($row->total ?? 0);
-    // }
 
         public function getStockDisponible(string $codigoItem, int $presentacion, string $empresa, string $ubicacion = null): float
     {

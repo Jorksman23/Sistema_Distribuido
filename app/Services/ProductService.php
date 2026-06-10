@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\ProductsModel;
 use App\Models\ProductPresentation;
 use App\Repositories\ProductRepository;
-use Illuminate\Support\Facades\DB;
+
 
 class ProductService
 {

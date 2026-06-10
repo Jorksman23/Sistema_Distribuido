@@ -3,21 +3,21 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\login_model;
+use App\Repositories\LoginRepository;
 use Illuminate\Support\Facades\Hash;
 use App\Services\BrevoMailer;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Log;
 
-class LoginController extends Controller
+class LoginController
 {
     protected $model;
      protected $mailer;
 
-    public function __construct(BrevoMailer $mailer)
+    public function __construct(LoginRepository $LoginRepository,BrevoMailer $mailer)
     {
-        $this->model = new login_model();
-         $this->mailer = $mailer;
+        $this->model = new $LoginRepository;
+        $this->mailer = $mailer;
     }
 
     // Mostrar formulario login
@@ -130,37 +130,7 @@ class LoginController extends Controller
                 }
     }
 
-
-//   public function resendVerification(Request $request)
-// {
-//     try {
-//         $user = $this->model->findByEmail(session('email'));
-
-//         if (!$user) {
-//             return back()->withErrors(['email' => 'No se encontró el usuario en sesión.']);
-//         }
-
-//         $verificationUrl = URL::temporarySignedRoute(
-//             'verification.verify',
-//             now()->addMinutes(60),
-//             ['id' => $user->user_id, 'hash' => sha1($user->email)]
-//         );
-
-//         $htmlContent = view('email.verify', compact('user', 'verificationUrl'))->render();
-
-//         $this->mailer->sendEmail(
-//             $user->email,
-//             'Verifica tu correo en ' . config('app.name'),
-//             $htmlContent
-//         );
-
-//         return back()->with('message', 'Se ha reenviado el enlace de verificación.');
-//     } catch (\Exception $e) {
-//         return back()->withErrors(['error' => 'Error al reenviar correo: ' . $e->getMessage()]);
-//     }
-// }
-
-public function resendVerification(Request $request)
+    public function resendVerification(Request $request)
 {
     Log::info('Entró a resendVerification', ['email' => session('email')]);
 
@@ -196,7 +166,7 @@ public function resendVerification(Request $request)
         Log::error('Error en resendVerification: ' . $e->getMessage());
         return back()->withErrors(['error' => 'Error al reenviar correo: ' . $e->getMessage()]);
     }
-}
+    }
 
 
     // Cerrar sesión

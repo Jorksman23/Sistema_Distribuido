@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\ProductsModel;
 use App\Repositories\ProductRepository;
 
-class HomeController extends Controller
+class HomeController
 {
     //Método nuevo para el carrusel
     public function homeConCarrusel(Request $request){

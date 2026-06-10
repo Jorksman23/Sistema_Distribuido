@@ -3,15 +3,15 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\login_model;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use App\Repositories\LoginRepository;
 
-class ProfileController extends Controller{
+class ProfileController{
     protected $model;
-    public function __construct()
+    public function __construct(LoginRepository $LoginRepository)
     {
-        $this->model = new login_model();
+        $this->model = new $LoginRepository;
     }
     // === Mostrar perfil ===
 public function show(Request $request)

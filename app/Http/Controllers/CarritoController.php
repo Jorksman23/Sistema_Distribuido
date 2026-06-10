@@ -15,7 +15,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\CxcAuxiliarProformaService;
 use Throwable;
 
-class CarritoController extends Controller
+class CarritoController
 {
 
     protected CarritoModel $carrito;
