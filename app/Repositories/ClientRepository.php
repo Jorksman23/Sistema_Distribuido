@@ -83,7 +83,7 @@ class ClientRepository
         [$hashedPassword, $empresa, $codigo]
     );
 
-    // Actualiza en ge_usuario (ajusta el campo según tu esquema)
+    // Actualiza en ge_usuario
     DB::connection($this->conn)->update(
         'UPDATE pw_ge_usuarios SET contrasena = ? WHERE empresa = ? AND user_id = ?',
         [$hashedPassword, $empresa, $codigo]

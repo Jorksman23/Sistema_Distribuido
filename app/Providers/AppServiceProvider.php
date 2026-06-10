@@ -5,9 +5,8 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use App\Models\Empresa;
-use App\Models\WishListModel;
-use App\Models\CarritoModel;
 use App\Models\Parametro;
+use App\Repositories\WishListRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
         // Compartir conteo de wishlist en todas las vistas
         View::composer('*', function ($view) {
     if (session('user_id')) {
-            $wishlist = new WishListModel();
+            $wishlist = new WishListRepository();
             $empresa  = config('app.company_code', '001');
             $codCliente = (string) session('user_id');
         // Cachear en sesión para no hacer query en cada vista

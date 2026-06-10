@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Services\PasswordResetService;
 use Illuminate\Http\Request;
-//use App\Services\BrevoMailer;
 
 class PasswordController extends Controller
 {
@@ -70,12 +69,4 @@ class PasswordController extends Controller
             ? redirect()->route('login')->with('success', 'Contraseña actualizada.')
             : back()->withErrors(['token' => 'Token inválido o expirado.']);
     }
-//    public function testBrevo()
-// {
-//     $mailer = new BrevoMailer();
-//     $result = $mailer->sendEmail('destinatario@ejemplo.com', 'Prueba Brevo', '<p>¡Correo enviado con la API HTTP!</p>');
-//     dd($result);
-// }
-
-
 }

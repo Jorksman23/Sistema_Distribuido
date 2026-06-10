@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\WishListModel;
+use App\Repositories\WishListRepository;
 use App\Models\ProductsModel;
 use Throwable;
 
@@ -11,9 +11,9 @@ class WhishListController extends Controller
 {
     protected $wishlist;
 
-    public function __construct()
+    public function __construct(WishListRepository $WishListRepository)
     {
-        $this->wishlist = new WishListModel();
+        $this->wishlist = new $WishListRepository();
     }
 
     //Mostrar lista de deseos

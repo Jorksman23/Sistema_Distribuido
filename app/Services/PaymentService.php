@@ -154,7 +154,7 @@ class PaymentService
             return back()->withErrors(['error' => $e->getMessage()]);
         }
     }
-      public function obtenerOrden(string $codigo,string $empresa){
+    public function obtenerOrden(string $codigo,string $empresa){
         return DB::connection('odbc')->selectOne("
             SELECT *
             FROM DBA.PW_ORDENES_WEB
