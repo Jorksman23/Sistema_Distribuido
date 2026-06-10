@@ -26,6 +26,7 @@ class ProductPresentation
 
         // Producto base
         $producto = (new ProductsModel())->findByCodigo($codigoProducto, $empresa);
+
         if (!$producto) {
             return [];
         }

@@ -6,6 +6,7 @@ use App\Models\CarritoModel;
 use App\Models\ProductsModel;
 use App\Repositories\CartRepository;
 use Illuminate\Support\Facades\DB;
+
 class CartService
 {
     protected CarritoModel $carrito;
@@ -39,11 +40,11 @@ class CartService
             }
             return;
         }
-        $producto = (new ProductsModel())->findByCodigo($data['codigo_item'], currentCompany());
-        if (!$producto) {
+        $raw = (new ProductsModel())->findByCodigo($data['codigo_item'], currentCompany());
+        if (!$raw) {
             throw new \Exception('Producto no encontrado');
         }
-
+        $producto = (new ProductsModel())->mapRowToInstance($raw);
         $nombre = $data['nombre'] ?? $producto->descripcion1;
         $pvp3   = $data['pvp3']   ?? $producto->pvp1;
         $imagen = $data['imagen'] ?? $producto->imagen;

@@ -50,7 +50,7 @@ class CartRepository
             ]);
     }
 
-    // Actualizar cantidad
+    // Actualizar cantidad del producto al momento de realizar una compra
     public function updateCantidad(int $idItemWeb,string $codCliente,int $cantidad): int {
         return DB::connection($this->connection)->update("
             UPDATE {$this->table}

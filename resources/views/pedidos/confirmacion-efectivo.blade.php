@@ -90,7 +90,7 @@
                         <span class="w-6 h-6 rounded-full bg-[#0300a3] text-white text-xs font-bold flex items-center justify-center shrink-0">1</span>
                         <div>
                             <p class="text-sm font-semibold text-gray-800">Guarda tu código de pedido</p>
-                            <p class="text-xs text-gray-500 mt-0.5">Toma una captura o anota el código {{ $codigoOrden }}.</p>
+                            <p class="text-xs text-gray-500 mt-0.5">Toma una captura del código o descargalo{{ $codigoOrden }}.</p>
                         </div>
                     </div>
                     <div class="flex gap-3">

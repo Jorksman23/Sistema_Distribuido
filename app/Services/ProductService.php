@@ -4,27 +4,27 @@ namespace App\Services;
 
 use App\Models\ProductsModel;
 use App\Models\ProductPresentation;
+use App\Repositories\ProductRepository;
 use Illuminate\Support\Facades\DB;
 
 class ProductService
 {
     protected ProductsModel $productsModel;
     protected ProductPresentation $presentationModel;
+    protected ProductRepository $productRepository;
 
     public function __construct()
     {
         $this->productsModel     = new ProductsModel();
         $this->presentationModel = new ProductPresentation();
+        $this->productRepository = new ProductRepository();
     }
 
-    /**
-     * Obtener catálogo con filtros y paginación
-     */
     public function getCatalogo(array $filters, int $page, string $empresa): array
     {
-        return $this->productsModel->getPaginatedProducts(
+        $result = $this->productRepository->getPaginatedProducts(
             $page,
-            40, // productos por página
+            40,//productos por página
             $empresa,
             $filters['search']    ?? '',
             $filters['grupo']     ?? '',
@@ -34,6 +34,14 @@ class ProductService
             (float) ($filters['precioMax'] ?? 0),
             $filters['orden']     ?? 'codigo',
         );
+
+        return [
+            'data'         => array_map(fn($r) => $this->productsModel->mapRowToInstance($r), $result['rows']),
+            'total'        => $result['total'],
+            'per_page'     => $result['per_page'],
+            'current_page' => $result['page'],
+            'last_page'    => $result['last_page'],
+        ];
     }
 
     /**
@@ -49,7 +57,8 @@ class ProductService
      */
     public function getDestacados(string $empresa, int $limit = 20): array
     {
-        return $this->productsModel->getProductosDestacados($limit, $empresa);
+        $rows = $this->productRepository->getProductosDestacados($limit, $empresa);
+        return array_map(fn($r) => $this->productsModel->mapRowToInstance($r), $rows);
     }
 
     /**
@@ -58,45 +67,22 @@ class ProductService
     public function getFiltros(string $empresa): array
     {
         return [
-            'grupos'      => $this->productsModel->getGrupos($empresa),
-            'lineas'      => $this->productsModel->getLineas($empresa),
-            'ubicaciones' => $this->productsModel->getUbicaciones($empresa),
+            'grupos'      => $this->productRepository->getGrupos($empresa),
+            'lineas'      => $this->productRepository->getLineas($empresa),
+            'ubicaciones' => $this->productRepository->getUbicaciones($empresa),
         ];
     }
 
+    /**
+     * Obtener Ubicaciones en in_item
+     */
     public function getUbicacionesProducto(string $codigo, string $empresa): array
-{
-    return DB::connection('odbc')->select("
-        SELECT
-            e.ubicacion,
-            u.ubicacion AS nombre_ubicacion,
-            e.existencia AS stock
-        FROM DBA.in_existencia e
-        LEFT JOIN DBA.in_ubicacion u
-            ON u.codigo = e.ubicacion
-            AND u.empresa = e.empresa
-        WHERE e.producto = ?
-        AND e.empresa = ?
-        AND e.existencia > 0
-        ORDER BY e.existencia DESC
-    ", [$codigo, $empresa]);
-}
+    {
+        return $this->productRepository->getUbicacionesProducto($codigo, $empresa);
+    }
 
-public function getUbicacionesPresentacion(int $codigoPresentacion, string $empresa): array
-{
-    return DB::connection('odbc')->select("
-        SELECT
-            ep.ubicacion,
-            u.ubicacion AS nombre_ubicacion,
-            ep.cantidad AS stock
-        FROM DBA.in_existencia_presentacion ep
-        LEFT JOIN DBA.in_ubicacion u
-            ON u.codigo = ep.ubicacion
-            AND u.empresa = ep.empresa
-        WHERE ep.item_presentacion = ?
-        AND ep.empresa = ?
-        AND ep.cantidad > 0
-        ORDER BY ep.cantidad DESC
-    ", [$codigoPresentacion, $empresa]);
-}
+    public function getUbicacionesPresentacion(int $codigoPresentacion, string $empresa): array
+    {
+        return $this->productRepository->getUbicacionesPresentacion($codigoPresentacion, $empresa);
+    }
 }
