@@ -7,7 +7,7 @@ use App\Models\login_model;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 
-class ProfileController extends Controller{
+class ProfileController {
     protected $model;
     public function __construct()
     {

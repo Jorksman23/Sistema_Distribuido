@@ -111,88 +111,124 @@
 
         {{-- ===== INFORMACIÓN PERSONAL ===== --}}
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
-            <h2 class="font-bold text-gray-800 mb-5">Información Personal</h2>
 
-            {{-- Datos de solo lectura (no editables) --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 rounded-xl">
-                <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Nombre completo</p>
-                    <p class="font-semibold text-gray-800">{{ $usuario->nombre }}</p>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Correo electrónico</p>
-                    <p class="font-semibold text-gray-800">{{ $usuario->email }}</p>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Teléfono</p>
-                    <p class="font-semibold text-gray-800">{{ $usuario->telefono ?? '—' }}</p>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Cédula / RUC</p>
-                    <p class="font-semibold text-gray-800">{{ $usuario->cedula_ruc ?? '—' }}</p>
-                </div>
-                <div class="col-span-1 sm:col-span-2">
-                    <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Dirección</p>
-                    <p class="font-semibold text-gray-800">{{ $usuario->direccion ?? '—' }}</p>
+            <div class="flex items-center justify-between mb-5">
+                <h2 class="font-bold text-gray-800 text-lg flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Información Personal
+                </h2>
+
+                <button type="button"
+                        id="btnEditarPerfil"
+                        onclick="habilitarEdicion()"
+                        class="text-gray-500 hover:text-indigo-600 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        class="w-5 h-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L12 15l-4 1 1-4 8.586-8.586z"/>
+                    </svg>
+                </button>
+            </div>
+
+            {{-- Vista normal --}}
+            <div id="perfilVista">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-xl">
+
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Nombre completo</p>
+                        <p class="font-semibold text-gray-800">{{ $usuario->nombre }}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Correo electrónico</p>
+                        <p class="font-semibold text-gray-800">{{ $usuario->email }}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Teléfono</p>
+                        <p class="font-semibold text-gray-800">{{ $usuario->telefono ?? '—' }}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Cédula / RUC</p>
+                        <p class="font-semibold text-gray-800">{{ $usuario->cedula_ruc ?? '—' }}</p>
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Dirección</p>
+                        <p class="font-semibold text-gray-800">{{ $usuario->direccion ?? '—' }}</p>
+                    </div>
+
                 </div>
             </div>
 
-            {{-- Formulario de edición --}}
-            <form method="POST" action="{{ route('profile.update') }}">
-                @csrf
-                @method('PUT')
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {{-- Formulario edición --}}
+            <div id="perfilEdicion" style="display:none;">
 
-                    {{-- Nombre --}}
-                    <div>
-                        <label class="block text-xs text-gray-500 mb-1">Nombre</label>
-                        <input type="text" name="nombre"
-                               value="{{ old('nombre', $usuario->nombre) }}" required
-                               class="profile-input w-full border border-gray-200 rounded-xl px-3 py-2 text-sm transition">
+                <form method="POST" action="{{ route('profile.update') }}">
+                    @csrf
+                    @method('PUT')
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        {{-- Nombre --}}
+                        <div>
+                            <label class="block text-base font-bold text-gray-900 mb-1">Nombre completo</label>
+                            <input type="text" name="nombre" value="{{ old('nombre', $usuario->nombre) }}" required
+                            class="profile-input w-full border border-gray-200 rounded-xl px-3 py-2 text-sm transition">
+                        </div>
+
+                        {{-- Email --}}
+                        <div>
+                            <label class="block text-base font-bold text-gray-900 mb-1">
+                                Correo electrónico <span class="text-gray-300">(no editable)</span>
+                            </label>
+                            <input type="text" value="{{ old('email', $usuario->email) }}" disabled
+                            class="w-full border border-gray-100 rounded-xl px-3 py-2 text-sm bg-gray-50 text-gray-400 cursor-not-allowed">
+                        </div>
+
+                        {{-- Teléfono --}}
+                        <div>
+                            <label class="block text-base font-bold text-gray-900 mb-1">Teléfono</label>
+                            <input type="text" name="telefono" value="{{ old('telefono', $usuario->telefono) }}"
+                            class="profile-input w-full border border-gray-200 rounded-xl px-3 py-2 text-sm transition">
+                        </div>
+
+                        {{-- Cédula --}}
+                        <div>
+                            <label class="block text-base font-bold text-gray-900 mb-1">
+                                Cédula / RUC <span class="text-gray-300">(no editable)</span>
+                            </label>
+                            <input type="text" value="{{ $usuario->cedula_ruc }}" disabled
+                            class="w-full border border-gray-100 rounded-xl px-3 py-2 text-sm bg-gray-50 text-gray-400 cursor-not-allowed">
+                        </div>
+
+                        {{-- Dirección --}}
+                        <div class="md:col-span-2">
+                            <label class="block text-base font-bold text-gray-900 mb-1">Dirección</label>
+                            <input type="text" name="direccion" value="{{ old('direccion', $usuario->direccion) }}"
+                            class="profile-input w-full border border-gray-200 rounded-xl px-3 py-2 text-sm transition">
+                        </div>
+
                     </div>
 
-                    {{-- Email --}}
-                    <div>
-                        <label class="block text-xs text-gray-500 mb-1">Email</label>
-                        <input type="email" name="email"
-                               value="{{ old('email', $usuario->email) }}" required
-                               class="profile-input w-full border border-gray-200 rounded-xl px-3 py-2 text-sm transition">
-                    </div>
+                    <button type="submit"
+                            class="mt-4 w-full bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2.5 rounded-xl transition">
+                        Guardar cambios
+                    </button>
 
-                    {{-- Teléfono --}}
-                    <div>
-                        <label class="block text-xs text-gray-500 mb-1">Teléfono</label>
-                        <input type="text" name="telefono"
-                               value="{{ old('telefono', $usuario->telefono) }}"
-                               class="profile-input w-full border border-gray-200 rounded-xl px-3 py-2 text-sm transition">
-                    </div>
+                </form>
 
-                    {{-- Cédula / RUC — no editable --}}
-                    <div>
-                        <label class="block text-xs text-gray-500 mb-1">
-                            Cédula / RUC <span class="text-gray-300">(no editable)</span>
-                        </label>
-                        <input type="text" value="{{ $usuario->cedula_ruc }}" disabled
-                               class="w-full border border-gray-100 rounded-xl px-3 py-2 text-sm
-                                      bg-gray-50 text-gray-400 cursor-not-allowed">
-                    </div>
+            </div>
 
-                    {{-- Dirección --}}
-                    <div class="col-span-1 sm:col-span-2">
-                        <label class="block text-xs text-gray-500 mb-1">Dirección</label>
-                        <input type="text" name="direccion"
-                               value="{{ old('direccion', $usuario->direccion) }}"
-                               class="profile-input w-full border border-gray-200 rounded-xl px-3 py-2 text-sm transition">
-                    </div>
-                </div>
-
-                {{-- Botón guardar —  gris oscuro --}}
-                <button type="submit"
-                        class="mt-4 w-full bg-gray-800 hover:bg-gray-900 text-white
-                               font-semibold py-2.5 rounded-xl transition">
-                    Guardar cambios
-                </button>
-            </form>
         </div>
 
         {{-- ===== CAMBIAR CONTRASEÑA ===== --}}
@@ -357,6 +393,30 @@
 function togglePass(id) {
     const input = document.getElementById(id);
     input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+// Mostrar/Ocultar edición de perfil
+function habilitarEdicion() {
+
+    const vista = document.getElementById('perfilVista');
+    const edicion = document.getElementById('perfilEdicion');
+
+    if (edicion.style.display === 'none') {
+
+        vista.style.display = 'none';
+        edicion.style.display = 'block';
+
+        document.getElementById('btnEditarPerfil')
+            .classList.replace('text-gray-500', 'text-indigo-600');
+
+    } else {
+
+        vista.style.display = 'block';
+        edicion.style.display = 'none';
+
+        document.getElementById('btnEditarPerfil')
+            .classList.replace('text-indigo-600', 'text-gray-500');
+    }
 }
 </script>
 @endpush
