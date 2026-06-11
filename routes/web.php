@@ -16,9 +16,11 @@ Route::get('/', [HomeController::class, 'homeConCarrusel']);
 // PERFIL
 Route::middleware('auth.custom')->group(function () {
     Route::get('/profile',          [ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/mis-pedidos',      [ProfileController::class, 'orders'])->name('profile.orders');
     Route::put('/profile/update',   [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
 });
+
 // AUTH
 Route::get('/login',    [LoginController::class, 'showLogin'])->name('login');
 Route::post('/login',   [LoginController::class, 'login'])->name('login.post');
@@ -43,7 +45,6 @@ Route::middleware('auth.custom')->group(function () {
     Route::put('/cart/update',      [CarritoController::class, 'update'])->name('carrito.update');
     Route::delete('/cart/remove',   [CarritoController::class, 'remove'])->name('carrito.remove');
     Route::post('/cart/vaciar',     [CarritoController::class, 'vaciar'])->name('carrito.vaciar');
-    //Route::get('/cart/checkout',    [CarritoController::class, 'pagar'])->name('pedidos.pagar');
     Route::get('/cart/pagar',       [CarritoController::class, 'pagar'])->name('pedidos.pagar');
     Route::post('/carrito/procesar-pago', [CarritoController::class, 'procesarPago'])->name('carrito.procesar.pago');
 });
@@ -79,5 +80,5 @@ Route::middleware('auth.custom')->group(function () {
 //Descargar pedido
 Route::get('/pedidos/{codigo}/descargar',[CarritoController::class, 'descargarPedido'])->name('pedidos.descargar');
 
-//Prueba tecnica aprobación de pedidos http://127.0.0.1:8000/test-aprobar/000124 
+//Prueba tecnica aprobación de pedidos http://127.0.0.1:8000/test-aprobar/000124
 Route::get('/test-aprobar/{codigo}', function ($codigo,OrderApprovalService $service) {return $service->aprobar($codigo,currentCompany());});

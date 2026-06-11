@@ -66,7 +66,6 @@ class ComprobanteService
 
         try {
             DB::connection('odbc')->beginTransaction();
-
             // Crear orden
             DB::connection('odbc')->table('DBA.PW_ORDENES_WEB')->insert([
                 'codigo'             => $codigoOrden,

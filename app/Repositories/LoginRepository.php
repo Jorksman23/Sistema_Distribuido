@@ -9,16 +9,14 @@ class LoginRepository
 {
     protected $connection = 'odbc';
 
-    public function findByEmail(string $email): ?login_model
-    {
+    public function findByEmail(string $email): ?login_model{
         $empresa = currentCompany();
         $row = DB::connection($this->connection)
             ->selectOne("SELECT TOP 1 * FROM DBA.pw_ge_usuarios WHERE email = ? AND empresa = ?", [$email, $empresa]);
 
         return $row ? login_model::mapRowToInstance($row) : null;
     }
-     public function createUser($data)
-    {
+    public function createUser($data){
         return DB::connection($this->connection)->insert("
             INSERT INTO DBA.pw_ge_usuarios
             (pw_codigo, nombre, cedula_ruc, email, contrasena, estado, direccion, telefono, tipo_identificacion,empresa)
@@ -48,14 +46,12 @@ class LoginRepository
             UPDATE DBA.pw_ge_usuarios
             SET nombre    = ?,
                 direccion = ?,
-                telefono  = ?,
-                email     = ?
+                telefono  = ?
             WHERE user_id = ?
         ", [
             $data['nombre'],
             $data['direccion'],
             $data['telefono'],
-            $data['email'],
             $user_id
         ]);
     }

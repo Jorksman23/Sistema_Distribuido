@@ -46,7 +46,6 @@ class AppServiceProvider extends ServiceProvider
         $view->with('carritoCount', 0);
         }
       });
-
     $empresa = currentCompany();
     $parametros = Parametro::where('empresa', $empresa)
         ->pluck('descripcion', 'parametro');

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use App\Repositories\LoginRepository;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 
 class ProfileController {
@@ -16,39 +17,66 @@ class ProfileController {
         $this->model = new $LoginRepository;
     }
     // === Mostrar perfil ===
-public function show(Request $request)
-{
-    $userId = session('user_id');
-    if (!$userId) return redirect()->route('login');
+    public function show(Request $request){
+        $userId = session('user_id');
+        if (!$userId) return redirect()->route('login');
 
-    $usuario = $this->model->findById($userId);
-    if (!$usuario) return redirect()->route('login');
+        $usuario = $this->model->findById($userId);
+        if (!$usuario) return redirect()->route('login');
 
-    // === CARGAR HISTORIAL DE PEDIDOS ===
-    $codCliente = (string) $userId;
-    $empresa    = currentCompany();
+        return view('profile.show', [
+            'usuario' => $usuario,
+        ]);
+    }
 
-    $pedidos = DB::connection('odbc')->select("
-        SELECT
-            pw_id,
-            codigo,
-            n_documento,
-            tipo_pago,
-            gran_total,
-            estatus,
-            fecha_creacion,
-            observacion_compra
-        FROM DBA.PW_ORDENES_WEB
-        WHERE cod_cliente = ?
-          AND empresa = ?
-        ORDER BY fecha_creacion DESC
-    ", [$codCliente, $empresa]);
+    public function orders(Request $request){
+        $userId = session('user_id');
+        if (!$userId) {
+            return redirect()->route('login');
+        }
+        $usuario = $this->model->findById($userId);
 
-    return view('profile.show', [
-        'usuario' => $usuario,
-        'pedidos' => $pedidos
-    ]);
-}
+        if (!$usuario) {
+            return redirect()->route('login');
+        }
+        $codCliente = (string) $userId;
+        $empresa    = currentCompany();
+        $pedidosCollection = collect(DB::connection('odbc')->select("
+            SELECT
+                pw_id,
+                codigo,
+                n_documento,
+                tipo_pago,
+                gran_total,
+                estatus,
+                fecha_creacion,
+                observacion_compra
+            FROM DBA.PW_ORDENES_WEB
+            WHERE cod_cliente = ?
+            AND empresa = ?
+            ORDER BY fecha_creacion DESC
+        ", [$codCliente, $empresa]));
+
+        $perPage = 8;
+
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+
+        $pedidos = new LengthAwarePaginator(
+            $pedidosCollection->forPage($currentPage, $perPage),
+            $pedidosCollection->count(),
+            $perPage,
+            $currentPage,
+            [
+                'path' => request()->url(),
+                'query' => request()->query()
+            ]
+        );
+
+        return view('profile.orders', [
+            'usuario' => $usuario,
+            'pedidos' => $pedidos
+        ]);
+    }
 
     // === Actualizar datos personales ===
     public function update(Request $request)
@@ -57,13 +85,11 @@ public function show(Request $request)
         if (!$userId)return redirect()->route('login');
         $request->validate([
             'nombre'    => 'required|string|max:255',
-            'email'     => 'required|email|max:255',
             'telefono'  => 'nullable|string|max:20',
             'direccion' => 'nullable|string|max:255',
         ]);
         $this->model->updateUser($userId, [
             'nombre'    => $request->nombre,
-            'email'     => $request->email,
             'telefono'  => $request->telefono,
             'direccion' => $request->direccion,
         ]);
