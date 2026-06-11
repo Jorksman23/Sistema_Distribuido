@@ -255,9 +255,14 @@ class CarritoController {
             $codigo,
             (string) session('user_id')
         );
-         //dd($items);
 
-        $pdf = Pdf::loadView('pdf.pedido-efectivo', compact('orden', 'items'));
+        //Obtener forma de pago
+        $formaPago = $this->paymentMethodService->obtenerFormaPago(
+            (int) $orden->tipo_pago,
+            currentCompany()
+        );
+
+        $pdf = Pdf::loadView('pdf.pedido-efectivo', compact('orden', 'items', 'formaPago'));
 
         return $pdf->download('Pedido_' . $orden->codigo . '.pdf');
     }

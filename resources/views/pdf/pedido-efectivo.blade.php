@@ -256,12 +256,18 @@
 
             <div class="fila">
                 <div class="fila-label">Forma de pago:</div>
-                <div class="fila-valor">EFECTIVO</div>
+                <div class="fila-valor">{{ strtoupper($formaPago->forma_pago ?? 'N/A') }}</div>
             </div>
             <div class="fila">
                 <div class="fila-label">Estado:</div>
                 <div class="fila-valor">
-                    <span class="badge-reservado">RESERVADO</span>
+                    @if($orden->estatus == '2')
+                        <span style="display:inline-block; background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:20px; padding:2px 10px; font-size:11px; font-weight:bold;">
+                            PAGADO
+                        </span>
+                    @else
+                        <span class="badge-reservado">RESERVADO</span>
+                    @endif
                 </div>
             </div>
             <div class="fila" style="margin-top:10px;">
