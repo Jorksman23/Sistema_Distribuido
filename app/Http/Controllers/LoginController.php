@@ -17,7 +17,7 @@ class LoginController {
 
     public function __construct(LoginRepository $LoginRepository,BrevoMailer $mailer)
     {
-        $this->model = new $LoginRepository;
+        $this->model = $LoginRepository;
         $this->mailer = $mailer;
     }
 

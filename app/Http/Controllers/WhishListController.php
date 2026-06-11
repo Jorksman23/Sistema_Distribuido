@@ -15,7 +15,7 @@ class WhishListController {
 
     public function __construct(WishListRepository $WishListRepository)
     {
-        $this->wishlist = new $WishListRepository;
+        $this->wishlist =  $WishListRepository;
     }
 
     //Mostrar lista de deseos

@@ -14,7 +14,7 @@ class ProfileController {
     protected $model;
     public function __construct(LoginRepository $LoginRepository)
     {
-        $this->model = new $LoginRepository;
+        $this->model = $LoginRepository;
     }
     // === Mostrar perfil ===
     public function show(Request $request){
