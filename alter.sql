@@ -206,3 +206,17 @@ SET cod_cuenta_banco = (
     WHERE cb.empresa = fp.empresa
       AND cb.cta_contable = fp.cuenta
 );
+
+/* ==========================================================
+   CXC_FORMA_PAGO
+   Relacionar forma de pago TRANSFERENCIA BAN. INTERNACION
+   con la cuenta bancaria Banco Internacional (cod_sistema 1101002004000
+   No se encontro mas relaciones que concuerden habria que ajustar la tabla te_cuentas_bancos
+   con datos que sean del cliente y se adapte a la forma de pago.
+   ========================================================== */
+UPDATE DBA.cxc_forma_pago
+SET cod_cuenta_banco = 1101002004000
+WHERE empresa = '005'
+AND forma_pago LIKE '%INTERNACION%';
+
+

@@ -99,8 +99,7 @@ class ProductRepository
         ", [$empresa]);
         return array_map(fn($r) => (array) $r, $rows);
     }
-
-
+    
     //Obtener ubicacion in_item
     public function getUbicacionesProducto(string $codigo, string $empresa): array{
         return DB::connection($this->connection)->select("

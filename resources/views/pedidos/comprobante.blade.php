@@ -73,10 +73,7 @@
                     </p>
 
                     <p class="font-semibold">
-                        {{ $cuentaBanco->tipo == 'C'
-                            ? 'Cuenta Corriente'
-                            : 'Cuenta Ahorros'
-                        }}
+                        {{ $cuentaBanco->tipo == 'C' ? 'Cuenta Corriente': 'Cuenta Ahorros'}}
                     </p>
                 </div>
 

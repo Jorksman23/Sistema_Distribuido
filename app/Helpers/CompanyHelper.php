@@ -5,7 +5,7 @@ if (!function_exists('currentCompany')) {
     function currentCompany(): string
     {
         // Devuelve el código de empresa actual desde config
-        return config('app.company_code', '001');
+        return config('app.company_code', '?' );
     }
 }
 
