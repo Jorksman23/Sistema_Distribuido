@@ -99,7 +99,7 @@ class ProductRepository
         ", [$empresa]);
         return array_map(fn($r) => (array) $r, $rows);
     }
-    
+
     //Obtener ubicacion in_item
     public function getUbicacionesProducto(string $codigo, string $empresa): array{
         return DB::connection($this->connection)->select("
@@ -236,5 +236,14 @@ class ProductRepository
             'page'     => $page,
             'last_page'=> (int) ceil(($totalRow->total ?? 0) / $perPage),
         ];
+    }
+
+
+    public function findByCodigo(string $codigo, string $empresa): ?object{
+        return DB::connection($this->connection)->selectOne("
+            SELECT TOP 1 *
+            FROM DBA.in_item
+            WHERE codigo = ? AND empresa = ? AND stock in ('S', 'N')
+        ", [$codigo, $empresa]);
     }
 }

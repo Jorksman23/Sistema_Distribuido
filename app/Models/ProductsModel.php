@@ -27,20 +27,20 @@ class ProductsModel
     public $tiene_presentaciones;
 
     // ── Buscar producto por código ───────────────────────
-    public function findByCodigo($codigo, $empresa = null)
-    {
-        $empresa = $empresa ?? currentCompany();
+    // public function findByCodigo($codigo, $empresa = null)
+    // {
+    //     $empresa = $empresa ?? currentCompany();
 
-        $row = DB::connection($this->connection)->selectOne("
-            SELECT TOP 1 *
-            FROM DBA.in_item
-            WHERE codigo = ? AND empresa = ? AND stock in ('S', 'N')
-        ", [$codigo, $empresa]);
+    //     $row = DB::connection($this->connection)->selectOne("
+    //         SELECT TOP 1 *
+    //         FROM DBA.in_item
+    //         WHERE codigo = ? AND empresa = ? AND stock in ('S', 'N')
+    //     ", [$codigo, $empresa]);
 
-        if (!$row) return null;
+    //     if (!$row) return null;
 
-        return $this->mapRowToInstance($row);
-    }
+    //     return $this->mapRowToInstance($row);
+    // }
 
     //Mapear fila a objeto
     public function mapRowToInstance($row): self
@@ -72,7 +72,7 @@ class ProductsModel
         return $converted !== false ? trim($converted) : trim($value);
     }
 
-    //  Actualizar producto 
+    //  Actualizar producto
     public function updateProduct($codigo, $empresa, $data)
     {
         return DB::connection($this->connection)->update("

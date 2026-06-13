@@ -40,7 +40,7 @@ class CartService
             }
             return;
         }
-        $raw = (new ProductsModel())->findByCodigo($data['codigo_item'], currentCompany());
+        $raw = (new \App\Repositories\ProductRepository())->findByCodigo($data['codigo_item'], currentCompany());
         if (!$raw) {
             throw new \Exception('Producto no encontrado');
         }

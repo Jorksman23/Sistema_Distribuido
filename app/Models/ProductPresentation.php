@@ -20,25 +20,15 @@ class ProductPresentation
     /**
      * Obtener producto + presentaciones
      */
-    public function getByProduct(string $codigoProducto, string $empresa = null, ?int $limit = null): array
-    {
+    public function getByProduct(string $codigoProducto, string $empresa = null, ?int $limit = null): array{
         $empresa = $empresa ?? currentCompany();
 
         // Producto base
-        $producto = (new ProductsModel())->findByCodigo($codigoProducto, $empresa);
-
-        if (!$producto) {
+        $raw = (new \App\Repositories\ProductRepository())->findByCodigo($codigoProducto, $empresa);
+        if (!$raw) {
             return [];
         }
-
-        // Stock total del producto
-        $stockRow = DB::connection($this->connection)->selectOne("
-            SELECT SUM(existencia) AS total
-            FROM DBA.in_existencia
-            WHERE producto = ? AND empresa = ?
-        ", [$codigoProducto, $empresa]);
-
-        $stockTotal = (float) ($stockRow->total ?? 0);
+        $producto = (new ProductsModel())->mapRowToInstance($raw);
 
         // SQL dinámico según límite
         $sql = "
@@ -65,6 +55,24 @@ class ProductPresentation
             fn($row) => $this->mapRowToInstance($row, $codigoProducto),
             $rows
         );
+        // Stock total: si tiene presentaciones, sumar desde in_existencia_presentacion
+        if (!empty($presentaciones)) {
+            $stockRow = DB::connection($this->connection)->selectOne("
+                SELECT COALESCE(SUM(ep.cantidad), 0) AS total
+                FROM DBA.in_existencia_presentacion ep
+                INNER JOIN DBA.in_item_presentacion p
+                    ON p.codigo = ep.item_presentacion
+                    AND p.empresa = ep.empresa
+                WHERE p.producto = ? AND p.empresa = ?
+            ", [$codigoProducto, $empresa]);
+        } else {
+            $stockRow = DB::connection($this->connection)->selectOne("
+                SELECT SUM(existencia) AS total
+                FROM DBA.in_existencia
+                WHERE producto = ? AND empresa = ?
+            ", [$codigoProducto, $empresa]);
+        }
+        $stockTotal = (float) ($stockRow->total ?? 0);
 
         return [
             'codigo'         => $producto->codigo,

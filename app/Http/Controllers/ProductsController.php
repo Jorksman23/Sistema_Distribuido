@@ -23,9 +23,11 @@ class ProductsController {
             if (empty($producto)) {
                 return view('errores.404', ['mensaje' => 'Producto no encontrado']);
             }
-            // Ubicaciones del producto base (sin presentación)
-            $ubicaciones = $service->getUbicacionesProducto($codigo, $empresa);
-
+            // Ubicaciones del producto base (solo si NO tiene presentaciones)
+            $ubicaciones = [];
+            if (empty($producto['presentaciones'])) {
+                $ubicaciones = $service->getUbicacionesProducto($codigo, $empresa);
+            }
             // Ubicaciones por presentación (para JS)
             $ubicacionesPorPresentacion = [];
             foreach ($producto['presentaciones'] as $pres) {
@@ -34,8 +36,8 @@ class ProductsController {
             }
 
             return view('products.show', [
-                'empresa'  => $empresa,
-                'producto' => $producto,
+                'empresa'                    => $empresa,
+                'producto'                   => $producto,
                 'ubicaciones'                => $ubicaciones,
                 'ubicacionesPorPresentacion' => $ubicacionesPorPresentacion,
             ]);
