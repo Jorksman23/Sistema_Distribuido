@@ -82,3 +82,5 @@ Route::get('/pedidos/{codigo}/descargar',[CarritoController::class, 'descargarPe
 
 //Prueba tecnica aprobación de pedidos http://127.0.0.1:8000/test-aprobar/000124
 Route::get('/test-aprobar/{codigo}', function ($codigo,OrderApprovalService $service) {return $service->aprobar($codigo,currentCompany());});
+//Obtener los cliente a traves de un servicio
+Route::get('/cliente/datos', [CarritoController::class, 'obtenerDatosCliente'])->name('cliente.datos');

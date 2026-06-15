@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Repositories\WishListRepository;
-use App\Models\ProductsModel;
+use App\Repositories\ProductRepository;
 use Throwable;
 
 
@@ -55,7 +55,7 @@ class WhishListController {
             if ($exists) {
                 $this->wishlist->remove($codCliente, $request->codigo_item, $empresa);
             } else {
-                $producto = (new ProductsModel())->findByCodigo($request->codigo_item, $empresa);
+                $producto = (new ProductRepository())->findByCodigo($request->codigo_item, $empresa);
 
                 if ($producto) {
                     $this->wishlist->add([

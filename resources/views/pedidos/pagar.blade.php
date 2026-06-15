@@ -168,4 +168,28 @@ document.getElementById('tipo_pago').addEventListener('change', function() {
 // Inicializar
 document.getElementById('tipo_pago').dispatchEvent(new Event('change'));
 </script>
+<script>
+document.querySelector('input[name="cedula"]').addEventListener('blur', async (e) => {
+    const cedula = e.target.value.trim();
+    if (!cedula) return;
+
+    try {
+        const response = await fetch(`/cliente/datos?cedula=${cedula}`);
+        const data = await response.json();
+
+        if (data && !data.error) {
+            document.querySelector('input[name="nombre"]').value = data.nombre || '';
+            document.querySelector('input[name="direccion"]').value = data.direccion || '';
+            document.querySelector('input[name="telefono"]').value = data.telefono || '';
+            document.querySelector('input[name="email"]').value = data.email || '';
+        } else {
+            alert(data.error || 'No se encontraron datos para esta cédula.');
+        }
+    } catch (error) {
+        console.error('Error al obtener datos del cliente:', error);
+        alert('Hubo un problema al consultar los datos.');
+    }
+});
+
+</script>
 @endsection
