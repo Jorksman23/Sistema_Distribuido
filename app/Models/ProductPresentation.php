@@ -42,9 +42,14 @@ class ProductPresentation
             LEFT JOIN DBA.in_existencia_presentacion e
                 ON e.item_presentacion = p.codigo
                 AND e.empresa = p.empresa
+                AND e.ubicacion IN (
+                    SELECT codigo FROM DBA.in_ubicacion
+                    WHERE empresa = p.empresa
+                    AND view_on_tienda = 'S'
+                )
             WHERE p.empresa = ?
-              AND p.producto = ?
-              AND p.mostrar = 'S'
+            AND p.producto = ?
+            AND p.mostrar = 'S'
             GROUP BY p.producto, p.codigo, p.nombre, p.foto
             ORDER BY p.nombre
         ";
@@ -63,13 +68,26 @@ class ProductPresentation
                 INNER JOIN DBA.in_item_presentacion p
                     ON p.codigo = ep.item_presentacion
                     AND p.empresa = ep.empresa
+                INNER JOIN DBA.in_ubicacion u
+                    ON u.codigo = ep.ubicacion
+                    AND u.empresa = ep.empresa
                 WHERE p.producto = ? AND p.empresa = ?
+                AND u.view_on_tienda = 'S'
             ", [$codigoProducto, $empresa]);
         } else {
+            // $stockRow = DB::connection($this->connection)->selectOne("
+            //     SELECT SUM(existencia) AS total
+            //     FROM DBA.in_existencia
+            //     WHERE producto = ? AND empresa = ?
+            // ", [$codigoProducto, $empresa]);
             $stockRow = DB::connection($this->connection)->selectOne("
-                SELECT SUM(existencia) AS total
-                FROM DBA.in_existencia
-                WHERE producto = ? AND empresa = ?
+                SELECT COALESCE(SUM(e.existencia), 0) AS total
+                FROM DBA.in_existencia e
+                INNER JOIN DBA.in_ubicacion u
+                    ON u.codigo = e.ubicacion
+                    AND u.empresa = e.empresa
+                WHERE e.producto = ? AND e.empresa = ?
+                AND u.view_on_tienda = 'S'
             ", [$codigoProducto, $empresa]);
         }
         $stockTotal = (float) ($stockRow->total ?? 0);

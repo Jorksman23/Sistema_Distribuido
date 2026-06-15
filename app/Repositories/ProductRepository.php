@@ -95,6 +95,7 @@ class ProductRepository
             SELECT codigo, ubicacion
             FROM DBA.in_ubicacion
             WHERE empresa = ?
+            AND view_on_tienda = 'S'
             ORDER BY ubicacion
         ", [$empresa]);
         return array_map(fn($r) => (array) $r, $rows);
@@ -114,6 +115,7 @@ class ProductRepository
             WHERE e.producto = ?
             AND e.empresa = ?
             AND e.existencia > 0
+            AND u.view_on_tienda = 'S'
             ORDER BY e.existencia DESC
         ", [$codigo, $empresa]);
     }
@@ -132,6 +134,7 @@ class ProductRepository
             WHERE ep.item_presentacion = ?
             AND ep.empresa = ?
             AND ep.cantidad > 0
+            AND u.view_on_tienda = 'S'
             ORDER BY ep.cantidad DESC
         ", [$codigoPresentacion, $empresa]);
     }
@@ -223,6 +226,11 @@ class ProductRepository
                 ON i.linea = l.codigo AND l.empresa = i.empresa
             LEFT JOIN DBA.in_existencia e
                 ON e.producto = i.codigo AND e.empresa = i.empresa
+                AND e.ubicacion IN (
+                    SELECT codigo FROM DBA.in_ubicacion
+                    WHERE empresa = i.empresa
+                    AND view_on_tienda = 'S'
+                )
             {$where}
             GROUP BY
                 i.codigo, i.empresa, i.descripcion1,
