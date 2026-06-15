@@ -89,6 +89,9 @@ class ProductsController {
         }
     }
 
+    //Retorna en formato JSON las ubicaciones disponibles de un producto sin presentación
+    //Cuando el cliente * hace clic en '+ Carrito' y el producto tiene más de una ubicación disponible.
+    //Solo retorna ubicaciones con view_on_tienda = 'S' a través de getUbicacionesProducto().
     public function ubicaciones(string $codigo)
     {
         $service = new ProductService();

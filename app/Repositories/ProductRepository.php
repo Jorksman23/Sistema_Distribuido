@@ -89,7 +89,9 @@ class ProductRepository
         return array_map(fn($r) => (array) $r, $rows);
     }
 
-    //Obtener Ubicaciones - Agg caché de cada 6 hrs para optimizar
+    //Obtener Ubicaciones - Se Agg caché de cada 6 hrs para optimizar (Providers)
+    //Filtra por view_on_tienda = 'S' para que el cliente solo vea ubicaciones habilitadas,
+    //Esto evita que aparezcan las ubicaciones ocultas en el filtrado
     public function getUbicaciones(string $empresa): array{
         $rows = DB::connection($this->connection)->select("
             SELECT codigo, ubicacion
@@ -101,7 +103,9 @@ class ProductRepository
         return array_map(fn($r) => (array) $r, $rows);
     }
 
-    //Obtener ubicacion in_item
+    //Obtener ubicacion in_item disponibles de un producto sin presentacio
+    //Filtra por view_on_tienda = 'S' para mostrar solo ubicaciones visibles en la tienda,
+    //excluyendo ubicaciones ocultas como (Bodega,Sauces).
     public function getUbicacionesProducto(string $codigo, string $empresa): array{
         return DB::connection($this->connection)->select("
             SELECT
@@ -120,7 +124,9 @@ class ProductRepository
         ", [$codigo, $empresa]);
     }
 
-//Obtener ubicacion de in_existencia_presentacion
+    //Obtiene las ubicaciones disponibles de una presentación específica (in_item_presentacion).
+    //Filtra por view_on_tienda = 'S' para que el selector dinámico en el detalle del producto
+    //solo muestre ubicaciones visibles al cliente al elegir un modelo.
     public function getUbicacionesPresentacion(int $codigoPresentacion, string $empresa): array{
         return DB::connection($this->connection)->select("
             SELECT
@@ -138,6 +144,12 @@ class ProductRepository
             ORDER BY ep.cantidad DESC
         ", [$codigoPresentacion, $empresa]);
     }
+
+    /**
+     * Obtiene productos paginados con filtros dinámicos.
+     * El JOIN con in_existencia usa subconsulta para excluir ubicaciones con view_on_tienda = 'N',
+     * garantizando que stock_total solo refleje existencias visibles en la tienda.
+     */
     public function getPaginatedProducts(
         int     $page,
         int     $perPage,
@@ -208,7 +220,8 @@ class ProductRepository
             SELECT COUNT(*) AS total
             FROM DBA.in_item i {$where}
         ", $params);
-
+        // Subconsulta IN filtra ubicaciones con view_on_tienda = 'S',
+        // evitando que stock de ubicaciones ocultas se sume al total visible.
         $rows = DB::connection($this->connection)->select("
             SELECT TOP {$perPage} START AT {$startAt}
                 i.codigo, i.empresa, i.descripcion1,

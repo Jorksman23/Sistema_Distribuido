@@ -199,7 +199,8 @@
 
             @else
 
-                {{-- Sin presentaciones: agregar directo --}}
+                {{-- Sin presentaciones: agregar directo Producto sin presentaciones: intercepta el clic para verificar ubicaciones
+                     Si tiene más de una ubicación visible (view_on_tienda = 'S'), muestra SweetAlert2 --}}
                 <form method="POST"
                       action="{{ route('carrito.add') }}"
                       class="flex-1 form-carrito-directo">
@@ -313,6 +314,8 @@
     </div>
 </div>
 <script>
+    //Si tiene una sola ubicación: agrega directo sin interrumpir al usuario.
+    //Si tiene más de una: muestra modal SweetAlert2 para que el cliente elija.
 async function agregarConUbicacion(btn, codigoProducto) {
     const form = btn.closest('form');
     const inputUbicacion = form.querySelector('.input-ubicacion');
@@ -322,7 +325,7 @@ async function agregarConUbicacion(btn, codigoProducto) {
     const ubicaciones = await response.json();
 
     if (ubicaciones.length <= 1) {
-        // Una sola ubicación o ninguna — agregar directo
+        // Una sola ubicación o ninguna — agregar directo sin mostrar modal
         if (ubicaciones.length === 1) {
             inputUbicacion.value = ubicaciones[0].ubicacion;
         }
@@ -349,7 +352,7 @@ async function agregarConUbicacion(btn, codigoProducto) {
             if (!value) return 'Debes elegir una ubicación';
         }
     });
-
+    // Guardar ubicación elegida en el input hidden y enviar el formulario
     if (ubicacionElegida) {
         inputUbicacion.value = ubicacionElegida;
         form.submit();

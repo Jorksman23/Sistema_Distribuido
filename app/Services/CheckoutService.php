@@ -30,7 +30,6 @@ class CheckoutService
 
         $ivaConfig = DB::connection('odbc')
             ->select("SELECT TOP 1 * FROM DBA.GE_PARAMETROS WHERE empresa = ? AND codigo = 17", [currentCompany()]);
-
         $porcentajeIva = (float)(isset($ivaConfig[0]) ? $ivaConfig[0]->parametro : 0);
     foreach ($items as $item) {
 

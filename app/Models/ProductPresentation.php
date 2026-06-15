@@ -19,18 +19,22 @@ class ProductPresentation
 
     /**
      * Obtener producto + presentaciones
+     * Filtra presentaciones y stock usando subconsulta IN sobre in_ubicacion (view_on_tienda = 'S'),
+     * garantizando que solo se muestren existencias y modelos visibles en la tienda.
      */
     public function getByProduct(string $codigoProducto, string $empresa = null, ?int $limit = null): array{
         $empresa = $empresa ?? currentCompany();
 
-        // Producto base
+        // Obtener producto base desde el repositorio
         $raw = (new \App\Repositories\ProductRepository())->findByCodigo($codigoProducto, $empresa);
         if (!$raw) {
             return [];
         }
         $producto = (new ProductsModel())->mapRowToInstance($raw);
 
-        // SQL dinámico según límite
+        // Subconsulta IN filtra ubicaciones con view_on_tienda = 'S' en el JOIN,
+        // evitando que stock de ubicaciones ocultas se sume a stock_presentacion.
+        // HAVING > 0 muestra presentaciones que solo tienen stock .
         $sql = "
             SELECT " . (!empty($limit) ? "TOP {$limit}" : "") . "
                 p.producto,
@@ -61,7 +65,9 @@ class ProductPresentation
             fn($row) => $this->mapRowToInstance($row, $codigoProducto),
             $rows
         );
-        // Stock total: si tiene presentaciones, sumar desde in_existencia_presentacion
+        // Stock total: según si tiene presentaciones o no. Ubicacion u.view_on_tienda S/N
+        // En ambos casos se filtra por view_on_tienda = 'S' via INNER JOIN con in_ubicacion,
+        // asegurando que el total visible no incluya stock de ubicaciones ocultas.
         if (!empty($presentaciones)) {
             $stockRow = DB::connection($this->connection)->selectOne("
                 SELECT COALESCE(SUM(ep.cantidad), 0) AS total
@@ -76,11 +82,6 @@ class ProductPresentation
                 AND u.view_on_tienda = 'S'
             ", [$codigoProducto, $empresa]);
         } else {
-            // $stockRow = DB::connection($this->connection)->selectOne("
-            //     SELECT SUM(existencia) AS total
-            //     FROM DBA.in_existencia
-            //     WHERE producto = ? AND empresa = ?
-            // ", [$codigoProducto, $empresa]);
             $stockRow = DB::connection($this->connection)->selectOne("
                 SELECT COALESCE(SUM(e.existencia), 0) AS total
                 FROM DBA.in_existencia e
