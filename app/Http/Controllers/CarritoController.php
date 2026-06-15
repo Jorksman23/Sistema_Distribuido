@@ -13,8 +13,6 @@ use App\Repositories\OrderRepository;
 use App\Services\ComprobanteService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\CxcAuxiliarProformaService;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\DB;
 use Throwable;
 
 
@@ -142,45 +140,14 @@ class CarritoController {
         }
     }
 
-public function obtenerDatosCliente(Request $request)
-{
-    $cedula = $request->get('cedula');
-    if (!$cedula) {
-        return response()->json(['error' => 'Cédula requerida'], 400);
-    }
 
-    try {
-        $url = "http://186.101.203.79:2001/persona/{$cedula}";
-        $response = Http::timeout(5)->get($url);
-        $data = $response->ok() ? $response->json() : [];
-
-        $clienteLocal = DB::select("
-        SELECT TOP 1 * FROM in_cliente
-        WHERE cedula_ruc = ? OR codigo = ?
-        ", [$cedula, $cedula]);
-        $clienteLocal = $clienteLocal ? (object)$clienteLocal[0] : null;
-
-        $usuarioLocal = DB::select("
-        SELECT TOP 1 * FROM pw_ge_usuarios
-        WHERE cedula_ruc = ?
-        ", [$cedula]);
-        $usuarioLocal = $usuarioLocal ? (object)$usuarioLocal[0] : null;
-
-        $dataFinal = [
-            'cedula_ruc' => $data['cedula_ruc'] ?? $clienteLocal?->cedula_ruc ?? $usuarioLocal?->cedula_ruc ?? '',
-            'nombre'     => $data['nombre'] ?? $clienteLocal?->nombre ?? $usuarioLocal?->nombre ?? '',
-            'direccion'  => $clienteLocal?->direccion1 ?? $usuarioLocal?->direccion ?? '',
-            'telefono'   => $clienteLocal?->telefono ?? $usuarioLocal?->telefono ?? '',
-            'email'      => $clienteLocal?->e_mail ?? $usuarioLocal?->email ?? '',
-            'origen'     => $data['origen'] ?? 'LOCAL'
-        ];
+     public function obtenerDatosCliente(Request $request, CheckoutService $checkoutService)
+    {
+        $cedula = $request->get('cedula');
+        $dataFinal = $checkoutService->obtenerDatosCliente($cedula);
 
         return response()->json($dataFinal);
-    } catch (Throwable $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
     }
-}
-
 
     // === Procesar Pago ===
     public function procesarPago(Request $request)
