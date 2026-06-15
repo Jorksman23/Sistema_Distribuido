@@ -84,5 +84,10 @@ class ProductsController {
         }
     }
 
-
+    public function ubicaciones(string $codigo)
+    {
+        $service = new ProductService();
+        $ubicaciones = $service->getUbicacionesProducto($codigo, currentCompany());
+        return response()->json($ubicaciones);
+    }
 }

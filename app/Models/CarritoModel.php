@@ -44,6 +44,7 @@ class CarritoModel
                 c.estatus,
                 c.iva,
                 c.presentacion,
+                c.ubicacion,
                 p.nombre AS nombre_presentacion,
                 p.foto   AS foto_presentacion
             FROM {$this->table} c
@@ -75,7 +76,6 @@ class CarritoModel
 
         return $row ? $this->mapRowToInstance($row) : null;
     }
-
     // ── Obtener item por id ──────────────────────────────
     public function getItemById(int $idItemWeb, string $codCliente): ?self
     {
@@ -90,7 +90,7 @@ class CarritoModel
         return $row ? $this->mapRowToInstance($row) : null;
     }
 
-        public function getStockDisponible(string $codigoItem, int $presentacion, string $empresa, string $ubicacion = null): float
+    public function getStockDisponible(string $codigoItem, int $presentacion, string $empresa, string $ubicacion = null): float
     {
         if ($presentacion > 0) {
             $row = DB::connection($this->connection)->selectOne("
@@ -133,7 +133,7 @@ class CarritoModel
         ]);
     }
 
-    // ── Mapear fila a objeto ─────────────────────────────
+    // Mapear fila a objeto
     private function mapRowToInstance($row): self
     {
         $instance                    = new self();
@@ -150,7 +150,6 @@ class CarritoModel
         $instance->presentacion      = (int)($row->presentacion ?? 0);
         $instance->nombre_presentacion = ProductsModel::cleanString($row->nombre_presentacion ?? null);
         $instance->ubicacion = $row->ubicacion ?? null;
-
         // Si tiene presentacion usa la foto de la variante
         // Si no usa la imagen principal del producto
         if ($instance->presentacion > 0 && !empty($row->foto_presentacion)) {
@@ -161,7 +160,6 @@ class CarritoModel
         } else {
             $instance->imagen_url = productImageUrl($row->imagen);
         }
-
         return $instance;
     }
 }

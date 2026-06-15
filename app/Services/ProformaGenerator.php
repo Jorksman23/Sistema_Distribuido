@@ -91,8 +91,11 @@ class ProformaGenerator
             $cantidad       = (int)$item->cantidad;
             $presentacion   = $item->presentacion ?? 0;
             $nombre         = $item->nombre ?? 'Sin nombre';
-
-            $ubicacion = $this->buscarUbicacionConStock($codigoItem, $presentacion, $cantidad);
+            
+            //Usar Ubicación del carrito, si no hay usar fallback
+            $ubicacion = !empty($item->ubicacion)
+            ?$item->ubicacion
+            :$this->buscarUbicacionConStock($codigoItem, $presentacion, $cantidad);
 
             if (!$ubicacion) {
                 throw new \Exception("No hay stock suficiente para: {$nombre}");
@@ -123,12 +126,8 @@ class ProformaGenerator
                     SET cantidad = cantidad - ?
                     WHERE empresa = ? AND item_presentacion = ? AND ubicacion = ?
                 ", [$cantidad, $this->empresa, $presentacion, $ubicacion]);
-                DB::connection($this->connection)->update("
-                    UPDATE DBA.in_existencia
-                    SET existencia = existencia - ?
-                    WHERE empresa = ? AND producto = ? AND ubicacion = ?
-                ", [$cantidad, $this->empresa, $codigoItem, $ubicacion]);}
-            else {
+
+            }else {
                 // Solo descuento general
                 DB::connection($this->connection)->update("
                     UPDATE DBA.in_existencia
