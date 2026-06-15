@@ -129,7 +129,7 @@ class CarritoModel
             $data['imagen']       ?? null,
             $data['iva']          ?? 'N',
             $data['presentacion'] ?? 0,
-            $data['ubicacion']    ?? null, // ← este valor faltaba
+            $data['ubicacion']    ?? null,
         ]);
     }
 
