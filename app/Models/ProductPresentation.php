@@ -51,6 +51,7 @@ class ProductPresentation
             AND p.producto = ?
             AND p.mostrar = 'S'
             GROUP BY p.producto, p.codigo, p.nombre, p.foto
+            HAVING COALESCE(SUM(e.cantidad), 0) > 0
             ORDER BY p.nombre
         ";
 
