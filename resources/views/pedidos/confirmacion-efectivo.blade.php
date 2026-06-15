@@ -49,7 +49,7 @@
 
                 {{-- Botones --}}
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
-                    <a href="{{ route('profile.show') }}"
+                    <a href="{{ route('profile.orders') }}" #historial-pedidos"
                     class="flex items-center justify-center gap-2 bg-[#0300a3] hover:bg-[#0200cc] text-white text-sm font-semibold px-6 py-3 rounded-xl transition shadow-sm">
                         <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

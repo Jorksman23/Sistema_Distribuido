@@ -144,6 +144,8 @@ class PaymentService
 
             DB::connection('odbc')->commit();
             session()->forget('checkout_data');
+            session()->forget('carrito_count');
+            session()->forget('carrito_ubicacion');
 
             return view('pedidos.confirmacion-efectivo', [
                 'codigoOrden' => $codigoOrden,
