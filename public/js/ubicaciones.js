@@ -1,5 +1,5 @@
-    //Si tiene una sola ubicación: agrega directo sin interrumpir al usuario.
-    //Si tiene más de una: muestra modal SweetAlert2 para que el cliente elija.
+//Si tiene una sola ubicación: agrega directo sin interrumpir al usuario.
+//Si tiene más de una: muestra modal SweetAlert2 para que el cliente elija.
 async function agregarConUbicacion(btn, codigoProducto) {
     const form = btn.closest('form');
     const inputUbicacion = form.querySelector('.input-ubicacion');

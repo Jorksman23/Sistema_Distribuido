@@ -267,4 +267,43 @@ class ProductRepository
             WHERE codigo = ? AND empresa = ? AND stock in ('S', 'N')
         ", [$codigo, $empresa]);
     }
+
+    /**
+     * Obtiene productos relacionados según el mismo grupo (subcategoría) del producto actual.
+     * Excluye el producto actual y filtra stock por ubicaciones visibles (view_on_tienda = 'S').
+     */
+    public function getRelacionados(string $codigo, string $grupo, string $empresa, int $limit = 8): array
+    {
+        return DB::connection($this->connection)->select("
+            SELECT TOP {$limit}
+                i.codigo, i.empresa, i.descripcion1,
+                i.pvp1, i.imagen, i.stock, i.grupo,
+                l.linea AS categoria,
+                COALESCE(SUM(e.existencia), 0) AS stock_total,
+                CASE WHEN EXISTS (
+                    SELECT 1 FROM DBA.in_item_presentacion p
+                    WHERE p.producto = i.codigo
+                    AND p.empresa = i.empresa
+                    AND p.mostrar = 'S'
+                ) THEN 1 ELSE 0 END AS tiene_presentaciones
+            FROM DBA.in_item i
+            LEFT JOIN DBA.in_linea l
+                ON i.linea = l.codigo AND l.empresa = i.empresa
+            LEFT JOIN DBA.in_existencia e
+                ON e.producto = i.codigo AND e.empresa = i.empresa
+                AND e.ubicacion IN (
+                    SELECT codigo FROM DBA.in_ubicacion
+                    WHERE empresa = i.empresa
+                    AND view_on_tienda = 'S'
+                )
+            WHERE i.stock in ('S', 'N')
+            AND i.empresa = ?
+            AND i.grupo = ?
+            AND i.codigo != ?
+            GROUP BY
+                i.codigo, i.empresa, i.descripcion1,
+                i.pvp1, i.imagen, i.stock, i.grupo, l.linea
+            ORDER BY i.codigo
+        ", [$empresa, $grupo, $codigo]);
+    }
 }

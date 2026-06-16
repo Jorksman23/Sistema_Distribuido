@@ -14,8 +14,7 @@ class ProductsController {
      */
     public function show(Request $request, string $codigo)
     {
-
-        try {
+    try {
             $empresa  = $request->query('empresa', currentCompany());
             $service  = new ProductService();
             $producto = $service->getProductWithPresentations($codigo, $empresa);
@@ -35,20 +34,23 @@ class ProductsController {
                     $service->getUbicacionesPresentacion($pres->codigo, $empresa);
             }
 
+            // Productos relacionados (mismo grupo, excluyendo el actual)
+            $relacionados = [];
+            if (!empty($producto['grupo'])) {
+                $relacionados = (new \App\Repositories\ProductRepository())
+                    ->getRelacionados($codigo, $producto['grupo'], $empresa);
+            }
+
             return view('products.show', [
                 'empresa'                    => $empresa,
                 'producto'                   => $producto,
                 'ubicaciones'                => $ubicaciones,
                 'ubicacionesPorPresentacion' => $ubicacionesPorPresentacion,
+                'relacionados'               => $relacionados,
             ]);
         } catch (Throwable $e) {
             return redirect()->route('catalogo.index')
                  ->withErrors(['error' => 'Error al obtener producto: ' . $e->getMessage()]);
-            // dd([
-            //     'mensaje' => $e->getMessage(),
-            //     'archivo' => $e->getFile(),
-            //     'linea'   => $e->getLine(),
-            // ]);
         }
     }
 

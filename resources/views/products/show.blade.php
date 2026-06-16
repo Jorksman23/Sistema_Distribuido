@@ -196,6 +196,109 @@
     @else
         <p class="text-red-500 text-center py-20 text-xl">Producto no encontrado.</p>
     @endif
+    {{-- ===== PRODUCTOS RELACIONADOS ===== --}}
+    @if(!empty($relacionados))
+    <div class="mt-12">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Productos relacionados</h2>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            @foreach($relacionados as $rel)
+                <div class="min-w-0 bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 group">
+
+                    <div class="relative overflow-hidden bg-gray-50">
+                        <img src="{{ productImageUrl($rel->imagen) }}"
+                            alt="{{ $rel->descripcion1 }}"
+                            class="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300"
+                            onerror="this.onerror=null;this.src='https://placehold.co/300x300?text=Sin+imagen'">
+
+                        @if($rel->categoria)
+                            <span class="absolute top-2 left-2 bg-white/90 text-[#0300a3] text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+                                {{ $rel->categoria }}
+                            </span>
+                        @endif
+
+                        @if($rel->stock_total > 0)
+                            <span class="absolute bottom-2 left-2 text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                                En stock
+                            </span>
+                        @else
+                            <span class="absolute bottom-2 left-2 text-xs font-semibold text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
+                                Sin stock
+                            </span>
+                        @endif
+
+                        <form method="POST" action="{{ route('wishlist.toggle') }}">
+                            @csrf
+                            <input type="hidden" name="codigo_item" value="{{ $rel->codigo }}">
+                            <button type="submit"
+                                    class="absolute top-2 right-2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center hover:bg-white transition shadow-sm hover:scale-110">
+                                @if(in_array($rel->codigo, $wishCodes ?? []))
+                                    <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                                    </svg>
+                                @else
+                                    <svg class="w-4 h-4 text-gray-400 hover:text-red-500 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                                    </svg>
+                                @endif
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="p-3 flex flex-col flex-1">
+                        <h3 class="text-sm font-bold text-gray-900 leading-snug mb-2 line-clamp-2 break-words min-h-[2.8rem]">
+                            {{ $rel->descripcion1 }}
+                        </h3>
+
+                        <p class="text-base font-bold text-gray-900">
+                            ${{ number_format($rel->pvp1, 2) }}
+                        </p>
+
+                        <div class="mt-3 flex gap-2">
+                            <a href="{{ route('products.show', $rel->codigo) }}"
+                               class="flex-1 min-h-[42px] flex items-center justify-center text-center text-[11px] whitespace-nowrap text-white bg-gray-800 px-2 py-2 rounded-xl hover:bg-gray-900 transition font-medium">
+                                Ver detalle
+                            </a>
+
+                            @if($rel->stock_total > 0)
+                                @if($rel->tiene_presentaciones)
+                                    <a href="{{ route('products.show', $rel->codigo) }}"
+                                       class="flex-1 min-h-[42px] flex items-center justify-center text-center text-[11px] whitespace-nowrap text-white bg-[#0300a3] px-2 py-2 rounded-xl hover:bg-[#0200cc] transition font-medium">
+                                        Ver modelos
+                                    </a>
+                                @else
+                                    <form method="POST"
+                                          action="{{ route('carrito.add') }}"
+                                          class="flex-1 form-carrito-directo">
+                                        @csrf
+                                        <input type="hidden" name="codigo_item"  value="{{ $rel->codigo }}">
+                                        <input type="hidden" name="nombre"       value="{{ $rel->descripcion1 }}">
+                                        <input type="hidden" name="pvp3"         value="{{ $rel->pvp1 }}">
+                                        <input type="hidden" name="imagen"       value="{{ $rel->imagen }}">
+                                        <input type="hidden" name="presentacion" value="0">
+                                        <input type="hidden" name="ubicacion"    value="" class="input-ubicacion">
+                                        <button type="button"
+                                                onclick="agregarConUbicacion(this, '{{ $rel->codigo }}')"
+                                                class="w-full min-h-[42px] flex items-center justify-center text-center text-[11px] whitespace-nowrap text-white bg-[#0300a3] px-2 py-2 rounded-xl hover:bg-[#0200cc] transition font-medium">
+                                            + Carrito
+                                        </button>
+                                    </form>
+                                @endif
+                            @else
+                                <button disabled
+                                        class="flex-1 min-h-[42px] flex items-center justify-center text-center text-xs text-gray-400 bg-gray-100 px-2 py-2 rounded-xl cursor-not-allowed font-medium">
+                                    Sin stock
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+</div>
 </div>
 
 <script>

@@ -104,6 +104,7 @@ class ProductPresentation
             'stock'          => $producto->stock,
             'stock_total'    => $stockTotal,
             'categoria'      => $producto->categoria,
+            'grupo'          => $producto->grupo,
             'presentaciones' => $presentaciones,
         ];
     }

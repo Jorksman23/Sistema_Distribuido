@@ -25,6 +25,7 @@ class ProductsModel
     public $imagen_url;
     public $stock_total;
     public $tiene_presentaciones;
+    public $grupo;
 
     // ── Buscar producto por código ───────────────────────
     // public function findByCodigo($codigo, $empresa = null)
@@ -53,6 +54,7 @@ class ProductsModel
         $instance->iva                   = $row->iva ?? 'N';
         $instance->imagen                = $row->imagen;
         $instance->stock                 = $row->stock;
+        $instance->grupo                 = $row->grupo ?? null;
         $instance->categoria             = self::cleanString($row->categoria ?? null);
         $instance->imagen_url            = productImageUrl($row->imagen);
         $instance->stock_total           = (float) ($row->stock_total ?? 0);
