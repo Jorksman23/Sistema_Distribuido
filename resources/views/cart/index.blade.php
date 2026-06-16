@@ -6,11 +6,10 @@
 
     {{-- HEADER --}}
     <div class="flex flex-wrap items-center gap-4 mb-8">
-        <button onclick="window.history.back()"
-                type="button"
-                class="flex items-center gap-2 text-sm sm:text-base text-white bg-gray-800 border border-transparent hover:bg-gray-900 focus:ring-4 focus:ring-gray-200 shadow-sm font-medium rounded-xl px-4 py-2.5 transition focus:outline-none shrink-0">
+        <a href="{{ route('catalogo.index') }}"
+        class="flex items-center gap-2 text-sm sm:text-base text-white bg-gray-800 border border-transparent hover:bg-gray-900 focus:ring-4 focus:ring-gray-200 shadow-sm font-medium rounded-xl px-4 py-2.5 transition focus:outline-none shrink-0">
             Volver
-        </button>
+        </a>
         <h1 class="whitespace-nowrap text-2xl sm:text-3xl font-bold text-gray-800">Carrito de compras</h1>
         @if($count > 0)
             <span class="bg-[#0300a3] text-white text-xs font-bold px-2.5 py-1 rounded-full">

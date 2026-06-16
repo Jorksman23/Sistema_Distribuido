@@ -50,7 +50,7 @@ class CartService
         $imagen = $data['imagen'] ?? $producto->imagen;
         $this->carrito->add([
             'codigo_item'  => $data['codigo_item'],
-            'nombre'       => ProductsModel::cleanString($nombre),
+            'nombre'       => $nombre,
             'costo_real'   => $pvp3,
             'pvp3'         => $pvp3,
             'cantidad'     => 1,

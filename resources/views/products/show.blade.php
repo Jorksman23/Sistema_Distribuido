@@ -12,11 +12,12 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
 
     @if(!empty($producto))
-    <div class="bg-white border border-gray-200 shadow-[0_10px_40px_rgba(0,0,0,0.06)] overflow-hidden">
+    <div class="bg-white border border-gray-200 shadow-[0_10px_40px_rgba(0,0,0,0.06)] overflow-hidden relative">
+        
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
-
             {{-- ===== LADO IZQUIERDO — IMAGEN PRINCIPAL ===== --}}
             <div class="p-5 sm:p-8 lg:p-10 flex items-center justify-center">
+
                 <div class="w-full">
                     <img id="mainImage"
                          src="{{ $producto['imagen_url'] ?? asset('images/no-image.png') }}"

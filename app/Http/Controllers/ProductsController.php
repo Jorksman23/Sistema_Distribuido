@@ -38,7 +38,7 @@ class ProductsController {
             $relacionados = [];
             if (!empty($producto['grupo'])) {
                 $relacionados = (new \App\Repositories\ProductRepository())
-                    ->getRelacionados($codigo, $producto['grupo'], $empresa);
+                    ->getRelacionados($codigo, $producto['grupo'], $empresa, 20);
             }
 
             return view('products.show', [

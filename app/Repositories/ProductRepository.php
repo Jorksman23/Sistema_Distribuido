@@ -75,7 +75,10 @@ class ProductRepository
             WHERE empresa = ?
             ORDER BY grupo
         ", [$empresa]);
-        return array_map(fn($r) => (array) $r, $rows);
+        return array_map(fn($r) => [
+            'codigo' => $r->codigo,
+            'grupo'  => \App\Models\ProductsModel::cleanString($r->grupo),
+        ], $rows);
     }
 
     //Obtener Líneas - Agg caché de cada 6 hrs para optimizar
@@ -86,7 +89,10 @@ class ProductRepository
             WHERE empresa = ?
             ORDER BY linea
         ", [$empresa]);
-        return array_map(fn($r) => (array) $r, $rows);
+        return array_map(fn($r) => [
+            'codigo' => $r->codigo,
+            'linea'  => \App\Models\ProductsModel::cleanString($r->linea),
+        ], $rows);
     }
 
     //Obtener Ubicaciones - Se Agg caché de cada 6 hrs para optimizar (Providers)
@@ -303,7 +309,7 @@ class ProductRepository
             GROUP BY
                 i.codigo, i.empresa, i.descripcion1,
                 i.pvp1, i.imagen, i.stock, i.grupo, l.linea
-            ORDER BY i.codigo
+            ORDER BY RAND()
         ", [$empresa, $grupo, $codigo]);
     }
 }
