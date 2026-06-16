@@ -5,18 +5,50 @@
 @section('content')
 <div class="max-w-6xl mx-auto px-6 py-12 bg-gray-50 min-h-screen">
     <div class="max-w-5xl mx-auto">
-        <h1 class="text-3xl font-bold text-[#003087] mb-8 text-center md:text-left">
-            Resumen y Pago
-        </h1>
+        {{-- STEPPER --}}
+        <div class="flex items-center justify-center mb-10">
 
+            {{-- Paso 1: Carrito --}}
+            <div class="flex flex-col items-center">
+                <div class="w-10 h-10 rounded-full bg-[#0300a3] flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <span class="text-xs font-semibold text-[#0300a3] mt-2">Carrito</span>
+            </div>
+
+            {{-- Línea --}}
+            <div class="h-0.5 w-24 bg-[#0300a3] mx-2 mb-5"></div>
+
+            {{-- Paso 2: Facturación --}}
+            <div class="flex flex-col items-center">
+                <div class="w-10 h-10 rounded-full bg-[#0300a3] flex items-center justify-center">
+                    <span class="text-white font-bold text-sm">2</span>
+                </div>
+                <span class="text-xs font-semibold text-[#0300a3] mt-2">Facturación</span>
+            </div>
+
+            {{-- Línea --}}
+            <div class="h-0.5 w-24 bg-gray-200 mx-2 mb-5"></div>
+
+            {{-- Paso 3: Pago --}}
+            <div class="flex flex-col items-center">
+                <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                    <span class="text-gray-400 font-bold text-sm">3</span>
+                </div>
+                <span class="text-xs font-semibold text-gray-400 mt-2">Pago</span>
+            </div>
+
+        </div>
         <div class="grid lg:grid-cols-12 gap-8">
 
             <!-- Resumen + Datos de Facturación -->
             <div class="lg:col-span-7 space-y-6">
 
                 <!-- Resumen del Carrito -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+                    <h2 class="font-bold text-gray-900 text-2xl mb-6 flex items-center gap-2">
                         <span class="text-[#0F52BA]">🛒</span> Resumen del Carrito
                     </h2>
 
@@ -38,11 +70,11 @@
                     @endforeach
 
                     <div class="mt-8 pt-6 border-t text-right">
-                        <p class="text-lg text-gray-600">
+                        <p class="text-lg font-semibold text-[#003087]">
                             Subtotal:
                             <span class="font-medium">${{ $subtotal }}</span>
                         </p>
-                        <p class="text-lg text-gray-600">
+                        <p class="text-lg font-semibold text-[#003087]">
                             IVA:
                             <span class="font-medium">${{ $iva }}</span>
                         </p>
@@ -53,8 +85,8 @@
                 </div>
 
                 <!-- Datos de Facturación -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-6">Datos de Facturación</h2>
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+                    <h2 class="font-bold text-gray-900 text-2xl mb-6 text-center">Datos de Facturación</h2>
 
                     <form id="payment-form" method="POST" action="{{ route('carrito.procesar.pago') }}">
                         @csrf
@@ -86,13 +118,20 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Observación (opcional)</label>
                             <textarea name="observacion" rows="2" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]"></textarea>
                         </div>
+                    </form>
                 </div>
             </div>
 
             <!-- === PASARELA DE PAGO === -->
             <div class="lg:col-span-5">
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 sticky top-8">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-6">Forma de Pago</h2>
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+                    <h2 class="font-bold text-gray-900 text-2xl mb-6 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-[#0300a3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                        </svg>
+                        Forma de Pago
+                    </h2>
 
                     <!-- Combo Box -->
                     <div class="mb-6" >
@@ -103,7 +142,7 @@
                             id="tipo_pago"
                             name="tipo_pago"
                             required
-                            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
+                            class="w-full border-2 border-gray-800 rounded-xl px-4 py-3 bg-white text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3] focus:border-[#0300a3]">
                             <option value="">Seleccione método de pago</option>
 
                             @foreach($formasPago as $forma)

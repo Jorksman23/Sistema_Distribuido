@@ -7,10 +7,8 @@
     {{-- HEADER --}}
     <div class="flex flex-wrap items-center gap-4 mb-8">
         <button onclick="window.history.back()"
-                class="flex items-center gap-2 text-sm sm:text-base text-gray-500 hover:text-gray-800 transition shrink-0">
-            <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-            </svg>
+                type="button"
+                class="flex items-center gap-2 text-sm sm:text-base text-white bg-gray-800 border border-transparent hover:bg-gray-900 focus:ring-4 focus:ring-gray-200 shadow-sm font-medium rounded-xl px-4 py-2.5 transition focus:outline-none shrink-0">
             Volver
         </button>
         <h1 class="whitespace-nowrap text-2xl sm:text-3xl font-bold text-gray-800">Carrito de compras</h1>

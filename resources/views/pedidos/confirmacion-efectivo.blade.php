@@ -2,8 +2,43 @@
 
 @section('content')
 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <div class="flex flex-col lg:flex-row gap-6">
+    {{-- STEPPER --}}
+    <div class="flex items-center justify-center mb-10">
 
+        {{-- Paso 1: Carrito --}}
+        <div class="flex flex-col items-center">
+            <div class="w-10 h-10 rounded-full bg-[#0300a3] flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <span class="text-xs font-semibold text-[#0300a3] mt-2">Carrito</span>
+        </div>
+
+        <div class="h-0.5 w-24 bg-[#0300a3] mx-2 mb-5"></div>
+
+        {{-- Paso 2: Facturación --}}
+        <div class="flex flex-col items-center">
+            <div class="w-10 h-10 rounded-full bg-[#0300a3] flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <span class="text-xs font-semibold text-[#0300a3] mt-2">Facturación</span>
+        </div>
+
+        <div class="h-0.5 w-24 bg-[#0300a3] mx-2 mb-5"></div>
+
+        {{-- Paso 3: Pago --}}
+        <div class="flex flex-col items-center">
+            <div class="w-10 h-10 rounded-full bg-[#0300a3] flex items-center justify-center">
+                <span class="text-white font-bold text-sm">3</span>
+            </div>
+            <span class="text-xs font-semibold text-[#0300a3] mt-2">Pago</span>
+        </div>
+
+    </div>
+    <div class="flex flex-col lg:flex-row gap-6">
         {{-- PANEL IZQUIERDO --}}
         <div class="flex-1">
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">

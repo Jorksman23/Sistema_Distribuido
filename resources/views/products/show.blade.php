@@ -130,9 +130,11 @@
                         @if(count($producto['presentaciones']) === 0)
                             @if(count($ubicaciones) > 1)
                                 <div class="mb-4">
-                                    <p class="text-sm font-semibold text-gray-700 mb-2">Elige una ubicación</p>
+                                    <p class="text-sm font-semibold text-gray-900 mb-2">
+                                        Elige una ubicación
+                                    </p>
                                     <select id="selectUbicacion"
-                                            class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0300a3]"
+                                            class="w-full border-2 border-gray-800 rounded-xl px-4 py-3 bg-white text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3] focus:border-[#0300a3]"
                                             onchange="document.getElementById('ubicacionSeleccionada').value = this.value">
                                         @foreach($ubicaciones as $ub)
                                             <option value="{{ $ub->ubicacion }}">
