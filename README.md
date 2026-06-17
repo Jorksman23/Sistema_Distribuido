@@ -16,6 +16,12 @@ Proyecto en **Laravel 12** con conexión a **SQL Anywhere** mediante **ODBC 17**
 ## Instalar dependencias de frontend
 2. npm install
 3. Verificar que la carpeta vendor/ se generó correctamente con Composer
+   
+## Instalar paquetes del servicio de correo
+composer require getbrevo/brevo-php
+composer dump-autoload
+composer require guzzlehttp/guzzle
+composer require barryvdh/laravel-dompdf
 
 ## Configurar la conexion a la base de datos en el archivo .env
 DB_CONNECTION=odbc
