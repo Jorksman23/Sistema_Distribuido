@@ -47,7 +47,7 @@ class CartService
         $producto = (new ProductsModel())->mapRowToInstance($raw);
         $nombre = $data['nombre'] ?? $producto->descripcion1;
         $pvp3   = $data['pvp3']   ?? $producto->pvp1;
-        $imagen = $data['imagen'] ?? $producto->imagen;
+        $imagen = $data['imagen'] ?? $producto->imagen ?? 'https://placehold.co/300x300?text=Sin+imagen';
         $this->carrito->add([
             'codigo_item'  => $data['codigo_item'],
             'nombre'       => $nombre,

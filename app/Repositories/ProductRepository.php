@@ -157,16 +157,16 @@ class ProductRepository
      * garantizando que stock_total solo refleje existencias visibles en la tienda.
      */
     public function getPaginatedProducts(
-        int     $page,
-        int     $perPage,
-        string  $empresa,
-        string  $search    = '',
-        string  $grupo     = '',
-        string  $linea     = '',
-        string  $ubicacion = '',
-        float   $precioMin = 0,
-        float   $precioMax = 0,
-        string  $orden     = 'codigo'
+    int     $page,
+    int     $perPage,
+    string  $empresa,
+    string  $search    = '',
+    string  $grupo     = '',
+    string  $linea     = '',
+    string  $ubicacion = '',
+    float   $precioMin = 0,
+    float   $precioMax = 0,
+    string  $orden     = 'codigo'
     ): array {
         $startAt = (($page - 1) * $perPage) + 1;
         $where   = "WHERE i.stock in ('S', 'N') AND i.empresa = ?";
@@ -193,6 +193,7 @@ class ProductRepository
                         WHERE e.empresa = i.empresa
                         AND e.producto = i.codigo
                         AND e.ubicacion = ?
+                        AND e.existencia > 0
                     )
                     OR EXISTS (
                         SELECT 1
@@ -203,6 +204,7 @@ class ProductRepository
                         WHERE p.empresa = i.empresa
                         AND p.producto = i.codigo
                         AND ep.ubicacion = ?
+                        AND ep.cantidad > 0
                     )
                 )";
             $params[] = $ubicacion;
@@ -226,14 +228,38 @@ class ProductRepository
             SELECT COUNT(*) AS total
             FROM DBA.in_item i {$where}
         ", $params);
-        // Subconsulta IN filtra ubicaciones con view_on_tienda = 'S',
-        // evitando que stock de ubicaciones ocultas se sume al total visible.
+
+        // Si hay filtro de ubicación, el stock solo cuenta esa ubicación específica
+        // (tanto en in_existencia como en in_existencia_presentacion).
+        // Si no hay filtro, suma todas las ubicaciones visibles (view_on_tienda = 'S').
+        $joinParams = [];
+        if ($ubicacion !== '') {
+            $stockJoinCondition             = "AND e.ubicacion = ?";
+            $stockPresentacionJoinCondition = "AND ep.ubicacion = ?";
+            $joinParams[] = $ubicacion;
+        } else {
+            $stockJoinCondition = "
+                AND e.ubicacion IN (
+                    SELECT codigo FROM DBA.in_ubicacion
+                    WHERE empresa = i.empresa
+                    AND view_on_tienda = 'S'
+                )";
+            $stockPresentacionJoinCondition = "
+                AND ep.ubicacion IN (
+                    SELECT codigo FROM DBA.in_ubicacion
+                    WHERE empresa = i.empresa
+                    AND view_on_tienda = 'S'
+                )";
+        }
+        // Stock total combina in_existencia (productos sin presentación) e
+        // in_existencia_presentacion (productos con presentación), ambos filtrados
+        // por la misma condición de ubicación para mantener consistencia con el WHERE.
         $rows = DB::connection($this->connection)->select("
             SELECT TOP {$perPage} START AT {$startAt}
                 i.codigo, i.empresa, i.descripcion1,
                 i.pvp1, i.imagen, i.stock, i.grupo,
                 l.linea AS categoria,
-                COALESCE(SUM(e.existencia), 0) AS stock_total,
+                COALESCE(SUM(e.existencia), 0) + COALESCE(SUM(ep.cantidad), 0) AS stock_total,
                 CASE WHEN EXISTS (
                     SELECT 1 FROM DBA.in_item_presentacion p
                     WHERE p.producto = i.codigo
@@ -245,17 +271,19 @@ class ProductRepository
                 ON i.linea = l.codigo AND l.empresa = i.empresa
             LEFT JOIN DBA.in_existencia e
                 ON e.producto = i.codigo AND e.empresa = i.empresa
-                AND e.ubicacion IN (
-                    SELECT codigo FROM DBA.in_ubicacion
-                    WHERE empresa = i.empresa
-                    AND view_on_tienda = 'S'
-                )
+                {$stockJoinCondition}
+            LEFT JOIN DBA.in_item_presentacion pr
+                ON pr.producto = i.codigo AND pr.empresa = i.empresa
+            LEFT JOIN DBA.in_existencia_presentacion ep
+                ON ep.item_presentacion = pr.codigo AND ep.empresa = pr.empresa
+                {$stockPresentacionJoinCondition}
             {$where}
             GROUP BY
                 i.codigo, i.empresa, i.descripcion1,
                 i.pvp1, i.imagen, i.stock, i.grupo, l.linea
             ORDER BY {$orderBy}
-        ", $params);
+        ", array_merge($joinParams, $joinParams, $params));
+
         return [
             'rows'     => $rows,
             'total'    => $totalRow->total ?? 0,
