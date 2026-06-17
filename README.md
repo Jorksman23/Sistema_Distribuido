@@ -17,11 +17,8 @@ Proyecto en **Laravel 12** con conexión a **SQL Anywhere** mediante **ODBC 17**
 2. npm install
 3. Verificar que la carpeta vendor/ se generó correctamente con Composer
    
-## Instalar paquetes del servicio de correo
--composer require getbrevo/brevo-php
--composer dump-autoload
--composer require guzzlehttp/guzzle
--composer require barryvdh/laravel-dompdf
+## Instalar paquetes del servicio de correo y Pdf
+- composer require barryvdh/laravel-dompdf:^3.1 getbrevo/brevo-php:^4.0 guzzlehttp/guzzle:^7.10 laravel/framework:^12.58 laravel/sanctum:^4.3 livewire/livewire:^4.3 yoramdelangen/laravel-pdo-odbc:^2.0 && composer require --dev fakerphp/faker:^1.24 laravel/pail:^1.2 laravel/pint:^1.29 laravel/sail:^1.58 laravel/tinker:^2.11 mockery/mockery:^1.6 nunomaduro/collision:^8.9 phpunit/phpunit:^11.5
 
 ## Configurar la conexion a la base de datos en el archivo .env
 DB_CONNECTION=odbc
