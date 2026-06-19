@@ -3,10 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', config('app.name'))</title>
+
+    {{-- Usa el nombre de la empresa--}}
+    <title>@yield('title', $empresaNombre ?? config('app.name'))</title>
+
+    {{-- Muestra el logo_tienda--}}
+    @if(companyLogoUrl())
+        <link rel="icon" type="image/webp" href="{{ companyLogoUrl() }}">
+    @else
+        {{-- Ícono por defecto--}}
+        <link rel="icon" type="image/svg+xml" href="{{ asset('static/image/company/default_logo.svg') }}">
+    @endif
+
     <script src="https://cdn.tailwindcss.com"></script>
     @stack('scripts')
 </head>
+
 <body class="bg-[#f5f7fb] min-h-screen flex flex-col">
 
     @include('partials.navbar')

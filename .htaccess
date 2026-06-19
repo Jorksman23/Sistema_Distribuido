@@ -1,0 +1,23 @@
+# =======================================================================
+#  1. Si el path apunta a un archivo real dentro de public/ (CSS, JS,
+#     imágenes, storage symlink), se sirve directamente desde ahí.
+#  2. Cualquier otra petición va a index.php en la raíz, que actúa como
+#     bridge al front controller real en public/index.php.
+# =======================================================================
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # 1) Si el path NO apunta a un archivo/dir real en la raíz, pero SÍ
+    #    existe dentro de public/, sírvelo desde public/.
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI}::$1 ^(/.+)/(.*)::\2$
+    RewriteRule ^(.*) - [E=BASE:%1]
+    RewriteCond %{DOCUMENT_ROOT}%{ENV:BASE}/public/$1 -f
+    RewriteRule ^(.+)$ public/$1 [L]
+
+    # 2) Todo lo demás al bridge index.php de la raíz.
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^.*$ index.php [L]
+</IfModule>

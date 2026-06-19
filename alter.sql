@@ -219,4 +219,15 @@ SET cod_cuenta_banco = 1101002004000
 WHERE empresa = '005'
 AND forma_pago LIKE '%INTERNACION%';
 
+/* ==========================================================
+   ge_empresa
+  Añadir Campos adicionales para guardar informacion de la empresa
+   ========================================================== */
+ALTER TABLE DBA.ge_empresa
+ADD direccion_tienda LONG VARCHAR NULL,
+ADD celular LONG VARCHAR NULL,
+ADD telefono2 LONG VARCHAR NULL,
+ADD celular_rl LONG VARCHAR NULL,
+ADD logo_tienda LONG VARCHAR NULL;
+
 

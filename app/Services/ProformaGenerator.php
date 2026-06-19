@@ -37,7 +37,7 @@ class ProformaGenerator
             DB::connection($this->connection)->rollBack();
             Log::error("ProformaGenerator Error: " . $e->getMessage());
             throw new \Exception("Error al generar proforma: " . $e->getMessage());
-            
+
         }
     }
 
@@ -50,7 +50,7 @@ class ProformaGenerator
         ", [$this->empresa]);
 
         $siguiente = ($result->ultimo ?? 0) + 1;
-        return str_pad($siguiente, 6, '0', STR_PAD_LEFT);
+        return $siguiente;
     }
 
     private function crearCabeceraProforma($orden, string $documento, array $itemsCarrito)
@@ -59,10 +59,10 @@ class ProformaGenerator
         foreach ($itemsCarrito as $item) {
             $granTotal += (float)($item->pvp3 ?? 0) * (int)($item->cantidad ?? 1);
         }
-
+        $siguiente = $this->generarNumeroDocumento();
         DB::connection($this->connection)->table('DBA.IN_CABECERA_PROFORMA')->insert([
             'tipo'          => companyDefaultOrderType('proforma_web'),
-            'documento'     => $documento,
+            'documento'     => (string)$siguiente,
             'empresa'       => $this->empresa,
             'fecha'         => now()->format('Y-m-d'),
             'pro_cli'       => '1',
@@ -78,6 +78,7 @@ class ProformaGenerator
             'created_at'    => now(),
             'update_at'     => now(),
         ]);
+        return $siguiente;
     }
 
     private function crearMovimientosProforma(string $documento, array $itemsCarrito)

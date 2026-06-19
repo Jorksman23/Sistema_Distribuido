@@ -17,17 +17,19 @@ class OrderRepository
     }
 
     // Generar Orden
-    public function generarCodigoOrden(string $empresa): string{
-        $max = DB::connection($this->connection)
-            ->selectOne("
-                SELECT MAX(CAST(codigo AS INTEGER)) as maxc
-                FROM DBA.PW_ORDENES_WEB
-                WHERE empresa = ?
-            ", [$empresa]);
+    public function generarCodigoOrden(string $empresa): string
+    {
+    $max = DB::connection($this->connection)->selectOne("
+        SELECT MAX(CAST(codigo AS INTEGER)) AS maxc
+        FROM DBA.PW_ORDENES_WEB
+        WHERE empresa = ?
+    ", [$empresa]);
 
-        return str_pad(($max->maxc ?? 0) + 1,6,'0',STR_PAD_LEFT
-        );
+    $siguiente = ($max && $max->maxc) ? ((int)$max->maxc + 1) : 1;
+
+    return (string)$siguiente;
     }
+
 
     public function obtenerItemsOrden(string $codigo, string $codCliente): array
     {

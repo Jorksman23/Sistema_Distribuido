@@ -8,7 +8,7 @@ Proyecto en **Laravel 12** con conexión a **SQL Anywhere** mediante **ODBC 17**
 - Laravel 12
 - Driver ODBC 17 instalado y configurado
 - Extensión `odbc` habilitada en PHP
-
+    
 ## Instalación de dependencias
 1. Instalar paquetes de Laravel:
    ```bash

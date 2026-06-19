@@ -35,6 +35,29 @@ if (!function_exists('companyImageBaseUrl')) {
     }
 }
 
+if (!function_exists('companyLogoUrl')) {
+    function companyLogoUrl(): ?string
+    {
+        $companyCode = currentCompany();
+
+        $row = DB::connection('odbc')->selectOne("
+            SELECT TOP 1 logo_tienda, ruc
+            FROM DBA.ge_empresa
+            WHERE codigo = ?
+        ", [$companyCode]);
+
+        if (!$row || empty($row->logo_tienda)) {
+            return null;
+        }
+
+        $base = config('app.image_server_base_url', 'http://186.101.203.76:10555/');
+        $path = config('app.image_server_path_logos', 'logo_tienda');
+
+        return rtrim($base, '/') . '/' . $row->ruc . '/' . $path . '/' . ltrim($row->logo_tienda, '/');
+    }
+}
+
+
 if (!function_exists('productImageUrl')) {
     function productImageUrl(?string $filename): ?string
     {
