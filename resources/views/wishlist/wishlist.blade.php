@@ -94,19 +94,17 @@
                                         Ver modelos
                                     </a>
                                 @else
-                                    {{-- Agregar directo --}}
+                                    {{-- Agregar directo. La ubicación se toma de session('ubicacion_seleccionada')--}}
                                     <form method="POST"
                                         action="{{ route('carrito.add') }}"
-                                        class="flex-1 form-carrito-directo">
+                                        class="flex-1">
                                         @csrf
                                         <input type="hidden" name="codigo_item"  value="{{ $item->codigo_item }}">
                                         <input type="hidden" name="nombre"       value="{{ $item->nombre }}">
                                         <input type="hidden" name="pvp3"         value="{{ $item->pvp3 }}">
                                         <input type="hidden" name="imagen"       value="{{ $item->imagen }}">
                                         <input type="hidden" name="presentacion" value="0">
-                                        <input type="hidden" name="ubicacion"    value="" class="input-ubicacion">
-                                        <button type="button"
-                                                onclick="agregarConUbicacion(this, '{{ $item->codigo_item }}')"
+                                        <button type="submit"
                                                 class="w-full min-h-[42px] flex items-center justify-center text-center text-[11px] leading-none whitespace-nowrap text-white bg-[#0300a3] px-2 py-2 rounded-xl hover:bg-[#0200cc] transition font-medium">
                                             + Carrito
                                         </button>

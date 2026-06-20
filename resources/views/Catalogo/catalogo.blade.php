@@ -57,21 +57,6 @@
                     </select>
                 </div>
 
-                {{-- UBICACIÓN --}}
-                <div class="mb-5">
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Ubicación</label>
-                    <select name="ubicacion"
-                            class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
-                        <option value="">Todas</option>
-                        @foreach($ubicaciones as $u)
-                            <option value="{{ $u['codigo'] }}"
-                                {{ $filters['ubicacion'] == $u['codigo'] ? 'selected' : '' }}>
-                                {{ $u['ubicacion'] }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
                 {{-- RANGO DE PRECIO --}}
                 <div class="mb-5">
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Precio</label>
@@ -199,11 +184,10 @@
 
             @else
 
-                {{-- Sin presentaciones: agregar directo Producto sin presentaciones: intercepta el clic para verificar ubicaciones
-                     Si tiene más de una ubicación visible (view_on_tienda = 'S'), muestra SweetAlert2 --}}
+                {{-- Sin presentaciones: agregar directo. La ubicación se toma de session('ubicacion_seleccionada')--}}
                 <form method="POST"
                       action="{{ route('carrito.add') }}"
-                      class="flex-1 form-carrito-directo">
+                      class="flex-1">
                     @csrf
 
                     <input type="hidden" name="codigo_item"  value="{{ $prod->codigo }}">
@@ -211,10 +195,8 @@
                     <input type="hidden" name="pvp3"         value="{{ $prod->pvp1 }}">
                     <input type="hidden" name="imagen"       value="{{ $prod->imagen }}">
                     <input type="hidden" name="presentacion" value="0">
-                    <input type="hidden" name="ubicacion"    value="" class="input-ubicacion">
 
-                    <button type="button"
-                            onclick="agregarConUbicacion(this, '{{ $prod->codigo }}')"
+                    <button type="submit"
                             class="w-full min-h-[42px] flex items-center justify-center text-center text-[11px] whitespace-nowrap text-white bg-[#0300a3] px-2 py-2 rounded-xl hover:bg-[#0200cc] transition font-medium">
                         + Carrito
                     </button>
@@ -254,7 +236,6 @@
                 'q'          => $filters['search'],
                 'grupo'      => $filters['grupo'],
                 'linea'      => $filters['linea'],
-                'ubicacion'  => $filters['ubicacion'],
                 'precio_min' => $filters['precioMin'] ?: null,
                 'precio_max' => $filters['precioMax'] ?: null,
                 'orden'      => $filters['orden'] !== 'codigo' ? $filters['orden'] : null,

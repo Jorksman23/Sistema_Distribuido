@@ -77,6 +77,18 @@
                     </button>
                 </div>
             </label>
+            <label class="block">
+                <span class="text-sm text-slate-600">Ubicación</span>
+                <select name="ubicacion" required
+                        class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <option value="" disabled selected>Selecciona una ubicación</option>
+                    @foreach($ubicaciones as $ub)
+                        <option value="{{ $ub['codigo'] }}" {{ old('ubicacion') == $ub['codigo'] ? 'selected' : '' }}>
+                            {{ $ub['ubicacion'] }}
+                        </option>
+                    @endforeach
+                </select>
+            </label>
             <button class="w-full rounded-full bg-indigo-600 text-white py-2.5 font-medium hover:bg-indigo-700">
                 Ingresar
             </button>

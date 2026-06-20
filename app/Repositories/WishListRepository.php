@@ -9,9 +9,13 @@ use App\Models\WishListModel;
  class WishListRepository{
     protected $connection = 'odbc';
     protected $table = 'DBA.pw_wishlist';
+
     //Obtener wishlist de un cliente
-    public function getByCliente(string $codCliente, string $empresa): array
-    {
+    //Filtra el stock únicamente por la ubicación de sesión del usuario,
+    //para que el botón '+ Carrito' refleje correctamente disponibilidad real en esa ubicación.
+    public function getByCliente(string $codCliente, string $empresa): array{
+        $ubicacion = (string) session('ubicacion_seleccionada', '');
+
         $rows = DB::connection($this->connection)->select("
             SELECT
                 w.id_wish,
@@ -22,7 +26,7 @@ use App\Models\WishListModel;
                 w.imagen,
                 w.empresa,
                 w.created_at,
-                COALESCE(SUM(e.existencia), 0) AS stock_total,
+                COALESCE(SUM(e.existencia), 0) + COALESCE(SUM(ep.cantidad), 0) AS stock_total,
                 CASE WHEN EXISTS (
                     SELECT 1 FROM DBA.in_item_presentacion p
                     WHERE p.producto = w.codigo_item
@@ -33,6 +37,14 @@ use App\Models\WishListModel;
             LEFT JOIN DBA.in_existencia e
                 ON e.producto = w.codigo_item
                 AND e.empresa = w.empresa
+                AND e.ubicacion = ?
+            LEFT JOIN DBA.in_item_presentacion pr
+                ON pr.producto = w.codigo_item
+                AND pr.empresa = w.empresa
+            LEFT JOIN DBA.in_existencia_presentacion ep
+                ON ep.item_presentacion = pr.codigo
+                AND ep.empresa = pr.empresa
+                AND ep.ubicacion = ?
             WHERE w.cod_cliente = ?
             AND   w.empresa     = ?
             GROUP BY
@@ -45,10 +57,10 @@ use App\Models\WishListModel;
                 w.empresa,
                 w.created_at
             ORDER BY w.created_at DESC
-        ", [$codCliente, $empresa]);
+        ", [$ubicacion, $ubicacion, $codCliente, $empresa]);
 
-            $model = new WishListModel();
-            return array_map(fn($row) => $model->mapRowToInstance($row), $rows);
+        $model = new WishListModel();
+        return array_map(fn($row) => $model->mapRowToInstance($row), $rows);
     }
 
     //Verificar si un producto ya está en la wishlist

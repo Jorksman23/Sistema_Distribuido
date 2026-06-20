@@ -61,27 +61,13 @@ class ProductService{
     }
 
     /**
-     * Obtener filtros auxiliares (grupos, líneas, ubicaciones)
+     * Obtener filtros auxiliares (grupos, líneas)
      */
     public function getFiltros(string $empresa): array
     {
         return [
             'grupos'      => $this->productRepository->getGrupos($empresa),
             'lineas'      => $this->productRepository->getLineas($empresa),
-            'ubicaciones' => $this->productRepository->getUbicaciones($empresa),
         ];
-    }
-
-    /**
-     * Obtener Ubicaciones en in_item
-     */
-    public function getUbicacionesProducto(string $codigo, string $empresa): array
-    {
-        return $this->productRepository->getUbicacionesProducto($codigo, $empresa);
-    }
-
-    public function getUbicacionesPresentacion(int $codigoPresentacion, string $empresa): array
-    {
-        return $this->productRepository->getUbicacionesPresentacion($codigoPresentacion, $empresa);
     }
 }

@@ -22,7 +22,8 @@ class CartService
 
     public function agregarProducto(array $data, string $codCliente): void {
         $presentacion = (int) ($data['presentacion'] ?? 0);
-        if ($this->cartRepository->exists($codCliente, $data['codigo_item'], $presentacion, $data['ubicacion'] ?? null)) {
+        $ubicacion    = (string) session ('ubicacion_seleccionado','');
+        if ($this->cartRepository->exists($codCliente, $data['codigo_item'], $presentacion, $ubicacion)) {
             $item = $this->carrito->getItemByProducto($codCliente, $data['codigo_item'], $presentacion);
             if ($item) {
                 $stockDisponible = $this->carrito->getStockDisponible(
@@ -58,7 +59,7 @@ class CartService
             'imagen'       => $imagen,
             'iva'          => $producto->iva ?? 'N',
             'presentacion' => $presentacion,
-            'ubicacion'    => $data['ubicacion'] ?? null,
+            'ubicacion'    => $ubicacion,
         ]);
     }
    public function actualizarCantidad(int $idItemWeb,int $cantidad,string $codCliente): void {

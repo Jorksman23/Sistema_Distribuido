@@ -18,56 +18,85 @@ class ProductPresentation
     public $stock_presentacion;
 
     /**
-     * Obtener producto + presentaciones
-     * Filtra presentaciones y stock usando subconsulta IN sobre in_ubicacion (view_on_tienda = 'S'),
-     * garantizando que solo se muestren existencias y modelos visibles en la tienda.
-     */
-    public function getByProduct(string $codigoProducto, string $empresa = null, ?int $limit = null): array{
-        $empresa = $empresa ?? currentCompany();
+ * Obtener producto + presentaciones.
+ * Si hay ubicación de sesión (usuario logueado), filtra stock únicamente por esa ubicación.
+ * Si no hay ubicación de sesión (visitante invitado), suma todas las ubicaciones
+ * visibles en la tienda (view_on_tienda = 'S'), igual que el comportamiento del catálogo público.
+ */
+public function getByProduct(string $codigoProducto, string $empresa = null, ?int $limit = null, string $ubicacion = ''): array{
+    $empresa   = $empresa ?? currentCompany();
+    $ubicacion = $ubicacion !== '' ? $ubicacion : (string) session('ubicacion_seleccionada', '');
 
-        // Obtener producto base desde el repositorio
-        $raw = (new \App\Repositories\ProductRepository())->findByCodigo($codigoProducto, $empresa);
-        if (!$raw) {
-            return [];
+    // Obtener producto base desde el repositorio
+    $raw = (new \App\Repositories\ProductRepository())->findByCodigo($codigoProducto, $empresa);
+    if (!$raw) {
+        return [];
+    }
+    $producto = (new ProductsModel())->mapRowToInstance($raw);
+
+    // Si hay ubicación de sesión, el JOIN filtra solo esa ubicación.
+    // Si no hay (invitado), filtra por todas las ubicaciones visibles (view_on_tienda = 'S').
+    $joinParams = [];
+    if ($ubicacion !== '') {
+        $stockJoinCondition = "AND e.ubicacion = ?";
+        $joinParams[] = $ubicacion;
+    } else {
+        $stockJoinCondition = "
+            AND e.ubicacion IN (
+                SELECT codigo FROM DBA.in_ubicacion
+                WHERE empresa = p.empresa
+                AND view_on_tienda = 'S'
+            )";
+    }
+
+    $sql = "
+        SELECT " . (!empty($limit) ? "TOP {$limit}" : "") . "
+            p.producto,
+            p.codigo,
+            p.nombre,
+            p.foto,
+            COALESCE(SUM(e.cantidad), 0) AS stock_presentacion
+        FROM {$this->table} p
+        LEFT JOIN DBA.in_existencia_presentacion e
+            ON e.item_presentacion = p.codigo
+            AND e.empresa = p.empresa
+            {$stockJoinCondition}
+        WHERE p.empresa = ?
+        AND p.producto = ?
+        AND p.mostrar = 'S'
+        GROUP BY p.producto, p.codigo, p.nombre, p.foto
+        HAVING COALESCE(SUM(e.cantidad), 0) > 0
+        ORDER BY p.nombre
+    ";
+
+    $rows = DB::connection($this->connection)->select($sql, array_merge($joinParams, [$empresa, $codigoProducto]));
+
+    $presentaciones = array_map(
+        fn($row) => $this->mapRowToInstance($row, $codigoProducto),
+        $rows
+    );
+
+    // Stock total: mismo criterio dual aplicado al cálculo del total.
+    if ($ubicacion !== '') {
+        if (!empty($presentaciones)) {
+            $stockRow = DB::connection($this->connection)->selectOne("
+                SELECT COALESCE(SUM(ep.cantidad), 0) AS total
+                FROM DBA.in_existencia_presentacion ep
+                INNER JOIN DBA.in_item_presentacion p
+                    ON p.codigo = ep.item_presentacion
+                    AND p.empresa = ep.empresa
+                WHERE p.producto = ? AND p.empresa = ?
+                AND ep.ubicacion = ?
+            ", [$codigoProducto, $empresa, $ubicacion]);
+        } else {
+            $stockRow = DB::connection($this->connection)->selectOne("
+                SELECT COALESCE(SUM(e.existencia), 0) AS total
+                FROM DBA.in_existencia e
+                WHERE e.producto = ? AND e.empresa = ?
+                AND e.ubicacion = ?
+            ", [$codigoProducto, $empresa, $ubicacion]);
         }
-        $producto = (new ProductsModel())->mapRowToInstance($raw);
-
-        // Subconsulta IN filtra ubicaciones con view_on_tienda = 'S' en el JOIN,
-        // evitando que stock de ubicaciones ocultas se sume a stock_presentacion.
-        // HAVING > 0 muestra presentaciones que solo tienen stock .
-        $sql = "
-            SELECT " . (!empty($limit) ? "TOP {$limit}" : "") . "
-                p.producto,
-                p.codigo,
-                p.nombre,
-                p.foto,
-                COALESCE(SUM(e.cantidad), 0) AS stock_presentacion
-            FROM {$this->table} p
-            LEFT JOIN DBA.in_existencia_presentacion e
-                ON e.item_presentacion = p.codigo
-                AND e.empresa = p.empresa
-                AND e.ubicacion IN (
-                    SELECT codigo FROM DBA.in_ubicacion
-                    WHERE empresa = p.empresa
-                    AND view_on_tienda = 'S'
-                )
-            WHERE p.empresa = ?
-            AND p.producto = ?
-            AND p.mostrar = 'S'
-            GROUP BY p.producto, p.codigo, p.nombre, p.foto
-            HAVING COALESCE(SUM(e.cantidad), 0) > 0
-            ORDER BY p.nombre
-        ";
-
-        $rows = DB::connection($this->connection)->select($sql, [$empresa, $codigoProducto]);
-
-        $presentaciones = array_map(
-            fn($row) => $this->mapRowToInstance($row, $codigoProducto),
-            $rows
-        );
-        // Stock total: según si tiene presentaciones o no. Ubicacion u.view_on_tienda S/N
-        // En ambos casos se filtra por view_on_tienda = 'S' via INNER JOIN con in_ubicacion,
-        // asegurando que el total visible no incluya stock de ubicaciones ocultas.
+    } else {
         if (!empty($presentaciones)) {
             $stockRow = DB::connection($this->connection)->selectOne("
                 SELECT COALESCE(SUM(ep.cantidad), 0) AS total
@@ -92,22 +121,23 @@ class ProductPresentation
                 AND u.view_on_tienda = 'S'
             ", [$codigoProducto, $empresa]);
         }
-        $stockTotal = (float) ($stockRow->total ?? 0);
-
-        return [
-            'codigo'         => $producto->codigo,
-            'empresa'        => $producto->empresa,
-            'descripcion'    => $producto->descripcion1,
-            'precio'         => $producto->pvp1,
-            'imagen'         => $producto->imagen,
-            'imagen_url'     => $producto->imagen_url,
-            'stock'          => $producto->stock,
-            'stock_total'    => $stockTotal,
-            'categoria'      => $producto->categoria,
-            'grupo'          => $producto->grupo,
-            'presentaciones' => $presentaciones,
-        ];
     }
+    $stockTotal = (float) ($stockRow->total ?? 0);
+
+    return [
+        'codigo'         => $producto->codigo,
+        'empresa'        => $producto->empresa,
+        'descripcion'    => $producto->descripcion1,
+        'precio'         => $producto->pvp1,
+        'imagen'         => $producto->imagen,
+        'imagen_url'     => $producto->imagen_url,
+        'stock'          => $producto->stock,
+        'stock_total'    => $stockTotal,
+        'categoria'      => $producto->categoria,
+        'grupo'          => $producto->grupo,
+        'presentaciones' => $presentaciones,
+    ];
+}
 
     /**
      * Mapear fila de presentación a objeto

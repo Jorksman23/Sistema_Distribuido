@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Repositories\ProductRepository;
 use Illuminate\Http\Request;
 use App\Repositories\LoginRepository;
 use Illuminate\Support\Facades\Hash;
@@ -24,7 +25,8 @@ class LoginController {
     // Mostrar formulario login
     public function showLogin()
     {
-        return view('auth.login');
+        $ubicaciones = (new ProductRepository())->getUbicaciones(currentCompany());
+        return view('auth.login', compact('ubicaciones'));
     }
 
     // Mostrar formulario register
@@ -38,6 +40,7 @@ class LoginController {
         $request->validate([
             'email'    => 'required|email',
             'password' => 'required',
+            'ubicacion'=> 'required|string',
         ]);
         // Buscar usuario por email y empresa activa
         $user = $this->model->findByEmail($request->email);
@@ -54,7 +57,7 @@ class LoginController {
             ]);
         }
         // Verificar que el usuario pertenezca a la empresa activa
-        if ($user->empresa !== config('app.company_code', '001')) {
+        if ($user->empresa !== config('app.company_code','?')) {
             return back()->withErrors([
                 'email' => 'No tienes acceso a esta empresa.'
             ]);
@@ -66,11 +69,12 @@ class LoginController {
         }
         // Guardar en sesión
         session([
-            'user_id'  => $user->user_id,
-            'nombre'   => $user->nombre,
-            'email'    => $user->email,
-            'pw_codigo'=> $user->pw_codigo,
-            'cod_cliente'=> (string) $user->user_id,
+            'user_id'              => $user->user_id,
+            'nombre'                => $user->nombre,
+            'email'                  => $user->email,
+            'pw_codigo'             => $user->pw_codigo,
+            'cod_cliente'           => (string) $user->user_id,
+            'ubicacion_seleccionada' => $request->ubicacion,
         ]);
         return redirect('/');
     }

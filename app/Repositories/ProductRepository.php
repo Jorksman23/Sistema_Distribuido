@@ -31,22 +31,68 @@ class ProductRepository
     }
 
 
+    /**
+     * Productos destacados para el carrusel del home.
+     * Filtra stock por la ubicación de sesión (usuario logueado) o por todas
+     * las ubicaciones visibles (invitado), excluyendo productos sin stock disponible.
+     */
     public function getProductosDestacados(int $limit, string $empresa): array{
+        $ubicacion = (string) session('ubicacion_seleccionada', '');
+
+        if ($ubicacion !== '') {
+            $stockJoinCondition             = "AND e.ubicacion = ?";
+            $stockPresentacionJoinCondition = "AND ep.ubicacion = ?";
+            $joinParams = [$ubicacion, $ubicacion];
+        } else {
+            $stockJoinCondition = "
+                AND e.ubicacion IN (
+                    SELECT codigo FROM DBA.in_ubicacion
+                    WHERE empresa = i.empresa
+                    AND view_on_tienda = 'S'
+                )";
+            $stockPresentacionJoinCondition = "
+                AND ep.ubicacion IN (
+                    SELECT codigo FROM DBA.in_ubicacion
+                    WHERE empresa = i.empresa
+                    AND view_on_tienda = 'S'
+                )";
+            $joinParams = [];
+        }
+
         return DB::connection($this->connection)->select("
             SELECT TOP {$limit}
                 i.codigo, i.empresa, i.descripcion1,
-                i.pvp1, i.imagen, i.stock,
-                l.linea AS categoria
+                i.pvp1, i.imagen, i.stock, i.grupo,
+                l.linea AS categoria,
+                COALESCE(SUM(e.existencia), 0) + COALESCE(SUM(ep.cantidad), 0) AS stock_total,
+                CASE WHEN EXISTS (
+                    SELECT 1 FROM DBA.in_item_presentacion p
+                    WHERE p.producto = i.codigo
+                    AND p.empresa = i.empresa
+                    AND p.mostrar = 'S'
+                ) THEN 1 ELSE 0 END AS tiene_presentaciones
             FROM DBA.in_item i
             LEFT JOIN DBA.in_linea l
                 ON i.linea = l.codigo AND l.empresa = i.empresa
+            LEFT JOIN DBA.in_existencia e
+                ON e.producto = i.codigo AND e.empresa = i.empresa
+                {$stockJoinCondition}
+            LEFT JOIN DBA.in_item_presentacion pr
+                ON pr.producto = i.codigo AND pr.empresa = i.empresa
+            LEFT JOIN DBA.in_existencia_presentacion ep
+                ON ep.item_presentacion = pr.codigo AND ep.empresa = pr.empresa
+                {$stockPresentacionJoinCondition}
             WHERE i.stock in ('S', 'N')
             AND i.empresa = ?
             AND i.itemb = 'S'
             AND i.imagen IS NOT NULL
             AND i.pvp1 > 0
-            ORDER BY i.stock DESC
-        ", [$empresa]);
+            GROUP BY
+                i.codigo, i.empresa, i.descripcion1,
+                i.pvp1, i.imagen, i.stock, i.grupo, l.linea
+            HAVING COALESCE(SUM(e.existencia), 0) + COALESCE(SUM(ep.cantidad), 0) > 0
+            ORDER BY RAND()
+        ", array_merge($joinParams, [$empresa]));
     }
 
     //Busqueda de productos por descripción
@@ -111,6 +157,8 @@ class ProductRepository
         return array_map(fn($r) => (array) $r, $rows);
     }
 
+
+    //Pendiente a Eliminar
     //Obtener ubicacion in_item disponibles de un producto sin presentacio
     //Filtra por view_on_tienda = 'S' para mostrar solo ubicaciones visibles en la tienda,
     //excluyendo ubicaciones ocultas como (Bodega,Sauces).
@@ -132,6 +180,7 @@ class ProductRepository
         ", [$codigo, $empresa]);
     }
 
+    //Pendiente a eliminar
     //Obtiene las ubicaciones disponibles de una presentación específica (in_item_presentacion).
     //Filtra por view_on_tienda = 'S' para que el selector dinámico en el detalle del producto
     //solo muestre ubicaciones visibles al cliente al elegir un modelo.
@@ -327,9 +376,10 @@ class ProductRepository
 
     /**
      * Obtiene productos relacionados según el mismo grupo (subcategoría) del producto actual.
+     * Filtra stock únicamente por la ubicación de sesión del usuario.
      * Excluye el producto actual y filtra stock por ubicaciones visibles (view_on_tienda = 'S').
      */
-    public function getRelacionados(string $codigo, string $grupo, string $empresa, int $limit = 8): array{
+    public function getRelacionados(string $codigo, string $grupo, string $empresa, string $ubicacion, int $limit = 8): array{
         $rows = DB::connection($this->connection)->select("
             SELECT TOP {$limit} * FROM (
                 SELECT
@@ -341,10 +391,7 @@ class ProductRepository
                             SELECT SUM(e.existencia)
                             FROM DBA.in_existencia e
                             WHERE e.producto = i.codigo AND e.empresa = i.empresa
-                            AND e.ubicacion IN (
-                                SELECT codigo FROM DBA.in_ubicacion
-                                WHERE empresa = i.empresa AND view_on_tienda = 'S'
-                            )
+                            AND e.ubicacion = ?
                         ), 0)
                         +
                         COALESCE((
@@ -353,10 +400,7 @@ class ProductRepository
                             INNER JOIN DBA.in_existencia_presentacion ep
                                 ON ep.item_presentacion = pr.codigo AND ep.empresa = pr.empresa
                             WHERE pr.producto = i.codigo AND pr.empresa = i.empresa
-                            AND ep.ubicacion IN (
-                                SELECT codigo FROM DBA.in_ubicacion
-                                WHERE empresa = i.empresa AND view_on_tienda = 'S'
-                            )
+                            AND ep.ubicacion = ?
                         ), 0)
                     ) AS stock_total,
                     CASE WHEN EXISTS (
@@ -377,7 +421,7 @@ class ProductRepository
             ) AS sub
             WHERE stock_total > 0
             ORDER BY RAND()
-        ", [$empresa, $grupo, $codigo]);
+        ", [$ubicacion, $ubicacion,$empresa, $grupo, $codigo]);
         foreach ($rows as $row) {
             $row->descripcion1 = \App\Models\ProductsModel::cleanString($row->descripcion1);
             $row->categoria    = \App\Models\ProductsModel::cleanString($row->categoria);

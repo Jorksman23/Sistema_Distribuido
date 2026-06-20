@@ -22,35 +22,27 @@ class ProductsController {
             if (empty($producto)) {
                 return view('errores.404', ['mensaje' => 'Producto no encontrado']);
             }
-            // Ubicaciones del producto base (solo si NO tiene presentaciones)
-            $ubicaciones = [];
-            if (empty($producto['presentaciones'])) {
-                $ubicaciones = $service->getUbicacionesProducto($codigo, $empresa);
-            }
-            // Ubicaciones por presentación (para JS)
-            $ubicacionesPorPresentacion = [];
-            foreach ($producto['presentaciones'] as $pres) {
-                $ubicacionesPorPresentacion[$pres->codigo] =
-                    $service->getUbicacionesPresentacion($pres->codigo, $empresa);
-            }
 
             // Productos relacionados (mismo grupo, excluyendo el actual)
             $relacionados = [];
             if (!empty($producto['grupo'])) {
                 $relacionados = (new \App\Repositories\ProductRepository())
-                    ->getRelacionados($codigo, $producto['grupo'], $empresa, 20);
+                    ->getRelacionados($codigo, $producto['grupo'], $empresa, session('ubicacion_seleccionada', ''), 20);
             }
 
             return view('products.show', [
                 'empresa'                    => $empresa,
                 'producto'                   => $producto,
-                'ubicaciones'                => $ubicaciones,
-                'ubicacionesPorPresentacion' => $ubicacionesPorPresentacion,
                 'relacionados'               => $relacionados,
             ]);
         } catch (Throwable $e) {
-            return redirect()->route('catalogo.index')
-                 ->withErrors(['error' => 'Error al obtener producto: ' . $e->getMessage()]);
+            // return redirect()->route('catalogo.index')
+            //      ->withErrors(['error' => 'Error al obtener producto: ' . $e->getMessage()]);
+            dd([
+                'mensaje' => $e->getMessage(),
+                'archivo' => $e->getFile(),
+                'linea'   => $e->getLine(),
+            ]);
         }
     }
 
@@ -68,7 +60,7 @@ class ProductsController {
                 'search'    => trim($request->query('q', '')),
                 'grupo'     => trim($request->query('grupo', '')),
                 'linea'     => trim($request->query('linea', '')),
-                'ubicacion' => trim($request->query('ubicacion', '')),
+                'ubicacion' => (string) session('ubicacion_seleccionada',''),
                 'precioMin' => (float) $request->query('precio_min', 0),
                 'precioMax' => (float) $request->query('precio_max', 0),
                 'orden'     => $request->query('orden', 'codigo'),
@@ -89,15 +81,5 @@ class ProductsController {
         } catch (Throwable $e) {
             return view('errors.500', ['mensaje' => 'Error al cargar catálogo: ' . $e->getMessage()]);
         }
-    }
-
-    //Retorna en formato JSON las ubicaciones disponibles de un producto sin presentación
-    //Cuando el cliente * hace clic en '+ Carrito' y el producto tiene más de una ubicación disponible.
-    //Solo retorna ubicaciones con view_on_tienda = 'S' a través de getUbicacionesProducto().
-    public function ubicaciones(string $codigo)
-    {
-        $service = new ProductService();
-        $ubicaciones = $service->getUbicacionesProducto($codigo, currentCompany());
-        return response()->json($ubicaciones);
     }
 }

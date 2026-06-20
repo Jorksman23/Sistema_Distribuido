@@ -32,8 +32,7 @@ Route::post('/logout',  [LoginController::class, 'logout'])->name('logout');
 Route::get('/catalogo', [ProductsController::class, 'index'])->name('catalogo.index');
 // Detalle de un producto específico
 Route::get('catalogo/presentaciones/{codigo}', [ProductsController::class, 'show'])->name('products.show');
-//Retorna ubicaciones visibles de un producto en JSON para el selector
-Route::get('/producto/ubicaciones/{codigo}', [ProductsController::class, 'ubicaciones'])->name('producto.ubicaciones');
+
 // WISHLIST - Lista de deseos
 Route::middleware('auth.custom')->group(function () {
     Route::get('/wishlist',         [WhishListController::class, 'index'])->name('wishlist.index');
