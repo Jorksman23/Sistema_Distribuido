@@ -25,7 +25,7 @@ class ProductRepository
             FROM DBA.in_item i
             LEFT JOIN DBA.in_linea l
                 ON i.linea = l.codigo AND l.empresa = i.empresa
-            WHERE i.stock in ('S', 'N') AND i.empresa = ?
+            WHERE i.stock in ('S', 'N') AND i.empresa = ? AND i.itemb = 'S'
             ORDER BY i.codigo
         ", [$empresa]);
     }
@@ -42,6 +42,7 @@ class ProductRepository
                 ON i.linea = l.codigo AND l.empresa = i.empresa
             WHERE i.stock in ('S', 'N')
             AND i.empresa = ?
+            AND i.itemb = 'S'
             AND i.imagen IS NOT NULL
             AND i.pvp1 > 0
             ORDER BY i.stock DESC
@@ -61,6 +62,7 @@ class ProductRepository
                 ON i.linea = l.codigo AND l.empresa = i.empresa
             WHERE i.stock in ('S', 'N')
             AND i.empresa = ?
+            AND i.itemb = 'S'
             AND (i.descripcion1 LIKE ? OR i.descripcion1 LIKE ?)
             ORDER BY i.codigo
         ", [$empresa, '%' . $search . '%', $searchNormalizado]);
@@ -151,25 +153,27 @@ class ProductRepository
         ", [$codigoPresentacion, $empresa]);
     }
 
+
     /**
      * Obtiene productos paginados con filtros dinámicos.
      * El JOIN con in_existencia usa subconsulta para excluir ubicaciones con view_on_tienda = 'N',
      * garantizando que stock_total solo refleje existencias visibles en la tienda.
+     * Solo se muestran productos con stock_total > 0 (vía HAVING).
      */
     public function getPaginatedProducts(
-    int     $page,
-    int     $perPage,
-    string  $empresa,
-    string  $search    = '',
-    string  $grupo     = '',
-    string  $linea     = '',
-    string  $ubicacion = '',
-    float   $precioMin = 0,
-    float   $precioMax = 0,
-    string  $orden     = 'codigo'
+        int     $page,
+        int     $perPage,
+        string  $empresa,
+        string  $search    = '',
+        string  $grupo     = '',
+        string  $linea     = '',
+        string  $ubicacion = '',
+        float   $precioMin = 0,
+        float   $precioMax = 0,
+        string  $orden     = 'codigo'
     ): array {
         $startAt = (($page - 1) * $perPage) + 1;
-        $where   = "WHERE i.stock in ('S', 'N') AND i.empresa = ?";
+        $where   = "WHERE i.stock in ('S', 'N') AND i.empresa = ? AND i.itemb = 'S' AND i.pvp1 > 0";
         $params  = [$empresa];
         if ($search !== '') {
             $normalizado = $this->normalizeString($search);
@@ -224,10 +228,6 @@ class ProductRepository
             'nombre'      => 'i.descripcion1 ASC',
             default       => 'i.codigo ASC',
         };
-        $totalRow = DB::connection($this->connection)->selectOne("
-            SELECT COUNT(*) AS total
-            FROM DBA.in_item i {$where}
-        ", $params);
 
         // Si hay filtro de ubicación, el stock solo cuenta esa ubicación específica
         // (tanto en in_existencia como en in_existencia_presentacion).
@@ -251,9 +251,31 @@ class ProductRepository
                     AND view_on_tienda = 'S'
                 )";
         }
+
+        // Conteo total: usa el mismo JOIN y HAVING de stock que la consulta principal,
+        // envuelto en subconsulta porque COUNT no puede combinarse directo con HAVING+GROUP BY.
+        $totalRow = DB::connection($this->connection)->selectOne("
+            SELECT COUNT(*) AS total FROM (
+                SELECT i.codigo
+                FROM DBA.in_item i
+                LEFT JOIN DBA.in_existencia e
+                    ON e.producto = i.codigo AND e.empresa = i.empresa
+                    {$stockJoinCondition}
+                LEFT JOIN DBA.in_item_presentacion pr
+                    ON pr.producto = i.codigo AND pr.empresa = i.empresa
+                LEFT JOIN DBA.in_existencia_presentacion ep
+                    ON ep.item_presentacion = pr.codigo AND ep.empresa = pr.empresa
+                    {$stockPresentacionJoinCondition}
+                {$where}
+                GROUP BY i.codigo
+                HAVING COALESCE(SUM(e.existencia), 0) + COALESCE(SUM(ep.cantidad), 0) > 0
+            ) AS sub
+        ", array_merge($joinParams, $joinParams, $params));
+
         // Stock total combina in_existencia (productos sin presentación) e
         // in_existencia_presentacion (productos con presentación), ambos filtrados
         // por la misma condición de ubicación para mantener consistencia con el WHERE.
+        // HAVING excluye productos cuyo stock combinado sea 0 (sin stock disponible).
         $rows = DB::connection($this->connection)->select("
             SELECT TOP {$perPage} START AT {$startAt}
                 i.codigo, i.empresa, i.descripcion1,
@@ -281,6 +303,7 @@ class ProductRepository
             GROUP BY
                 i.codigo, i.empresa, i.descripcion1,
                 i.pvp1, i.imagen, i.stock, i.grupo, l.linea
+            HAVING COALESCE(SUM(e.existencia), 0) + COALESCE(SUM(ep.cantidad), 0) > 0
             ORDER BY {$orderBy}
         ", array_merge($joinParams, $joinParams, $params));
 
@@ -306,38 +329,59 @@ class ProductRepository
      * Obtiene productos relacionados según el mismo grupo (subcategoría) del producto actual.
      * Excluye el producto actual y filtra stock por ubicaciones visibles (view_on_tienda = 'S').
      */
-    public function getRelacionados(string $codigo, string $grupo, string $empresa, int $limit = 8): array
-    {
-        return DB::connection($this->connection)->select("
-            SELECT TOP {$limit}
-                i.codigo, i.empresa, i.descripcion1,
-                i.pvp1, i.imagen, i.stock, i.grupo,
-                l.linea AS categoria,
-                COALESCE(SUM(e.existencia), 0) AS stock_total,
-                CASE WHEN EXISTS (
-                    SELECT 1 FROM DBA.in_item_presentacion p
-                    WHERE p.producto = i.codigo
-                    AND p.empresa = i.empresa
-                    AND p.mostrar = 'S'
-                ) THEN 1 ELSE 0 END AS tiene_presentaciones
-            FROM DBA.in_item i
-            LEFT JOIN DBA.in_linea l
-                ON i.linea = l.codigo AND l.empresa = i.empresa
-            LEFT JOIN DBA.in_existencia e
-                ON e.producto = i.codigo AND e.empresa = i.empresa
-                AND e.ubicacion IN (
-                    SELECT codigo FROM DBA.in_ubicacion
-                    WHERE empresa = i.empresa
-                    AND view_on_tienda = 'S'
-                )
-            WHERE i.stock in ('S', 'N')
-            AND i.empresa = ?
-            AND i.grupo = ?
-            AND i.codigo != ?
-            GROUP BY
-                i.codigo, i.empresa, i.descripcion1,
-                i.pvp1, i.imagen, i.stock, i.grupo, l.linea
+    public function getRelacionados(string $codigo, string $grupo, string $empresa, int $limit = 8): array{
+        $rows = DB::connection($this->connection)->select("
+            SELECT TOP {$limit} * FROM (
+                SELECT
+                    i.codigo, i.empresa, i.descripcion1,
+                    i.pvp1, i.imagen, i.stock, i.grupo,
+                    l.linea AS categoria,
+                    (
+                        COALESCE((
+                            SELECT SUM(e.existencia)
+                            FROM DBA.in_existencia e
+                            WHERE e.producto = i.codigo AND e.empresa = i.empresa
+                            AND e.ubicacion IN (
+                                SELECT codigo FROM DBA.in_ubicacion
+                                WHERE empresa = i.empresa AND view_on_tienda = 'S'
+                            )
+                        ), 0)
+                        +
+                        COALESCE((
+                            SELECT SUM(ep.cantidad)
+                            FROM DBA.in_item_presentacion pr
+                            INNER JOIN DBA.in_existencia_presentacion ep
+                                ON ep.item_presentacion = pr.codigo AND ep.empresa = pr.empresa
+                            WHERE pr.producto = i.codigo AND pr.empresa = i.empresa
+                            AND ep.ubicacion IN (
+                                SELECT codigo FROM DBA.in_ubicacion
+                                WHERE empresa = i.empresa AND view_on_tienda = 'S'
+                            )
+                        ), 0)
+                    ) AS stock_total,
+                    CASE WHEN EXISTS (
+                        SELECT 1 FROM DBA.in_item_presentacion p
+                        WHERE p.producto = i.codigo
+                        AND p.empresa = i.empresa
+                        AND p.mostrar = 'S'
+                    ) THEN 1 ELSE 0 END AS tiene_presentaciones
+                FROM DBA.in_item i
+                LEFT JOIN DBA.in_linea l
+                    ON i.linea = l.codigo AND l.empresa = i.empresa
+                WHERE i.stock in ('S', 'N')
+                AND i.itemb = 'S'
+                AND i.pvp1 > 0
+                AND i.empresa = ?
+                AND i.grupo = ?
+                AND i.codigo != ?
+            ) AS sub
+            WHERE stock_total > 0
             ORDER BY RAND()
         ", [$empresa, $grupo, $codigo]);
+        foreach ($rows as $row) {
+            $row->descripcion1 = \App\Models\ProductsModel::cleanString($row->descripcion1);
+            $row->categoria    = \App\Models\ProductsModel::cleanString($row->categoria);
+        }
+        return $rows;
     }
 }

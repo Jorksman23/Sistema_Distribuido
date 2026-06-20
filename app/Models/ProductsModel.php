@@ -27,22 +27,6 @@ class ProductsModel
     public $tiene_presentaciones;
     public $grupo;
 
-    // ── Buscar producto por código ───────────────────────
-    // public function findByCodigo($codigo, $empresa = null)
-    // {
-    //     $empresa = $empresa ?? currentCompany();
-
-    //     $row = DB::connection($this->connection)->selectOne("
-    //         SELECT TOP 1 *
-    //         FROM DBA.in_item
-    //         WHERE codigo = ? AND empresa = ? AND stock in ('S', 'N')
-    //     ", [$codigo, $empresa]);
-
-    //     if (!$row) return null;
-
-    //     return $this->mapRowToInstance($row);
-    // }
-
     //Mapear fila a objeto
     public function mapRowToInstance($row): self
     {
