@@ -7,11 +7,6 @@
 <div class="mt-12 mb-4">
     <div class="max-w-7xl mx-auto px-4 mb-4 flex items-center justify-between">
         <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900">Productos Destacados</h2>
-
-        <a href="{{ route('catalogo.index') }}"
-        class="px-4 py-2 text-sm text-white bg-gray-800 hover:bg-gray-900 rounded-lg transition font-medium shadow-sm">
-            Ver todos →
-        </a>
     </div>
 
     <div class="overflow-hidden relative">

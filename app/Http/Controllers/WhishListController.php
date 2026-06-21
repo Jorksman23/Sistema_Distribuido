@@ -54,6 +54,7 @@ class WhishListController {
 
             if ($exists) {
                 $this->wishlist->remove($codCliente, $request->codigo_item, $empresa);
+                $enWishlist = false;
             } else {
                 $producto = (new ProductRepository())->findByCodigo($request->codigo_item, $empresa);
 
@@ -67,9 +68,23 @@ class WhishListController {
                         'empresa'     => $empresa,
                     ]);
                 }
+                $enWishlist = true;
             }
             session()->forget('wish_codes');
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success'      => true,
+                    'en_wishlist'  => $enWishlist,
+                    'wish_count'   => $this->wishlist->count($codCliente, $empresa),
+                ]);
+            }
         } catch (Throwable $e) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 422);
+            }
             return back()->withErrors(['error' => 'Error: ' . $e->getMessage()]);
         }
         if($request->redirect_to === 'wishlist.index'){

@@ -118,7 +118,7 @@
                 <div class="mt-auto space-y-3">
 
                     {{-- Formulario --}}
-                    <form method="POST" action="{{ route('carrito.add') }}" id="formCarrito">
+                    <form method="POST" action="{{ route('carrito.add') }}" id="formCarrito" onsubmit="agregarAlCarrito(event, this)">
                         @csrf
                         <input type="hidden" name="codigo_item"  value="{{ $producto['codigo'] }}">
                         <input type="hidden" name="nombre"       value="{{ $producto['descripcion'] }}">
@@ -129,7 +129,7 @@
                         @if(count($producto['presentaciones']) === 0)
                             {{-- Sin presentaciones --}}
                             @if(($producto['stock_total'] ?? 0) > 0)
-                                <button type="button" id="btnAgregar"
+                                <button type="submit" id="btnAgregar"
                                         class="w-full bg-[#0300a3] hover:bg-[#0200cc] text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-3 text-lg transition-all">
                                     <span>Añadir al carrito</span>
                                     <span class="text-2xl">🛒</span>
@@ -193,21 +193,22 @@
                             </span>
                         @endif
 
-                        <form method="POST" action="{{ route('wishlist.toggle') }}">
+                        <form method="POST" action="{{ route('wishlist.toggle') }}" onsubmit="toggleWishlist(event, this)">
                             @csrf
                             <input type="hidden" name="codigo_item" value="{{ $rel->codigo }}">
                             <button type="submit"
                                     class="absolute top-2 right-2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center hover:bg-white transition shadow-sm hover:scale-110">
-                                @if(in_array($rel->codigo, $wishCodes ?? []))
+                                <span class="icon-filled {{ in_array($rel->codigo, $wishCodes ?? []) ? '' : 'hidden' }}">
                                     <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                                     </svg>
-                                @else
+                                </span>
+                                <span class="icon-outline {{ in_array($rel->codigo, $wishCodes ?? []) ? 'hidden' : '' }}">
                                     <svg class="w-4 h-4 text-gray-400 hover:text-red-500 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                                     </svg>
-                                @endif
+                                </span>
                             </button>
                         </form>
                     </div>
@@ -236,7 +237,8 @@
                                 @else
                                     <form method="POST"
                                           action="{{ route('carrito.add') }}"
-                                          class="flex-1">
+                                          class="flex-1"
+                                          onsubmit="agregarAlCarrito(event, this)">
                                         @csrf
                                         <input type="hidden" name="codigo_item"  value="{{ $rel->codigo }}">
                                         <input type="hidden" name="nombre"       value="{{ $rel->descripcion1 }}">
@@ -291,6 +293,7 @@ function changeImage(element, newSrc, codigoPresentacion, stockPresentacion) {
                 Stock disponible: <span class="font-bold">${Math.floor(stockPresentacion)}</span> unidades
             </span>
         `;
+        btnAgregar.type      = 'submit';
         btnAgregar.disabled  = false;
         btnAgregar.className = 'w-full bg-[#0300a3] hover:bg-[#0200cc] text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-3 text-lg transition-all';
         btnAgregar.innerHTML = '<span>Añadir al carrito</span><span class="text-2xl">🛒</span>';
@@ -298,23 +301,11 @@ function changeImage(element, newSrc, codigoPresentacion, stockPresentacion) {
         stockContainer.innerHTML = `
             <span class="text-red-500 font-bold">Sin stock disponible</span>
         `;
+        btnAgregar.type      = 'button';
         btnAgregar.disabled  = true;
         btnAgregar.className = 'w-full bg-gray-200 text-gray-400 font-semibold py-4 rounded-2xl flex items-center justify-center gap-3 text-lg cursor-not-allowed transition-all';
         btnAgregar.innerHTML = '<span>Sin stock</span>';
     }
-}
-
-// Envío del formulario — un solo clic
-const formCarrito = document.getElementById('formCarrito');
-const btnAgregar  = document.getElementById('btnAgregar');
-
-if (btnAgregar && formCarrito) {
-    btnAgregar.addEventListener('click', function () {
-        if (this.disabled) return;
-        this.disabled  = true;
-        this.innerHTML = '<span>Agregando...</span>';
-        formCarrito.submit();
-    });
 }
 
 // Carrusel con flechas

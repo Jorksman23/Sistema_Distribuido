@@ -26,7 +26,7 @@
         {{-- LINKS — escritorio --}}
         <div class="hidden md:flex gap-6 text-base ml-4 ">
             <a href="/" class="text-gray-700 hover:text-[#0300a3] font-bold transition relative after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 hover:after:w-full after:bg-[#0300a3] after:transition-all">Home</a>
-            <a href="{{ route('catalogo.index') }}" class="text-gray-700 hover:text-[#0300a3] font-bold transition relative after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 hover:after:w-full after:bg-[#0300a3] after:transition-all">Categorías</a>
+            <a href="{{ route('catalogo.index') }}" class="text-gray-700 hover:text-[#0300a3] font-bold transition relative after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 hover:after:w-full after:bg-[#0300a3] after:transition-all">Tienda</a>
             <a href="#" class="whitespace-nowrap text-gray-700 hover:text-[#0300a3] font-bold transition relative after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 hover:after:w-full after:bg-[#0300a3] after:transition-all">Sobre Nosotros</a>
         </div>
 
@@ -54,11 +54,10 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
             </svg>
-            @if(session('user_id') && isset($wishCount) && $wishCount > 0)
-                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                    {{ $wishCount }}
-                </span>
-            @endif
+            <span id="wishCountBadge"
+                class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center {{ (session('user_id') && isset($wishCount) && $wishCount > 0) ? '' : 'hidden' }}">
+                {{ session('user_id') && isset($wishCount) ? $wishCount : 0 }}
+            </span>
             </a>
 
             {{-- CARRITO  AQUI VAMOS A HACER EL CAMBIO--}}
@@ -67,11 +66,10 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
                 </svg>
-                @if(session('user_id') && isset($carritoCount) && $carritoCount > 0)
-                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                        {{ $carritoCount }}
-                    </span>
-                @endif
+                <span id="carritoCountBadge"
+                    class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center {{ (session('user_id') && isset($carritoCount) && $carritoCount > 0) ? '' : 'hidden' }}">
+                    {{ session('user_id') && isset($carritoCount) ? $carritoCount : 0 }}
+                </span>
             </a>
 
             {{-- USUARIO --}}
@@ -153,7 +151,7 @@
     {{-- MENÚ MÓVIL desplegable --}}
     <div id="mobileMenu" class="hidden md:hidden border-t border-gray-100 bg-white px-4 py-3 flex flex-col gap-1">
         <a href="/" class="py-2 text-gray-800 hover:text-blue-600 font-bold transition border-b border-gray-50">Home</a>
-        <a href="{{ route('catalogo.index') }}" class="py-2 text-gray-800 hover:text-blue-600 font-bold transition border-b border-gray-50">Categorías</a>
+        <a href="{{ route('catalogo.index') }}" class="py-2 text-gray-800 hover:text-blue-600 font-bold transition border-b border-gray-50">Tienda</a>
         <a href="#" class="whitespace-nowrap py-2 text-gray-800 hover:text-blue-600 font-bold transition">Sobre Nosotros</a>
     </div>
 </nav>

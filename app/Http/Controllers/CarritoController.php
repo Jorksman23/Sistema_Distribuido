@@ -77,9 +77,23 @@ class CarritoController {
         try {
             $this->cartService->agregarProducto($request->all(),(string) session('user_id'));
             session()->forget('carrito_count');
+
+            if($request->wantsJson() || $request->ajax()){
+                return response()->json([
+                    'success' => true,
+                    'message' => '¡Producto agregado al carrito!',
+                    'carrito_count' => $this->cartRepository->count((string) session ('user_id')),
+                ]);
+            }
             return back()->with('success_cart','¡Producto agregado al carrito!'
             );
         } catch (Throwable $e) {
+            if($request->wantsJson() || $request->ajax()){
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 422);
+            }
             return back()->withErrors(['error' => $e->getMessage()
             ]);
         }
