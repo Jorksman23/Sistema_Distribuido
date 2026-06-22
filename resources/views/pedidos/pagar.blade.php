@@ -114,7 +114,6 @@
                         </div>
                     </div>
 
-                    <!-- Datos de Facturación -->
                 <!-- Datos de Facturación -->
                 <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 space-y-6">
                     <div class="flex justify-between items-center">
@@ -146,26 +145,26 @@
                     <!-- Las demás filas igual -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Dirección exacta</label>
-                        <input type="text" name="direccion"
+                        <input type="text" name="direccion" id="direccion"
                             class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-                            <input type="text" name="telefono"
+                            <input type="text" name="telefono" id="telefono"
                                 class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
-                            <input type="email" name="email"
+                            <input type="email" name="email" id="email"
                                 class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Observación (opcional)</label>
-                        <textarea name="observacion" rows="2"
+                        <textarea name="observacion" id="observacion" rows="2"
                                 class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]"></textarea>
                     </div>
                 </div>
@@ -260,26 +259,9 @@ document.getElementById('tipo_pago').addEventListener('change', function() {
 document.getElementById('tipo_pago').dispatchEvent(new Event('change'));
 </script>
 
+
 <script>
 document.getElementById('usar-registro').addEventListener('click', () => {
-    const usuario = {
-        cedula: '{{ auth()->user()->cedula_ruc ?? "" }}',
-        nombre: '{{ auth()->user()->nombre ?? "" }}',
-        direccion: '{{ auth()->user()->direccion ?? "" }}',
-        telefono: '{{ auth()->user()->telefono ?? "" }}',
-        email: '{{ auth()->user()->email ?? "" }}'
-    };
-
-    for (const campo in usuario) {
-        const input = document.querySelector(`input[name="${campo}"]`);
-        if (input) input.value = usuario[campo];
-    }
-
-    document.querySelector('input[name="nombre"]').readOnly = true;
-});
-</script>
-<script>
-   document.getElementById('usar-registro').addEventListener('click', () => {
     const usuario = {
         cedula: '{{ $usuario->cedula_ruc ?? "" }}',
         nombre: '{{ $usuario->nombre ?? "" }}',
@@ -287,6 +269,7 @@ document.getElementById('usar-registro').addEventListener('click', () => {
         telefono: '{{ $usuario->telefono ?? "" }}',
         email: '{{ $usuario->email ?? "" }}'
     };
+
 
     for (const campo in usuario) {
         const input = document.querySelector(`input[name="${campo}"]`);

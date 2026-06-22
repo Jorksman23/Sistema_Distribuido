@@ -13,6 +13,7 @@ use App\Repositories\OrderRepository;
 use App\Services\ComprobanteService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\CxcAuxiliarProformaService;
+use App\Repositories\LoginRepository;
 use Throwable;
 
 
@@ -28,6 +29,7 @@ class CarritoController {
     protected OrderRepository $orderRepository;
     protected CxcAuxiliarProformaService $cxcAuxiliarProformaService;
     protected ComprobanteService $comprobanteService;
+     protected LoginRepository $loginRepository;
 
     public function __construct(
         CarritoModel $carrito,
@@ -38,7 +40,8 @@ class CarritoController {
         PaymentService $paymentService,
         OrderRepository $orderRepository,
         CxcAuxiliarProformaService $cxcAuxiliarProformaService,
-        ComprobanteService $comprobanteService
+        ComprobanteService $comprobanteService,
+        LoginRepository $loginRepository
     ) {
         $this->carrito = $carrito;
         $this->cartRepository = $cartRepository;
@@ -49,6 +52,8 @@ class CarritoController {
         $this->orderRepository = $orderRepository;
         $this->cxcAuxiliarProformaService = $cxcAuxiliarProformaService;
         $this->comprobanteService = $comprobanteService;
+        $this->loginRepository = $loginRepository;
+
     }
 
     // === Mostrar Carrito ===
@@ -148,7 +153,8 @@ class CarritoController {
                 return redirect()->route('carrito.index')->withErrors(['error' => 'El carrito está vacío']);
             }
             $formasPago = $this->paymentMethodService->obtenerFormasPago(currentCompany());
-            return view('pedidos.pagar', [...$checkout,'formasPago' => $formasPago,]);
+            $usuario = $this->loginRepository->findById($codCliente);
+            return view('pedidos.pagar', [...$checkout,'formasPago' => $formasPago,'usuario' => $usuario,]);
         } catch (Throwable $e) {
             return view('errors.500', ['mensaje' => 'Error al preparar pago: ' . $e->getMessage(),]);
         }
