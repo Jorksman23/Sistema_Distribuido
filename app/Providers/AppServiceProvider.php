@@ -23,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
         View::composer('*', function ($view) {
     if (session('user_id')) {
             $wishlist = new WishListRepository();
-            $empresa  = config('app.company_code', '001');
+            $empresa  = config('app.company_code', '?');
             $codCliente = (string) session('user_id');
         // Cachear en sesión para no hacer query en cada vista
     if (!session()->has('wish_codes')) {

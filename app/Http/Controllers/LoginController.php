@@ -101,7 +101,7 @@ class LoginController {
             'direccion'           => $request->direccion,
             'telefono'            => $request->telefono,
             'tipo_identificacion' => $request->tipo_identificacion,
-            'empresa'             => config('app.company_code', '001'),
+            'empresa'             => config('app.company_code', '?'),
             'email_verified_at'   => null,
             ]);
 

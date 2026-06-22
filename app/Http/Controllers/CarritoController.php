@@ -231,12 +231,14 @@ class CarritoController {
     }
 
     // === Guardar Comprobante ===
-    public function guardarComprobante(Request $request)
-    {
+   public function guardarComprobante(Request $request)
+{
+    // 1. Validar archivo comprobante
     $request->validate([
         'comprobante' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120'
     ]);
 
+    // 2. Recuperar datos de checkout desde sesión
     $checkoutData = session('checkout_data');
     if (!$checkoutData) {
         return redirect()->route('pedidos.pagar')->withErrors([
@@ -244,19 +246,24 @@ class CarritoController {
         ]);
     }
 
+    // 3. Datos del cliente y empresa
     $codCliente = (string) session('user_id');
     $empresa    = currentCompany();
-    $items      = $this->carrito->getCarritoByUser($codCliente);
+
+    // 4. Validar carrito
+    $items = $this->carrito->getCarritoByUser($codCliente);
     if (empty($items)) {
         return redirect()->route('carrito.index')->withErrors([
             'error' => 'El carrito está vacío.'
         ]);
     }
 
+    // 5. Obtener total
     $checkout   = $this->checkoutService->obtenerCheckout($codCliente);
     $granTotal  = (float) $checkout['total'];
 
-    return $this->comprobanteService->guardarComprobante(
+    // 6. Guardar comprobante con servicio
+    $response = $this->comprobanteService->guardarComprobante(
         $request->file('comprobante'),
         $checkoutData,
         $codCliente,
@@ -264,7 +271,13 @@ class CarritoController {
         $items,
         $granTotal
     );
-    }
+
+    // 7. ✅ Aquí sí borras checkout_data (ya no se necesita)
+    session()->forget('checkout_data');
+
+    return $response;
+}
+
 
     // === Descargar Pedido ===
     public function descargarPedido($codigo) {

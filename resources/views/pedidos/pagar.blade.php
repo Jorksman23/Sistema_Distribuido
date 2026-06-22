@@ -3,6 +3,34 @@
 @section('title', 'Resumen y Pago')
 
 @section('content')
+<style>
+.btn-buscar,
+.btn-borrar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    border-radius: 0.75rem;
+    padding: 0.65rem 1.2rem;
+    line-height: 1.25rem;
+    transition: background-color 0.2s ease;
+}
+.btn-buscar {
+    background-color: #0F52BA;
+    color: white;
+}
+.btn-buscar:hover {
+    background-color: #003087;
+}
+.btn-borrar {
+    background-color: #dc2626;
+    color: white;
+}
+.btn-borrar:hover {
+    background-color: #b91c1c;
+}
+
+</style>
 <div class="max-w-6xl mx-auto px-6 py-12 bg-gray-50 min-h-screen">
     <div class="max-w-5xl mx-auto">
         {{-- STEPPER --}}
@@ -87,37 +115,61 @@
                     </div>
 
                     <!-- Datos de Facturación -->
-                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-                        <h2 class="font-bold text-gray-900 text-2xl mb-6 text-center">Datos de Facturación</h2>
+                <!-- Datos de Facturación -->
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h2 class="font-bold text-gray-900 text-2xl">Datos de Facturación</h2>
+                        <button type="button" id="usar-registro"
+                                class="text-sm text-[#0F52BA] font-semibold hover:underline">
+                            Usar datos del registro
+                        </button>
+                    </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">RUC o Cédula</label>
-                                <input type="text" name="cedula" required class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
-                                <input type="text" name="nombre" required class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Dirección exacta</label>
-                                <input type="text" name="direccion" required class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-                                <input type="text" name="telefono" required class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
-                                <input type="email" name="email" required class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
-                            </div>
+                    <!-- Cédula-->
+                <div class="flex items-end gap-3 mt-1">
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">RUC o Cédula</label>
+                        <input type="text" name="cedula" id="cedula"
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
+                    </div>
+                    <div class="flex gap-2 mb-[2px]">
+                        <button type="button" id="buscar-cedula" class="btn-buscar">Buscar</button>
+                        <button type="button" id="borrar-datos" class="btn-borrar">Borrar</button>
+                    </div>
+                </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
+                        <input type="text" name="nombre" id="nombre"
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
+                    </div>
+
+                    <!-- Las demás filas igual -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Dirección exacta</label>
+                        <input type="text" name="direccion"
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                            <input type="text" name="telefono"
+                                class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
                         </div>
-
-                        <div class="mt-6">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Observación (opcional)</label>
-                            <textarea name="observacion" rows="2" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]"></textarea>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
+                            <input type="email" name="email"
+                                class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
                         </div>
                     </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Observación (opcional)</label>
+                        <textarea name="observacion" rows="2"
+                                class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]"></textarea>
+                    </div>
+                </div>
+
                 </div>
 
                 <!-- === PASARELA DE PAGO === -->
@@ -207,28 +259,121 @@ document.getElementById('tipo_pago').addEventListener('change', function() {
 // Inicializar
 document.getElementById('tipo_pago').dispatchEvent(new Event('change'));
 </script>
+
 <script>
-document.querySelector('input[name="cedula"]').addEventListener('blur', async (e) => {
-    const cedula = e.target.value.trim();
-    if (!cedula) return;
+document.getElementById('usar-registro').addEventListener('click', () => {
+    const usuario = {
+        cedula: '{{ auth()->user()->cedula_ruc ?? "" }}',
+        nombre: '{{ auth()->user()->nombre ?? "" }}',
+        direccion: '{{ auth()->user()->direccion ?? "" }}',
+        telefono: '{{ auth()->user()->telefono ?? "" }}',
+        email: '{{ auth()->user()->email ?? "" }}'
+    };
+
+    for (const campo in usuario) {
+        const input = document.querySelector(`input[name="${campo}"]`);
+        if (input) input.value = usuario[campo];
+    }
+
+    document.querySelector('input[name="nombre"]').readOnly = true;
+});
+</script>
+<script>
+   document.getElementById('usar-registro').addEventListener('click', () => {
+    const usuario = {
+        cedula: '{{ $usuario->cedula_ruc ?? "" }}',
+        nombre: '{{ $usuario->nombre ?? "" }}',
+        direccion: '{{ $usuario->direccion ?? "" }}',
+        telefono: '{{ $usuario->telefono ?? "" }}',
+        email: '{{ $usuario->email ?? "" }}'
+    };
+
+    for (const campo in usuario) {
+        const input = document.querySelector(`input[name="${campo}"]`);
+        if (input) input.value = usuario[campo];
+    }
+
+    document.querySelector('input[name="nombre"]').readOnly = true;
+});
+
+</script>
+
+
+
+
+
+
+<script>
+document.getElementById('buscar-cedula').addEventListener('click', async () => {
+    const cedula = document.getElementById('cedula').value.trim();
+
+    // 🔹 Validación inicial
+    if (!cedula || cedula.length < 10) {
+        return Swal.fire('Error', 'Ingrese una cédula válida.', 'error');
+    }
 
     try {
         const response = await fetch(`/cliente/datos?cedula=${cedula}`);
         const data = await response.json();
 
         if (data && !data.error) {
-            document.querySelector('input[name="nombre"]').value = data.nombre || '';
-            document.querySelector('input[name="direccion"]').value = data.direccion || '';
-            document.querySelector('input[name="telefono"]').value = data.telefono || '';
-            document.querySelector('input[name="email"]').value = data.email || '';
+            // 🔹 Llenar todos los campos si existen
+            document.getElementById('nombre').value = data.nombre || '';
+            document.getElementById('direccion').value = data.direccion || '';
+            document.getElementById('telefono').value = data.telefono || '';
+            document.getElementById('email').value = data.email || '';
+
+            // 🔹 Bloquear y poner gris el campo nombre
+            const nombreInput = document.getElementById('nombre');
+            if (nombreInput.value) {
+                nombreInput.readOnly = true;
+                nombreInput.classList.add('bg-gray-100', 'text-gray-500');
+            }
         } else {
-            alert(data.error || 'No se encontraron datos para esta cédula.');
+            Swal.fire('Aviso', 'No se encontraron datos para esta cédula.', 'warning');
         }
     } catch (error) {
         console.error('Error al obtener datos del cliente:', error);
-        alert('Hubo un problema al consultar los datos.');
+        Swal.fire('Error', 'Hubo un problema al consultar los datos.', 'error');
     }
+});
+</script>
+
+
+<script>
+document.getElementById('borrar-datos').addEventListener('click', () => {
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: '¿Quieres borrar todos los datos de facturación?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sí, borrar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const campos = ['cedula', 'nombre', 'direccion', 'telefono', 'email', 'observacion'];
+            campos.forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.value = '';
+                    input.readOnly = false;
+                    input.classList.remove('bg-gray-100', 'text-gray-500');
+                }
+            });
+
+            Swal.fire({
+                title: 'Datos borrados',
+                text: 'Los datos de facturación se han eliminado correctamente.',
+                icon: 'success',
+                confirmButtonColor: '#0F52BA'
+            });
+        }
+    });
 });
 
 </script>
+
 @endsection
+

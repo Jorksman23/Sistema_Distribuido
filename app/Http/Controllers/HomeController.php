@@ -11,7 +11,7 @@ class HomeController {
 
     //Método nuevo para el carrusel
     public function homeConCarrusel(Request $request){
-        $empresa    = config('app.company_code', '001');
+        $empresa    = config('app.company_code', '?');
         $repository = new ProductRepository();
         $model      = new ProductsModel();
         $productos = array_map(fn($r) => $model->mapRowToInstance($r),$repository->getActiveProducts(4, $empresa));

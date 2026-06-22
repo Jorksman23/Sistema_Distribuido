@@ -8,8 +8,8 @@ use App\Repositories\CartRepository;
 use App\Repositories\OrderRepository;
 use App\Services\PaymentMethodService;
 use App\Services\CheckoutService;
-
 use App\Services\CxcAuxiliarProformaService;
+use App\Services\ProformaGenerator;
 use Throwable;
 
 class PaymentService
@@ -20,6 +20,8 @@ class PaymentService
     protected OrderRepository $orderRepository;
     protected CxcAuxiliarProformaService $cxcAuxiliarProformaService;
     protected PaymentMethodService $paymentMethodService;
+    protected ProformaGenerator $proformaGenerator;
+
 
 
     public function __construct(
@@ -29,6 +31,7 @@ class PaymentService
         OrderRepository $orderRepository,
         CxcAuxiliarProformaService $cxcAuxiliarProformaService,
         PaymentMethodService $paymentMethodService,
+        ProformaGenerator $proformaGenerator
     ) {
         $this->carrito = $carrito;
         $this->cartRepository = $cartRepository;
@@ -36,6 +39,7 @@ class PaymentService
         $this->orderRepository = $orderRepository;
         $this->cxcAuxiliarProformaService = $cxcAuxiliarProformaService;
         $this->paymentMethodService = $paymentMethodService;
+        $this->proformaGenerator = $proformaGenerator;
     }
 
     /**
@@ -70,10 +74,7 @@ class PaymentService
             }
 
             // TRANSFERENCIAS Y DEMÁS FORMAS DE PAGO
-            return redirect()->route('pedidos.comprobante')->with(
-                'success',
-                'Ahora suba su comprobante de pago.'
-            );
+                   return $this->procesarPagoTransferencia(session('checkout_data'), $codCliente, $empresa);
         } catch (Throwable $e) {
             return back()->withErrors([
                 'error' => 'Error al procesar la compra: ' . $e->getMessage()
@@ -93,7 +94,7 @@ class PaymentService
         }
 
         $codigoOrden = $this->orderRepository->generarCodigoOrden($empresa);
-       $checkout = $this->checkoutService->obtenerCheckout($codCliente);
+        $checkout = $this->checkoutService->obtenerCheckout($codCliente);
         $granTotal   = (float) $checkout['total'];
 
         try {
@@ -128,6 +129,14 @@ class PaymentService
                 null,
                 'Reserva web - pago en tienda'
             );
+            $documento = $this->proformaGenerator->generarDesdeOrden(
+            (object)[
+                'codigo'             => $codigoOrden,
+                'observacion_compra' => $checkoutData['observacion']
+            ],
+            $items,
+            $empresa
+        );
 
             DB::connection('odbc')->table('DBA.PW_HISTORICO_PEDIDO')->insert([
                 'cod_orden'      => $codigoOrden,
@@ -143,10 +152,8 @@ class PaymentService
             $this->cartRepository->marcarComoProcesado($codCliente, $codigoOrden);
 
             DB::connection('odbc')->commit();
-            session()->forget('checkout_data');
-            session()->forget('carrito_count');
-            session()->forget('carrito_ubicacion');
-
+            session()->forget(['carrito_count','carrito_ubicacion']);
+            session(['checkout_data' => $checkoutData]);
             return view('pedidos.confirmacion-efectivo', [
                 'codigoOrden' => $codigoOrden,
                 'total'       => $granTotal
@@ -156,6 +163,93 @@ class PaymentService
             return back()->withErrors(['error' => $e->getMessage()]);
         }
     }
+    public function procesarPagoTransferencia(array $checkoutData, string $codCliente, string $empresa)
+    {
+        $items = $this->carrito->getCarritoByUser($codCliente);
+        if (empty($items)) {
+            return redirect()->route('carrito.index')->withErrors([
+                'error' => 'El carrito está vacío.'
+            ]);
+        }
+
+        $codigoOrden = $this->orderRepository->generarCodigoOrden($empresa);
+        $checkout    = $this->checkoutService->obtenerCheckout($codCliente);
+        $granTotal   = (float) $checkout['total'];
+
+        try {
+            DB::connection('odbc')->beginTransaction();
+
+
+            DB::connection('odbc')->table('DBA.PW_ORDENES_WEB')->insert([
+                'codigo'             => $codigoOrden,
+                'cod_cliente'        => $codCliente,
+                'tipo'               => companyDefaultOrderType('invoice'),
+                'empresa'            => $empresa,
+                'uuid_session'       => md5(uniqid(rand(), true)),
+                'tipo_pago'          => $checkoutData['tipo_pago'],
+                'items_carrito'      => count($items),
+                'gran_total'         => $granTotal,
+                'estatus'            => '1',
+                'cedula_cliente'     => $checkoutData['cedula'],
+                'nombre_cliente'     => $checkoutData['nombre'],
+                'email_cliente'      => $checkoutData['email'],
+                'telefono_cliente'   => $checkoutData['telefono'],
+                'direccion_cliente'  => $checkoutData['direccion'],
+                'observacion_compra' => $checkoutData['observacion'] ?? null,
+                'fecha_creacion'     => now(),
+                'fecha_modificacion' => now(),
+            ]);
+
+
+            $formaPago   = $this->paymentMethodService->obtenerFormaPago((int)$checkoutData['tipo_pago'], $empresa);
+            $cuentaBanco = $this->paymentMethodService->obtenerCuentaBanco($formaPago, $empresa);
+
+
+            $this->cxcAuxiliarProformaService->registrar(
+                $codigoOrden,
+                (int)$checkoutData['tipo_pago'],
+                $granTotal,
+                $empresa,
+                null,
+                $cuentaBanco ? "Transferencia a banco {$cuentaBanco->descripcion}" : "Transferencia bancaria"
+            );
+
+        $documento = $this->proformaGenerator->generarDesdeOrden(
+                (object)[
+                    'codigo'             => $codigoOrden,
+                    'observacion_compra' => $checkoutData['observacion']
+                ],
+                $items,
+                $empresa
+            );
+
+
+            DB::connection('odbc')->table('DBA.PW_HISTORICO_PEDIDO')->insert([
+                'cod_orden'      => $codigoOrden,
+                'codigo_cliente' => $codCliente,
+                'cod_estado'     => '1',
+                'observacion'    => 'Pedido registrado para transferencia bancaria',
+                'fecha_cambio'   => now(),
+                'created_at'     => now(),
+                'update_at'      => now(),
+                'empresa'        => $empresa,
+            ]);
+
+            $this->cartRepository->marcarComoProcesado($codCliente, $codigoOrden);
+
+            DB::connection('odbc')->commit();
+            session()->forget(['checkout_data','carrito_count','carrito_ubicacion']);
+            session(['checkout_data' => $checkoutData]);
+            return redirect()->route('pedidos.comprobante')->with(
+                'success',
+                "Orden {$codigoOrden} registrada con documento {$documento}. Ahora suba su comprobante."
+            );
+        } catch (Throwable $e) {
+            DB::connection('odbc')->rollBack();
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
+
     public function obtenerOrden(string $codigo,string $empresa){
         return DB::connection('odbc')->selectOne("
             SELECT *

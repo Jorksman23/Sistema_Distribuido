@@ -22,7 +22,7 @@ class ProformaGenerator
 
             $this->crearCabeceraProforma($orden, $documento, $itemsCarrito);
             $this->crearMovimientosProforma($documento, $itemsCarrito);
-            $this->actualizarOrdenWeb($orden, $documento);
+            $this->registrarOrdenWeb($orden, $documento);
 
             DB::connection($this->connection)->commit();
 
@@ -163,13 +163,13 @@ class ProformaGenerator
             return $result->ubicacion ?? null;
     }
 
-    private function actualizarOrdenWeb($orden, string $documento)
+    private function registrarOrdenWeb($orden, string $documento)
     {
         DB::connection($this->connection)->table('DBA.PW_ORDENES_WEB')
             ->where('codigo', $orden->codigo)
             ->update([
                 'n_documento'          => $documento,
-                'estatus'              => '2',
+                'estatus'              => '1',
                 'n_confirmacion'       => $documento,
                 'pt_referencia_compra' => $documento,
                 'fecha_modificacion'   => now(),
