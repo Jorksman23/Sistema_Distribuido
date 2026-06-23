@@ -51,67 +51,55 @@ AFTER INSERT, UPDATE ON "DBA"."pw_ge_usuarios"
 REFERENCING NEW AS new_row OLD AS old_row
 FOR EACH ROW
 BEGIN
+    DECLARE v_codigo_cliente VARCHAR(8);
+    DECLARE v_vendedor INT;
 
-    IF INSERTING THEN
-        BEGIN
-            IF NOT EXISTS (
-                SELECT 1 FROM "DBA"."in_cliente"
-                WHERE codigo  = CAST(new_row.user_id AS VARCHAR(8))
-                AND   empresa = new_row.empresa
-            ) THEN
-                INSERT INTO "DBA"."in_cliente" (
-                    codigo,
-                    nombre,
-                    cedula_ruc,
-                    e_mail,
-                    estado,
-                    empresa,
-                    direccion1,
-                    telefono,
-                    vendedor
-                ) VALUES (
-                    CAST(new_row.user_id AS VARCHAR(8)),
-                    new_row.nombre,
-                    new_row.cedula_ruc,
-                    new_row.email,
-                    SUBSTRING(new_row.estado, 1, 1),
-                    new_row.empresa,
-                    new_row.direccion,
-                    new_row.telefono,
-                    '1'
-                );
-            ELSE
-                -- Si ya existe el codigo, actualiza en lugar de insertar
-                UPDATE "DBA"."in_cliente"
-                SET
-                    nombre     = new_row.nombre,
-                    cedula_ruc = new_row.cedula_ruc,
-                    e_mail     = new_row.email,
-                    estado     = SUBSTRING(new_row.estado, 1, 1),
-                    direccion1 = new_row.direccion,
-                    telefono   = new_row.telefono
-                WHERE codigo  = CAST(new_row.user_id AS VARCHAR(8))
-                AND   empresa = new_row.empresa;
-            END IF;
-        END;
+    -- Vendedor por defecto
+    SELECT parametro INTO v_vendedor
+    FROM DBA.ge_parametros
+    WHERE codigo = 66
+      AND empresa = new_row.empresa;
 
-    ELSEIF UPDATING THEN
-        UPDATE "DBA"."in_cliente"
-        SET
-            nombre     = new_row.nombre,
-            cedula_ruc = new_row.cedula_ruc,
+    -- Buscar cliente existente
+    SELECT codigo INTO v_codigo_cliente
+    FROM DBA.in_cliente
+    WHERE empresa = new_row.empresa
+      AND cedula_ruc = new_row.cedula_ruc;
+
+    IF v_codigo_cliente IS NULL THEN
+        -- Cliente nuevo
+        INSERT INTO DBA.in_cliente (
+            codigo, nombre, cedula_ruc, e_mail, estado,
+            empresa, direccion1, telefono, vendedor
+        )
+        VALUES (
+            new_row.pw_codigo,
+            new_row.nombre,
+            new_row.cedula_ruc,
+            new_row.email,
+            SUBSTRING(new_row.estado, 1, 1),
+            new_row.empresa,
+            new_row.direccion,
+            new_row.telefono,
+            COALESCE(v_vendedor, 1)
+        );
+    ELSE
+        -- Cliente existente: actualizar y sincronizar código
+        UPDATE DBA.in_cliente
+        SET nombre     = new_row.nombre,
             e_mail     = new_row.email,
-            estado     = SUBSTRING(new_row.estado, 1, 1),
-            empresa    = new_row.empresa,
             direccion1 = new_row.direccion,
-            telefono   = new_row.telefono
-        WHERE codigo  = CAST(old_row.user_id AS VARCHAR(8))
-        AND   empresa = old_row.empresa;
+            telefono   = new_row.telefono,
+            estado     = SUBSTRING(new_row.estado, 1, 1),
+            vendedor   = COALESCE(v_vendedor, vendedor)
+        WHERE empresa = new_row.empresa
+          AND cedula_ruc = new_row.cedula_ruc;
 
+        UPDATE DBA.pw_ge_usuarios
+        SET pw_codigo = v_codigo_cliente
+        WHERE user_id = new_row.user_id;
     END IF;
-
 END
-
 /* ==========================================================
    PW_CARRITO_WEB
    Campo para almacenar la ubicación/sucursal desde donde
@@ -229,5 +217,14 @@ ADD celular LONG VARCHAR NULL,
 ADD telefono2 LONG VARCHAR NULL,
 ADD celular_rl LONG VARCHAR NULL,
 ADD logo_tienda LONG VARCHAR NULL;
+
+/* ==========================================================
+   pw_ordenes_web
+  Añadir Campo adicional para guardar el user_id de la sesion para
+  que al momento de mostrar los pedidos me muestre todos los que se hizo
+  en esa sesion independientemente de su codigo de usuario
+   ========================================================== */
+ALTER TABLE "DBA"."pw_ordenes_web" ADD "user_id" INTEGER NULL;
+
 
 

@@ -55,7 +55,15 @@ class ComprobanteService
 
     public function guardarComprobante($archivo, array $checkoutData, string $codCliente, string $empresa, $items, $granTotal)
     {
-        $codigoOrden = $this->orderRepository->generarCodigoOrden($empresa);
+        // Reutilizar la orden y documento ya creados en el flujo de pago
+        $codigoOrden = session('codigo_orden');
+        $documento   = session('documento');
+
+        if (!$codigoOrden || !$documento) {
+            return back()->withErrors([
+                'error' => 'No se encontró la orden registrada. Vuelva a procesar el pago.'
+            ]);
+        }
 
         $nombreArchivo = $codigoOrden . '_' . time() . '.' .$archivo->getClientOriginalExtension();
         $ruta = $archivo->storeAs(
@@ -66,31 +74,10 @@ class ComprobanteService
 
         try {
             DB::connection('odbc')->beginTransaction();
-            // Crear orden
-            DB::connection('odbc')->table('DBA.PW_ORDENES_WEB')->insert([
-                'codigo'             => $codigoOrden,
-                'cod_cliente'        => $codCliente,
-                'n_documento'        => $codigoOrden,
-                'tipo'               => companyDefaultOrderType('invoice'),
-                'empresa'            => $empresa,
-                'uuid_session'       => md5(uniqid(rand(), true)),
-                'tipo_pago'          => $checkoutData['tipo_pago'],
-                'items_carrito'      => count($items),
-                'gran_total'         => $granTotal,
-                'estatus'            => '1',
-                'cedula_cliente'     => $checkoutData['cedula'],
-                'nombre_cliente'     => $checkoutData['nombre'],
-                'email_cliente'      => $checkoutData['email'],
-                'telefono_cliente'   => $checkoutData['telefono'],
-                'direccion_cliente'  => $checkoutData['direccion'],
-                'observacion_compra' => $checkoutData['observacion'] ?? null,
-                'fecha_creacion'     => now(),
-                'fecha_modificacion' => now(),
-            ]);
 
-            // Registrar en auxiliar proforma
+            // Registrar en auxiliar proforma con el documento existente
             $this->cxcAuxiliarProformaService->registrar(
-                $codigoOrden,
+                $documento,
                 (int)$checkoutData['tipo_pago'],
                 $granTotal,
                 $empresa,
@@ -127,12 +114,12 @@ class ComprobanteService
             $this->cartRepository->marcarComoProcesado($codCliente, $codigoOrden);
 
             DB::connection('odbc')->commit();
-            session()->forget('checkout_data');
-            session()->forget('carrito_count');
-            session()->forget('carrito_ubicacion');
+
+
+            session()->forget(['checkout_data','carrito_count','carrito_ubicacion']);
             return redirect()->route('profile.orders')->with(
                 'success',
-                'Comprobante enviado correctamente.'
+                "Comprobante enviado correctamente para la orden {$codigoOrden} con documento {$documento}."
             );
         } catch (Throwable $e) {
             DB::connection('odbc')->rollBack();

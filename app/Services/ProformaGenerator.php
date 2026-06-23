@@ -41,7 +41,7 @@ class ProformaGenerator
         }
     }
 
-    private function generarNumeroDocumento(): string
+    public function generarNumeroDocumento(): string
     {
         $result = DB::connection($this->connection)->selectOne("
             SELECT MAX(CAST(documento AS INTEGER)) as ultimo
@@ -59,10 +59,9 @@ class ProformaGenerator
         foreach ($itemsCarrito as $item) {
             $granTotal += (float)($item->pvp3 ?? 0) * (int)($item->cantidad ?? 1);
         }
-        $siguiente = $this->generarNumeroDocumento();
         DB::connection($this->connection)->table('DBA.IN_CABECERA_PROFORMA')->insert([
             'tipo'          => companyDefaultOrderType('proforma_web'),
-            'documento'     => (string)$siguiente,
+            'documento'     => (string)$documento,
             'empresa'       => $this->empresa,
             'fecha'         => now()->format('Y-m-d'),
             'pro_cli'       => '1',
@@ -78,10 +77,10 @@ class ProformaGenerator
             'created_at'    => now(),
             'update_at'     => now(),
         ]);
-        return $siguiente;
+        return $documento;
     }
 
-    private function crearMovimientosProforma(string $documento, array $itemsCarrito)
+     function crearMovimientosProforma(string $documento, array $itemsCarrito)
     {
         foreach ($itemsCarrito as $item) {
             $codigoItem     = $item->codigo_item;
@@ -101,7 +100,7 @@ class ProformaGenerator
             DB::connection($this->connection)->table('DBA.IN_MOVIMIENTO_PROFORMA')->insert([
                 'empresa'      => $this->empresa,
                 'tipo'         => companyDefaultOrderType('proforma_web'),
-                'documento'    => $documento,
+                'documento'    => (string)$documento,
                 'cantidad'     => $cantidad,
                 'valor'        => (float)$item->pvp3,
                 'descuento'    => 0,

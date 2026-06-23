@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Repositories\LoginRepository;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -29,18 +30,24 @@ class ProfileController {
         ]);
     }
 
-    public function orders(Request $request){
+
+
+
+    public function orders(Request $request)
+    {
         $userId = session('user_id');
         if (!$userId) {
             return redirect()->route('login');
         }
-        $usuario = $this->model->findById($userId);
 
+        $usuario = $this->model->findById($userId);
         if (!$usuario) {
             return redirect()->route('login');
         }
-        $codCliente = (string) $userId;
-        $empresa    = currentCompany();
+
+        $empresa = currentCompany();
+
+        // Obtener pedidos directamente por user_id
         $pedidosCollection = collect(DB::connection('odbc')->select("
             SELECT
                 pw_id,
@@ -52,13 +59,19 @@ class ProfileController {
                 fecha_creacion,
                 observacion_compra
             FROM DBA.PW_ORDENES_WEB
-            WHERE cod_cliente = ?
-            AND empresa = ?
+            WHERE empresa = ?
+            AND user_id = ?
             ORDER BY fecha_creacion DESC
-        ", [$codCliente, $empresa]));
+        ", [$empresa, $userId]));
 
+        // Log para verificar cuántos pedidos se obtuvieron
+        Log::info('📦 Pedidos recuperados', [
+            'total' => $pedidosCollection->count(),
+            'user_id' => $userId
+        ]);
+
+        // Paginación
         $perPage = 8;
-
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
 
         $pedidos = new LengthAwarePaginator(
@@ -77,6 +90,7 @@ class ProfileController {
             'pedidos' => $pedidos
         ]);
     }
+
 
     // === Actualizar datos personales ===
     public function update(Request $request)

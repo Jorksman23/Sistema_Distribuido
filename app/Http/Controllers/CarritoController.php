@@ -207,13 +207,27 @@ class CarritoController {
     }
 
 
-     public function obtenerDatosCliente(Request $request, CheckoutService $checkoutService)
+    public function obtenerDatosCliente(Request $request, PaymentService $paymentService)
     {
-        $cedula = $request->get('cedula');
-        $dataFinal = $checkoutService->obtenerDatosCliente($cedula);
+        $cedula  = $request->get('cedula');
+        $empresa = currentCompany();
 
-        return response()->json($dataFinal);
+        $data = [
+            'cedula'     => $cedula,
+            'nombre'     => $request->get('nombre'),
+            'email'      => $request->get('email'),
+            'telefono'   => $request->get('telefono'),
+            'direccion'  => $request->get('direccion'),
+            'observacion'=> $request->get('observacion'),
+        ];
+
+        //Llamar al servicio y obtener todos los datos del cliente
+        $clienteData = $paymentService->obtenerOCrearCliente($data, $empresa);
+
+        //Devolver los datos reales del cliente al frontend
+        return response()->json($clienteData);
     }
+
 
     // === Procesar Pago ===
     public function procesarPago(Request $request)
@@ -230,6 +244,7 @@ class CarritoController {
         'telefono'    => 'required|string|max:15',
         'direccion'   => 'required|string|max:500',
         'observacion' => 'nullable|string|max:500',
+        'metodo_entrega' => 'required|string|in:R,E',
     ]);
 
     // Delegar al servicio: él mismo llama a procesarPagoEfectivo si corresponde
@@ -241,7 +256,8 @@ class CarritoController {
             'email',
             'telefono',
             'direccion',
-            'observacion'
+            'observacion',
+            'metodo_entrega'
         ]),
         $codCliente,
         $empresa

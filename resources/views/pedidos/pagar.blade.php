@@ -174,6 +174,21 @@
                 <!-- === PASARELA DE PAGO === -->
                 <div class="lg:col-span-5">
                     <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+                        <!-- Combo de método de entrega -->
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Selecciona método de entrega
+                                </label>
+                                <select
+                                    id="metodo_entrega"
+                                    name="metodo_entrega"
+                                    required
+                                    class="w-full border-2 border-gray-800 rounded-xl px-4 py-3 bg-white text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3] focus:border-[#0300a3]">
+                                    <option value="">Seleccione método de entrega</option>
+                                    <option value="R">Retiro en local</option>
+                                    <option value="E">Envío vehicular</option>
+                                </select>
+                            </div>
                         <h2 class="font-bold text-gray-900 text-2xl mb-6 flex items-center gap-2">
                             <svg class="w-5 h-5 text-[#0300a3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

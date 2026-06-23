@@ -79,98 +79,98 @@ class LoginController {
         return redirect('/');
     }
     // Procesar registro
-    public function register(Request $request){
-    $request->validate([
-        'nombre'   => 'required|string',
-        'email'    => 'required|email',
-        'password' => 'required|min:6',
+   public function register(Request $request){
+        $request->validate([
+            'nombre'   => 'required|string',
+            'email'    => 'required|email',
+            'password' => 'required|min:6',
         ]);
 
-    if ($this->model->findByEmail($request->email)) {
-        return back()->withErrors(['email' => 'El email ya está registrado.'])->withInput();
+        if ($this->model->findByEmail($request->email)) {
+            return back()->withErrors(['email' => 'El email ya está registrado.'])->withInput();
         }
 
-    try {
-        $this->model->createUser([
-            'pw_codigo'           => 'USR' . substr(time(), -7),
-            'nombre'              => $request->nombre,
-            'cedula_ruc'          => $request->cedula_ruc,
-            'email'               => $request->email,
-            'contrasena'          => Hash::make($request->password),
-            'estado'              => 'A',
-            'direccion'           => $request->direccion,
-            'telefono'            => $request->telefono,
-            'tipo_identificacion' => $request->tipo_identificacion,
-            'empresa'             => config('app.company_code', '?'),
-            'email_verified_at'   => null,
+        try {
+            $this->model->createUser([
+                'nombre'              => $request->nombre,
+                'cedula_ruc'          => $request->cedula_ruc,
+                'email'               => $request->email,
+                'contrasena'          => Hash::make($request->password),
+                'estado'              => 'A',
+                'direccion'           => $request->direccion,
+                'telefono'            => $request->telefono,
+                'tipo_identificacion' => $request->tipo_identificacion,
+                'empresa'             => config('app.company_code', '?'),
+                'email_verified_at'   => null,
             ]);
 
-        // Recuperar usuario recién creado
-        $user = $this->model->findByEmail($request->email);
+            // Recuperar usuario recién creado
+            $user = $this->model->findByEmail($request->email);
 
-        // Generar URL de verificación firmada (válida por 60 minutos)
-        $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify',
-            now()->addMinutes(60),
-            ['id' => $user->user_id, 'hash' => sha1($user->email)]
+            // Generar URL de verificación firmada (válida por 60 minutos)
+            $verificationUrl = URL::temporarySignedRoute(
+                'verification.verify',
+                now()->addMinutes(60),
+                ['id' => $user->user_id, 'hash' => sha1($user->email)]
             );
 
-        // Renderizar plantilla Blade del correo
-        $htmlContent = view('email.verify', compact('user', 'verificationUrl'))->render();
+            // Renderizar plantilla Blade del correo
+            $htmlContent = view('email.verify', compact('user', 'verificationUrl'))->render();
 
-        // Enviar correo con Brevo
-        $this->mailer->sendEmail(
-            $user->email,
-            'Verifica tu correo en ' . config('app.name'),
-            $htmlContent
+            // Enviar correo con Brevo
+            $this->mailer->sendEmail(
+                $user->email,
+                'Verifica tu correo en ' . config('app.name'),
+                $htmlContent
             );
 
-        // Guardar email en sesión para reenvío
-        session(['email' => $request->email]);
+            // Guardar email en sesión para reenvío
+            session(['email' => $request->email]);
 
-        return redirect()->route('verification.notice')
-            ->with('message', 'Cuenta creada. Revisa tu correo para verificarla.');
-            } catch (\Exception $e) {
-                return back()->withErrors(['error' => 'Error al crear cuenta: ' . $e->getMessage()]);
-                }
+            return redirect()->route('verification.notice')
+                ->with('message', 'Cuenta creada. Revisa tu correo para verificarla.');
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Error al crear cuenta: ' . $e->getMessage()]);
+        }
     }
+
 
     public function resendVerification(Request $request)
-{
-    Log::info('Entró a resendVerification', ['email' => session('email')]);
+    {
+        Log::info('Entró a resendVerification', ['email' => session('email')]);
 
-    try {
-        $email = session('email');
-        if (!$email) {
-            return back()->withErrors(['email' => 'No hay correo en sesión.']);
+        try {
+            $email = session('email');
+            if (!$email) {
+                return back()->withErrors(['email' => 'No hay correo en sesión.']);
+            }
+
+            $user = $this->model->findByEmail($email);
+            if (!$user) {
+                return back()->withErrors(['email' => 'No se encontró el usuario.']);
+            }
+
+            $verificationUrl = URL::temporarySignedRoute(
+                'verification.verify',
+                now()->addMinutes(60),
+                ['id' => $user->user_id, 'hash' => sha1($user->email)]
+            );
+
+            $htmlContent = view('email.verify', compact('user', 'verificationUrl'))->render();
+
+            $result = $this->mailer->sendEmail(
+                $user->email,
+                'Verifica tu correo en ' . config('app.name'),
+                $htmlContent
+            );
+
+            Log::info('Brevo resend result', $result);
+
+            return back()->with('message', 'Se ha reenviado el enlace de verificación.');
+        } catch (\Exception $e) {
+            Log::error('Error en resendVerification: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'Error al reenviar correo: ' . $e->getMessage()]);
         }
-
-        $user = $this->model->findByEmail($email);
-        if (!$user) {
-            return back()->withErrors(['email' => 'No se encontró el usuario.']);
-        }
-
-        $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify',
-            now()->addMinutes(60),
-            ['id' => $user->user_id, 'hash' => sha1($user->email)]
-        );
-
-        $htmlContent = view('email.verify', compact('user', 'verificationUrl'))->render();
-
-        $result = $this->mailer->sendEmail(
-            $user->email,
-            'Verifica tu correo en ' . config('app.name'),
-            $htmlContent
-        );
-
-        Log::info('Brevo resend result', $result);
-
-        return back()->with('message', 'Se ha reenviado el enlace de verificación.');
-    } catch (\Exception $e) {
-        Log::error('Error en resendVerification: ' . $e->getMessage());
-        return back()->withErrors(['error' => 'Error al reenviar correo: ' . $e->getMessage()]);
-    }
     }
 
 

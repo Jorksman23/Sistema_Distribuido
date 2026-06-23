@@ -16,24 +16,34 @@ class LoginRepository
 
         return $row ? login_model::mapRowToInstance($row) : null;
     }
-    public function createUser($data){
-        return DB::connection($this->connection)->insert("
-            INSERT INTO DBA.pw_ge_usuarios
-            (pw_codigo, nombre, cedula_ruc, email, contrasena, estado, direccion, telefono, tipo_identificacion,empresa)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ", [
-            $data['pw_codigo'],
-            $data['nombre'],
-            $data['cedula_ruc'],
-            $data['email'],
-            $data['contrasena'],
-            $data['estado']               ?? 'A',
-            $data['direccion']            ?? null,
-            $data['telefono']             ?? null,
-            $data['tipo_identificacion']  ?? null,
-            $data['empresa'],
-            null,
-        ]);
+   public function createUser($data){
+    $maxCodigo = DB::connection($this->connection)
+        ->selectOne("
+            SELECT COALESCE(MAX(CAST(codigo AS INT)), 0) + 1 AS nuevo_codigo
+            FROM DBA.in_cliente
+            WHERE empresa = ?
+        ", [$data['empresa']]);
+
+    // Asignar el nuevo código numérico al usuario
+    $data['pw_codigo'] = $maxCodigo->nuevo_codigo;
+
+    // Insertar en pw_ge_usuarios
+    return DB::connection($this->connection)->insert("
+        INSERT INTO DBA.pw_ge_usuarios
+        (pw_codigo, nombre, cedula_ruc, email, contrasena, estado, direccion, telefono, tipo_identificacion, empresa)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ", [
+        $data['pw_codigo'],
+        $data['nombre'],
+        $data['cedula_ruc'],
+        $data['email'],
+        $data['contrasena'],
+        $data['estado']              ?? 'A',
+        $data['direccion']           ?? null,
+        $data['telefono']            ?? null,
+        $data['tipo_identificacion'] ?? null,
+        $data['empresa'],
+    ]);
     }
 
     public function getUsers()
