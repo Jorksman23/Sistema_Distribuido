@@ -130,7 +130,7 @@ class ComprobanteService
             session()->forget('checkout_data');
             session()->forget('carrito_count');
             session()->forget('carrito_ubicacion');
-            return redirect()->route('profile.show')->with(
+            return redirect()->route('profile.orders')->with(
                 'success',
                 'Comprobante enviado correctamente.'
             );

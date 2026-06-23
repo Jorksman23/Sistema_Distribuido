@@ -177,6 +177,16 @@ class LoginController {
     // Cerrar sesión
     public function logout()
     {
+        $codCliente = (string) session('user_id');
+
+        // Vaciar el carrito del usuario antes de cerrar sesión
+        if ($codCliente) {
+            try {
+                (new \App\Repositories\CartRepository())->vaciar($codCliente);
+            } catch (\Throwable $e) {
+                // Si falla, continuamos con el logout de todas formas
+            }
+        }
         session()->flush();
         return redirect('/login');
     }

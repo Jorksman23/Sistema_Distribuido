@@ -22,7 +22,7 @@ class CartService
 
     public function agregarProducto(array $data, string $codCliente): void {
         $presentacion = (int) ($data['presentacion'] ?? 0);
-        $ubicacion    = (string) session ('ubicacion_seleccionado','');
+        $ubicacion    = (string) session ('ubicacion_seleccionada','');
         if ($this->cartRepository->exists($codCliente, $data['codigo_item'], $presentacion, $ubicacion)) {
             $item = $this->carrito->getItemByProducto($codCliente, $data['codigo_item'], $presentacion);
             if ($item) {
@@ -34,7 +34,7 @@ class CartService
                 );
                 if ($item->cantidad >= $stockDisponible) {
                     throw new \Exception(
-                        "No hay más stock disponible para este producto en esta ubicación."
+                        "No hay más stock disponible para este producto."
                     );
                 }
                 $this->cartRepository->updateCantidad($item->id_item_web, $codCliente, $item->cantidad + 1);

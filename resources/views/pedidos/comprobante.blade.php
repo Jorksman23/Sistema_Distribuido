@@ -120,6 +120,7 @@
         <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
 
             <form
+                id="formComprobante"
                 method="POST"
                 action="{{ route('pedidos.comprobante.guardar') }}"
                 enctype="multipart/form-data">
@@ -147,14 +148,13 @@
                     </span>
 
                     <span class="text-sm text-gray-500 mt-1">
-                        JPG, PNG o PDF
+                        JPG o PNG
                     </span>
 
                     <input
                         type="file"
                         id="comprobante"
                         name="comprobante"
-                        required
                         class="hidden">
                 </label>
 
@@ -189,11 +189,6 @@
                     class="hidden mt-4">
                     <img id="previewImage"
                         class="rounded-xl border border-gray-200 w-full">
-                    <div id="pdfPreview"
-                        class="hidden p-4 rounded-xl bg-red-50 border border-red-200 text-center">
-                        📄 Archivo PDF seleccionado
-                    </div>
-
                 </div>
 
                 <button
@@ -210,44 +205,4 @@
     </div>
 
 </div>
-
-<script>
-
-document.getElementById('comprobante').addEventListener('change', function(){
-
-    const file = this.files[0];
-    if(!file) return;
-    document.getElementById('fileInfo').classList.remove('hidden');
-    document.getElementById('fileName').innerText = file.name;
-    document.getElementById('fileSize').innerText = (file.size / 1024 / 1024).toFixed(2) + ' MB';
-    const previewContainer = document.getElementById('previewContainer');
-    const previewImage = document.getElementById('previewImage');
-    const pdfPreview = document.getElementById('pdfPreview');
-
-    previewContainer.classList.remove('hidden');
-
-    if(file.type === 'application/pdf'){
-        previewImage.classList.add('hidden');
-        pdfPreview.classList.remove('hidden');
-    }else{
-        pdfPreview.classList.add('hidden');
-        previewImage.classList.remove('hidden');
-        const reader = new FileReader();
-        reader.onload = function(e){
-            previewImage.src = e.target.result;
-        };
-
-        reader.readAsDataURL(file);
-    }
-});
-
-    document.getElementById('btnEliminarArchivo').addEventListener('click', function(){
-    document.getElementById('comprobante').value = '';
-    document.getElementById('fileInfo').classList.add('hidden');
-    document.getElementById('previewContainer').classList.add('hidden');
-    document.getElementById('previewImage').src = '';
-    document.getElementById('pdfPreview').classList.add('hidden');
-    });
-</script>
-
 @endsection

@@ -53,5 +53,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ asset('js/carrito.js') }}?v={{ filemtime(public_path('js/carrito.js')) }}"></script>
 <script src="{{ asset('js/wishlist.js') }}?v={{ filemtime(public_path('js/wishlist.js')) }}"></script>
+<script src="{{ asset('js/cart.js') }}?v={{ filemtime(public_path('js/cart.js')) }}"></script>
+<script src="{{ asset('js/comprobante.js') }}?v={{ filemtime(public_path('js/comprobante.js')) }}"></script>
 </body>
 </html>

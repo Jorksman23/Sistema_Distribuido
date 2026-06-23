@@ -36,13 +36,8 @@ class ProductsController {
                 'relacionados'               => $relacionados,
             ]);
         } catch (Throwable $e) {
-            // return redirect()->route('catalogo.index')
-            //      ->withErrors(['error' => 'Error al obtener producto: ' . $e->getMessage()]);
-            dd([
-                'mensaje' => $e->getMessage(),
-                'archivo' => $e->getFile(),
-                'linea'   => $e->getLine(),
-            ]);
+            return redirect()->route('catalogo.index')
+                  ->withErrors(['error' => 'Error al obtener producto: ' . $e->getMessage()]);
         }
     }
 

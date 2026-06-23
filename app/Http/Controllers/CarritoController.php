@@ -113,33 +113,79 @@ class CarritoController {
         try {
             $this->cartService->actualizarCantidad($request->id_item_web,$request->cantidad,(string) session('user_id'));
             session()->forget('carrito_count');
+            if ($request->wantsJson() || $request->ajax()) {
+                $resumen = $this->cartService->obtenerResumenCarrito((string) session('user_id'));
+                return response()->json([
+                    'success'       => true,
+                    'cantidad'      => (int) $request->cantidad,
+                    'subtotal'      => $resumen['subtotal'],
+                    'iva'           => $resumen['iva'],
+                    'total'         => $resumen['total'],
+                    'carrito_count' => $this->cartRepository->count((string) session('user_id')),
+                ]);
+            }
             return back();
         } catch (Throwable $e) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 422);
+            }
             return back()->withErrors(['error' => $e->getMessage()]);
         }
     }
 
     // === Eliminar Producto ===
     public function remove(Request $request){
-    $request->validate([
-        'id_item_web' => 'required|integer',
-    ]);
-    try {
-        $this->cartService->eliminarProducto($request->id_item_web,(string) session('user_id'));
-        session()->forget('carrito_count');
-        return back();
-    } catch (Throwable $e) {
-        return back()->withErrors(['error' => $e->getMessage()]);
-    }
+        $request->validate([
+            'id_item_web' => 'required|integer',
+        ]);
+        try {
+            $this->cartService->eliminarProducto($request->id_item_web,(string) session('user_id'));
+            session()->forget('carrito_count');
+
+            if ($request->wantsJson() || $request->ajax()) {
+                $resumen = $this->cartService->obtenerResumenCarrito((string) session('user_id'));
+                return response()->json([
+                    'success'       => true,
+                    'subtotal'      => $resumen['subtotal'],
+                    'iva'           => $resumen['iva'],
+                    'total'         => $resumen['total'],
+                    'carrito_count' => $this->cartRepository->count((string) session('user_id')),
+                ]);
+            }
+            return back();
+        } catch (Throwable $e) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 422);
+            }
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
     }
 
     // === Vaciar Carrito ===
-    public function vaciar(){
+    public function vaciar(Request $request){
         try {
         $this->cartService->vaciarCarrito((string) session('user_id'));
         session()->forget('carrito_count');
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'       => true,
+                'carrito_count' => 0,
+            ]);
+        }
         return redirect()->route('carrito.index');
         } catch (Throwable $e) {
+          if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
         return back()->withErrors(['error' => $e->getMessage()]);
     }
 
@@ -241,7 +287,7 @@ class CarritoController {
 {
     // 1. Validar archivo comprobante
     $request->validate([
-        'comprobante' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120'
+        'comprobante' => 'required|file|mimes:jpg,jpeg,png|max:5120'
     ]);
 
     // 2. Recuperar datos de checkout desde sesión
@@ -259,17 +305,20 @@ class CarritoController {
     // 4. Validar carrito
     $items = $this->carrito->getCarritoByUser($codCliente);
     if (empty($items)) {
-        return redirect()->route('carrito.index')->withErrors([
-            'error' => 'El carrito está vacío.'
-        ]);
+        // Si el carrito está vacío pero checkout_data existe,
+        // el comprobante ya fue procesado — redirigir a pedidos
+        return redirect()->route('profile.orders')->with(
+            'success',
+            'Comprobante enviado correctamente.'
+        );
     }
 
     // 5. Obtener total
-    $checkout   = $this->checkoutService->obtenerCheckout($codCliente);
-    $granTotal  = (float) $checkout['total'];
+    $checkout  = $this->checkoutService->obtenerCheckout($codCliente);
+    $granTotal = (float) $checkout['total'];
 
-    // 6. Guardar comprobante con servicio
-    $response = $this->comprobanteService->guardarComprobante(
+    // 6. Guardar comprobante y redirigir a pedidos (manejado por el servicio)
+    return $this->comprobanteService->guardarComprobante(
         $request->file('comprobante'),
         $checkoutData,
         $codCliente,
@@ -277,11 +326,6 @@ class CarritoController {
         $items,
         $granTotal
     );
-
-    // 7. ✅ Aquí sí borras checkout_data (ya no se necesita)
-    session()->forget('checkout_data');
-
-    return $response;
 }
 
 
