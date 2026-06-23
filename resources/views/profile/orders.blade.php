@@ -80,18 +80,33 @@
                 </nav>
             </div>
         </aside>
-    
+
     <div class="flex-1 min-w-0">
         {{-- ===== HISTORIAL DE PEDIDOS ===== --}}
         <div id="historial-pedidos" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
             <div class="flex items-center justify-between mb-5">
-                <h2 class="font-bold text-gray-900 text-2xl">
+                <h2 class="font-bold text-gray-900 text-2xl flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        class="w-6 h-6 text-gray-700"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 8v4l3 3m6-3a9 9 0 1 1-3.536-7.153"/>
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 4v4h4"/>
+                    </svg>
                     Historial de Pedidos
                 </h2>
-                <span class="bg-cyan-50 text-cyan-700 text-xs font-semibold px-3 py-1 rounded-full">
-                    {{ $pedidos->total() }} pedidos realizados
-                </span>
+
+                <button onclick="window.location.reload()"
+                        class="flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-gray-800 border border-gray-200 hover:border-gray-400 px-3 py-1.5 rounded-full transition">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Actualizar
+                </button>
             </div>
+        </div>
             @if($pedidos->total() == 0)
                 {{-- Estado vacío: sin pedidos aún --}}
                 <div class="text-center py-10 text-gray-400">

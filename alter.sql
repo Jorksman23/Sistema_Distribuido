@@ -228,3 +228,9 @@ ALTER TABLE "DBA"."pw_ordenes_web" ADD "user_id" INTEGER NULL;
 
 
 
+
+
+--Alter cxc_forma_pago para ocultar las formas de pago
+ALTER TABLE cxc_forma_pago ADD view_on_tienda char(1)
+
+

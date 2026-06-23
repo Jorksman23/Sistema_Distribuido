@@ -12,6 +12,7 @@ class PaymentMethodService
             SELECT *
             FROM cxc_forma_pago
             WHERE empresa = ?
+            AND view_on_tienda = 'S'
             ORDER BY secuencia
         ", [$empresa]);
     }
