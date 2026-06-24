@@ -95,24 +95,54 @@ class CartService
     }
 
     public function obtenerResumenCarrito(string $codCliente): array{
-        $items = $this->carrito->getCarritoByUser($codCliente);
+        $items   = $this->carrito->getCarritoByUser($codCliente);
+        $empresa = currentCompany();
+
+        // Porcentaje de IVA — multiempresa (ge_parametros codigo=17)
+        $ivaConfig = DB::connection('odbc')->selectOne("
+            SELECT TOP 1 parametro
+            FROM DBA.GE_PARAMETROS
+            WHERE empresa = ? AND codigo = 17
+        ", [$empresa]);
+        $porcentajeIva = (float) trim($ivaConfig->parametro ?? '0');
+
+        // Modo de trabajo con IVA — multiempresa (web_ge_parametros codigo=248)
+        // S = precio sin IVA (se suma encima)
+        // N = precio con IVA incluido (se desglosa)
+        $modoIvaConfig = DB::connection('odbc')->selectOne("
+            SELECT TOP 1 parametro
+            FROM DBA.web_ge_parametros
+            WHERE empresa = ? AND codigo = 248
+        ", [$empresa]);
+        $trabajaConIvaIncluido = strtoupper(trim($modoIvaConfig->parametro ?? 'S'));
+
         $subtotal = 0;
         $ivaTotal = 0;
-        $ivaConfig = DB::connection('odbc')
-            ->select("SELECT TOP 1 * FROM DBA.GE_PARAMETROS WHERE empresa = ? AND codigo = 17", [currentCompany()]);
 
-            //Cambios
-            $porcentajeIva = (float)(isset($ivaConfig[0]) ? $ivaConfig[0]->parametro : 0);
         foreach ($items as $item) {
-            $subtotalLinea =(float)$item->pvp3 *(int)$item->cantidad;
-            $subtotal += $subtotalLinea;
+            $precioLinea = (float) $item->pvp3 * (int) $item->cantidad;
+
             if (($item->iva ?? 'N') === 'S') {
-                $ivaTotal += ($subtotalLinea *$porcentajeIva) / 100;
+                if ($trabajaConIvaIncluido === 'S') {
+                    // Precio NO incluye IVA — se suma encima
+                    $subtotal += $precioLinea;
+                    $ivaTotal += $precioLinea * ($porcentajeIva / 100);
+                } else {
+                    // Precio YA incluye IVA — se desglosa
+                    $subtotalLinea = $precioLinea / (1 + ($porcentajeIva / 100));
+                    $subtotal      += $subtotalLinea;
+                    $ivaTotal      += $precioLinea - $subtotalLinea;
+                }
+            } else {
+                // Producto sin IVA
+                $subtotal += $precioLinea;
             }
         }
+
         $total = $subtotal + $ivaTotal;
+
         return [
-            'items'     => $items,
+            'items'    => $items,
             'subtotal' => number_format($subtotal, 2, '.', ''),
             'iva'      => number_format($ivaTotal, 2, '.', ''),
             'total'    => number_format($total, 2, '.', ''),

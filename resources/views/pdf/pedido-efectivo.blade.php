@@ -312,31 +312,31 @@
                 @endforeach
             </tbody>
             <tfoot>
-                <tr>
-                    <td colspan="4" style="text-align:right; color:#888; font-size:12px;">
-                        Subtotal:
-                    </td>
-                    <td style="text-align:right; font-size:12px; font-weight:bold;">
-                        ${{ number_format(collect($items)->sum(fn($i) => $i->pvp3 * $i->cantidad), 2) }}
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="4" style="text-align:right; color:#888; font-size:12px;">
-                        IVA:
-                    </td>
-                    <td style="text-align:right; font-size:12px; font-weight:bold;">
-                        ${{ number_format($orden->gran_total - collect($items)->sum(fn($i) => $i->pvp3 * $i->cantidad), 2) }}
-                    </td>
-                </tr>
-                <tr style="border-top:2px solid #ddd;">
-                    <td colspan="4" style="text-align:right; color:#888; font-size:12px; font-weight:bold; padding-top:8px;">
-                        Total:
-                    </td>
-                    <td style="text-align:right; font-size:16px; font-weight:bold; color:#0300a3; padding-top:8px;">
-                        ${{ number_format($orden->gran_total, 2) }}
-                    </td>
-                </tr>
-            </tfoot>
+            <tr>
+                <td colspan="4" style="text-align:right; color:#888; font-size:12px;">
+                    Subtotal:
+                </td>
+                <td style="text-align:right; font-size:12px; font-weight:bold;">
+                    ${{ $subtotal }}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="4" style="text-align:right; color:#888; font-size:12px;">
+                    IVA {{ $porcentajeIva }}%:
+                </td>
+                <td style="text-align:right; font-size:12px; font-weight:bold;">
+                    ${{ $ivaTotal }}
+                </td>
+            </tr>
+            <tr style="border-top:2px solid #ddd;">
+                <td colspan="4" style="text-align:right; color:#888; font-size:12px; font-weight:bold; padding-top:8px;">
+                    Total:
+                </td>
+                <td style="text-align:right; font-size:16px; font-weight:bold; color:#0300a3; padding-top:8px;">
+                    ${{ number_format($orden->gran_total, 2) }}
+                </td>
+            </tr>
+        </tfoot>
         </table>
     </div>
 

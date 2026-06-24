@@ -30,6 +30,15 @@ class OrderRepository
         return (string)$siguiente;
     }
 
+    // public function obtenerItemsOrden(string $codigo, string $codCliente): array
+    // {
+    //     return DB::connection('odbc')->select("
+    //         SELECT nombre, pvp3, cantidad, presentacion, iva
+    //         FROM DBA.pw_carrito_web
+    //         WHERE orden_id = CAST(? AS INTEGER)
+    //         AND estatus = '2'
+    //     ", [$codigo, $codCliente]);
+    // }
     public function obtenerItemsOrden(string $codigo, string $codCliente): array
     {
         return DB::connection('odbc')->select("
@@ -37,6 +46,7 @@ class OrderRepository
             FROM DBA.pw_carrito_web
             WHERE orden_id = CAST(? AS INTEGER)
             AND cod_cliente = ?
+            AND estatus = '2'
         ", [$codigo, $codCliente]);
     }
 }

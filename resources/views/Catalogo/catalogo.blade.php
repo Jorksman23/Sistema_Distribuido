@@ -9,92 +9,107 @@
     <aside class="w-full lg:w-72 shrink-0">
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 lg:sticky lg:top-6">
 
-            <div class="flex items-center gap-2 mb-5">
-                <svg class="w-5 h-5 text-[#3E7CB4]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
-                        d="M6 4v10m0 0a2 2 0 1 0 0 4m0-4a2 2 0 1 1 0 4m0 0v2m6-16v2m0 0a2 2 0 1 0 0 4m0-4a2 2 0 1 1 0 4m0 0v10m6-16v10m0 0a2 2 0 1 0 0 4m0-4a2 2 0 1 1 0 4m0 0v2"/>
-                </svg>
-                <h2 class="font-extrabold text-gray-900 text-base">Filtros</h2>
+            {{-- HEADER DEL FILTRO CON BOTÓN TOGGLE EN MÓVIL --}}
+            <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-[#3E7CB4]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
+                            d="M6 4v10m0 0a2 2 0 1 0 0 4m0-4a2 2 0 1 1 0 4m0 0v2m6-16v2m0 0a2 2 0 1 0 0 4m0-4a2 2 0 1 1 0 4m0 0v10m6-16v10m0 0a2 2 0 1 0 0 4m0-4a2 2 0 1 1 0 4m0 0v2"/>
+                    </svg>
+                    <h2 class="font-extrabold text-gray-900 text-base">Filtros</h2>
+                </div>
+                {{-- Botón solo visible en móvil --}}
+                <button type="button"
+                        onclick="toggleFiltros()"
+                        class="lg:hidden flex items-center gap-1 text-xs font-semibold text-gray-500 border border-gray-200 px-3 py-1.5 rounded-full hover:border-[#0300a3] hover:text-[#0300a3] transition">
+                    <span id="filtrosBtnTexto">Mostrar</span>
+                    <svg id="filtrosIcono" class="w-3.5 h-3.5 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
             </div>
 
-            <form method="GET" action="{{ route('catalogo.index') }}">
+            {{-- CONTENIDO DEL FILTRO: oculto en móvil por defecto, visible en lg --}}
+            <div id="filtrosContenido" class="hidden lg:block">
+                <form method="GET" action="{{ route('catalogo.index') }}">
 
-                {{-- BÚSQUEDA --}}
-                <div class="mb-5">
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Búsqueda</label>
-                    <input type="text" name="q" value="{{ $filters['search'] }}"
-                           placeholder="Buscar producto..."
-                           class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
-                </div>
-
-                {{-- GRUPO --}}
-                <div class="mb-5">
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Grupo</label>
-                    <select name="grupo"
+                    {{-- BÚSQUEDA --}}
+                    <div class="mb-5">
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Búsqueda</label>
+                        <input type="text" name="q" value="{{ $filters['search'] }}"
+                            placeholder="Buscar producto..."
                             class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
-                        <option value="">Todos</option>
-                        @foreach($grupos as $g)
-                            <option value="{{ $g['codigo'] }}"
-                                {{ $filters['grupo'] == $g['codigo'] ? 'selected' : '' }}>
-                                {{ $g['grupo'] }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                {{-- LÍNEA --}}
-                <div class="mb-5">
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Línea</label>
-                    <select name="linea"
-                            class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
-                        <option value="">Todas</option>
-                        @foreach($lineas as $l)
-                            <option value="{{ $l['codigo'] }}"
-                                {{ $filters['linea'] == $l['codigo'] ? 'selected' : '' }}>
-                                {{ $l['linea'] }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                {{-- RANGO DE PRECIO --}}
-                <div class="mb-5">
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Precio</label>
-                    <div class="flex items-center gap-2">
-                        <input type="number" name="precio_min" min="0" step="0.01"
-                               value="{{ $filters['precioMin'] ?: '' }}"
-                               placeholder="Min"
-                               class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
-                        <span class="text-gray-400 text-sm">—</span>
-                        <input type="number" name="precio_max" min="0" step="0.01"
-                               value="{{ $filters['precioMax'] ?: '' }}"
-                               placeholder="Max"
-                               class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
                     </div>
-                </div>
 
-                {{-- ORDENAR POR --}}
-                <div class="mb-6">
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Ordenar por</label>
-                    <select name="orden"
-                            class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
-                        <option value="codigo"      {{ $filters['orden'] === 'codigo'      ? 'selected' : '' }}>Por defecto</option>
-                        <option value="nombre"      {{ $filters['orden'] === 'nombre'      ? 'selected' : '' }}>Nombre</option>
-                        <option value="precio_asc"  {{ $filters['orden'] === 'precio_asc'  ? 'selected' : '' }}>Precio ascendente</option>
-                        <option value="precio_desc" {{ $filters['orden'] === 'precio_desc' ? 'selected' : '' }}>Precio descendente</option>
-                    </select>
-                </div>
+                    {{-- GRUPO --}}
+                    <div class="mb-5">
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Grupo</label>
+                        <select name="grupo"
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
+                            <option value="">Todos</option>
+                            @foreach($grupos as $g)
+                                <option value="{{ $g['codigo'] }}"
+                                    {{ $filters['grupo'] == $g['codigo'] ? 'selected' : '' }}>
+                                    {{ $g['grupo'] }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                {{-- BOTONES --}}
-                <button type="submit"
-                        class="w-full bg-[#0300a3] hover:bg-[#0200cc] text-white font-semibold py-2 rounded-xl transition mb-2">
-                    Aplicar filtros
-                </button>
-                <a href="{{ route('catalogo.index') }}"
-                        class="block w-full text-center text-sm font-semibold text-white bg-gray-800 hover:bg-gray-900 py-2 rounded-xl transition">
-                    Limpiar filtros
-                </a>
-            </form>
+                    {{-- LÍNEA --}}
+                    <div class="mb-5">
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Línea</label>
+                        <select name="linea"
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
+                            <option value="">Todas</option>
+                            @foreach($lineas as $l)
+                                <option value="{{ $l['codigo'] }}"
+                                    {{ $filters['linea'] == $l['codigo'] ? 'selected' : '' }}>
+                                    {{ $l['linea'] }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- RANGO DE PRECIO --}}
+                    <div class="mb-5">
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Precio</label>
+                        <div class="flex items-center gap-2">
+                            <input type="number" name="precio_min" min="0" step="0.01"
+                                value="{{ $filters['precioMin'] ?: '' }}"
+                                placeholder="Min"
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
+                            <span class="text-gray-400 text-sm">—</span>
+                            <input type="number" name="precio_max" min="0" step="0.01"
+                                value="{{ $filters['precioMax'] ?: '' }}"
+                                placeholder="Max"
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
+                        </div>
+                    </div>
+
+                    {{-- ORDENAR POR --}}
+                    <div class="mb-6">
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Ordenar por</label>
+                        <select name="orden"
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3]/30">
+                            <option value="codigo"      {{ $filters['orden'] === 'codigo'      ? 'selected' : '' }}>Por defecto</option>
+                            <option value="nombre"      {{ $filters['orden'] === 'nombre'      ? 'selected' : '' }}>Nombre</option>
+                            <option value="precio_asc"  {{ $filters['orden'] === 'precio_asc'  ? 'selected' : '' }}>Precio ascendente</option>
+                            <option value="precio_desc" {{ $filters['orden'] === 'precio_desc' ? 'selected' : '' }}>Precio descendente</option>
+                        </select>
+                    </div>
+
+                    {{-- BOTONES --}}
+                    <button type="submit"
+                            class="w-full bg-[#0300a3] hover:bg-[#0200cc] text-white font-semibold py-2 rounded-xl transition mb-2">
+                        Aplicar filtros
+                    </button>
+                    <a href="{{ route('catalogo.index') }}"
+                            class="block w-full text-center text-sm font-semibold text-white bg-gray-800 hover:bg-gray-900 py-2 rounded-xl transition">
+                        Limpiar filtros
+                    </a>
+                </form>
+            </div>
         </div>
     </aside>
 
@@ -298,3 +313,22 @@
 </div>
 </div>
 @endsection
+<script>
+function toggleFiltros() {
+    const contenido = document.getElementById('filtrosContenido');
+    const btnTexto  = document.getElementById('filtrosBtnTexto');
+    const icono     = document.getElementById('filtrosIcono');
+
+    const abierto = !contenido.classList.contains('hidden');
+
+    if (abierto) {
+        contenido.classList.add('hidden');
+        btnTexto.textContent = 'Mostrar';
+        icono.style.transform = 'rotate(0deg)';
+    } else {
+        contenido.classList.remove('hidden');
+        btnTexto.textContent = 'Ocultar';
+        icono.style.transform = 'rotate(180deg)';
+    }
+}
+</script>

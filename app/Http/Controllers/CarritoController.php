@@ -358,13 +358,51 @@ class CarritoController {
             (string) session('user_id')
         );
 
-        //Obtener forma de pago
         $formaPago = $this->paymentMethodService->obtenerFormaPago(
             (int) $orden->tipo_pago,
             currentCompany()
         );
 
-        $pdf = Pdf::loadView('pdf.pedido-efectivo', compact('orden', 'items', 'formaPago'));
+        // Calcular subtotal e IVA con la misma lógica de CartService
+        $empresa = currentCompany();
+
+        $ivaConfig = \Illuminate\Support\Facades\DB::connection('odbc')->selectOne("
+            SELECT TOP 1 parametro FROM DBA.GE_PARAMETROS
+            WHERE empresa = ? AND codigo = 17
+        ", [$empresa]);
+        $porcentajeIva = (float) trim($ivaConfig->parametro ?? '0');
+
+        $modoIvaConfig = \Illuminate\Support\Facades\DB::connection('odbc')->selectOne("
+            SELECT TOP 1 parametro FROM DBA.web_ge_parametros
+            WHERE empresa = ? AND codigo = 248
+        ", [$empresa]);
+        $trabajaConIvaIncluido = strtoupper(trim($modoIvaConfig->parametro ?? 'S'));
+
+        $subtotal = 0;
+        $ivaTotal = 0;
+
+        foreach ($items as $item) {
+            $precioLinea = (float) $item->pvp3 * (int) $item->cantidad;
+
+            if (($item->iva ?? 'N') === 'S') {
+                if ($trabajaConIvaIncluido === 'S') {
+                    $subtotal += $precioLinea;
+                    $ivaTotal += $precioLinea * ($porcentajeIva / 100);
+                } else {
+                    $subtotalLinea = $precioLinea / (1 + ($porcentajeIva / 100));
+                    $subtotal      += $subtotalLinea;
+                    $ivaTotal      += $precioLinea - $subtotalLinea;
+                }
+            } else {
+                $subtotal += $precioLinea;
+            }
+        }
+
+        $pdf = Pdf::loadView('pdf.pedido-efectivo', compact('orden', 'items', 'formaPago') + [
+            'subtotal'      => number_format($subtotal, 2, '.', ''),
+            'ivaTotal'      => number_format($ivaTotal, 2, '.', ''),
+            'porcentajeIva' => $porcentajeIva,
+        ]);
 
         return $pdf->download('Pedido_' . $orden->codigo . '.pdf');
     }
