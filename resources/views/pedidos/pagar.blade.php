@@ -31,91 +31,150 @@
 }
 
 </style>
-<div class="max-w-6xl mx-auto px-6 py-12 bg-gray-50 min-h-screen">
-    <div class="max-w-5xl mx-auto">
-        {{-- STEPPER --}}
-        <div class="flex items-center justify-center mb-10">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 py-10 lg:py-12 bg-gray-50 min-h-screen">
 
-            {{-- Paso 1: Carrito --}}
-            <div class="flex flex-col items-center">
-                <div class="w-10 h-10 rounded-full bg-[#0300a3] flex items-center justify-center">
-                    <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                </div>
-                <span class="text-xs font-semibold text-[#0300a3] mt-2">Carrito</span>
+    <!-- STEPPER -->
+    <div class="flex items-center justify-center mt-4 mb-8">
+
+        <div class="flex flex-col items-center">
+            <div class="w-10 h-10 rounded-full bg-[#0300a3] flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
             </div>
-
-            {{-- Línea --}}
-            <div class="h-0.5 w-24 bg-[#0300a3] mx-2 mb-5"></div>
-
-            {{-- Paso 2: Facturación --}}
-            <div class="flex flex-col items-center">
-                <div class="w-10 h-10 rounded-full bg-[#0300a3] flex items-center justify-center">
-                    <span class="text-white font-bold text-sm">2</span>
-                </div>
-                <span class="text-xs font-semibold text-[#0300a3] mt-2">Facturación</span>
-            </div>
-
-            {{-- Línea --}}
-            <div class="h-0.5 w-24 bg-gray-200 mx-2 mb-5"></div>
-
-            {{-- Paso 3: Pago --}}
-            <div class="flex flex-col items-center">
-                <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                    <span class="text-gray-400 font-bold text-sm">3</span>
-                </div>
-                <span class="text-xs font-semibold text-gray-400 mt-2">Pago</span>
-            </div>
-
+            <span class="text-xs font-semibold text-[#0300a3] mt-2">Carrito</span>
         </div>
-        <div class="grid lg:grid-cols-12 gap-8">
-            <form id="payment-form" method="POST" action="{{ route('carrito.procesar.pago') }}" class="contents">
-                @csrf
 
-                <!-- Resumen + Datos de Facturación -->
-                <div class="lg:col-span-7 space-y-6">
+        <div class="h-0.5 w-24 bg-[#0300a3] mx-2 mb-5"></div>
 
-                    <!-- Resumen del Carrito -->
-                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-                        <h2 class="font-bold text-gray-900 text-2xl mb-6 flex items-center gap-2">
-                            <span class="text-[#0F52BA]">🛒</span> Resumen del Carrito
-                        </h2>
+        <div class="flex flex-col items-center">
+            <div class="w-10 h-10 rounded-full bg-[#0300a3] flex items-center justify-center">
+                <span class="text-white font-bold text-sm">2</span>
+            </div>
+            <span class="text-xs font-semibold text-[#0300a3] mt-2">Facturación</span>
+        </div>
 
-                        @foreach($items as $item)
-                        <div class="flex gap-5 py-5 border-b last:border-none">
-                            <img src="{{ $item->imagen_url }}" alt="{{ $item->nombre }}"
-                                class="w-20 h-20 object-cover rounded-xl border">
-                            <div class="flex-1">
-                                <p class="font-medium text-gray-800">{{ $item->nombre }}</p>
-                                @if($item->nombre_presentacion)
-                                    <p class="text-sm text-gray-500">{{ $item->nombre_presentacion }}</p>
-                                @endif
-                                <p class="text-sm text-gray-600">Cantidad: <span class="font-semibold">{{ $item->cantidad }}</span></p>
-                            </div>
-                            <div class="text-right font-semibold text-lg">
-                                ${{ number_format($item->pvp3 * $item->cantidad, 2) }}
-                            </div>
+        <div class="h-0.5 w-24 bg-gray-200 mx-2 mb-5"></div>
+
+        <div class="flex flex-col items-center">
+            <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                <span class="text-gray-400 font-bold text-sm">3</span>
+            </div>
+            <span class="text-xs font-semibold text-gray-400 mt-2">Pago</span>
+        </div>
+    </div>
+
+    <div class="grid lg:grid-cols-12 gap-6 mt-4 items-start">
+        <form id="payment-form" method="POST" action="{{ route('carrito.procesar.pago') }}" class="contents">
+            @csrf
+
+            <!-- BLOQUE 1 -->
+            <div class="lg:col-span-7 order-1">
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 lg:p-6">
+
+                    <h2 class="font-bold text-gray-900 text-2xl mb-6 flex items-center gap-2">
+                        <span class="text-[#0F52BA]">
+                        <svg class="w-7 h-7 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        </span> Resumen del Carrito
+                    </h2>
+
+                    @foreach($items as $item)
+                    <div class="flex gap-5 py-5 border-b last:border-none">
+                        <img src="{{ $item->imagen_url }}" alt="{{ $item->nombre }}"
+                            class="w-20 h-20 object-cover rounded-xl border">
+
+                        <div class="flex-1">
+                            <p class="font-medium text-gray-800">{{ $item->nombre }}</p>
+                            @if($item->nombre_presentacion)
+                                <p class="text-sm text-gray-500">{{ $item->nombre_presentacion }}</p>
+                            @endif
+                            <p class="text-sm text-gray-600">Cantidad: {{ $item->cantidad }}</p>
                         </div>
-                        @endforeach
 
-                        <div class="mt-8 pt-6 border-t text-right">
+                        <div class="text-right font-semibold text-lg">
+                            ${{ number_format($item->pvp3 * $item->cantidad, 2) }}
+                        </div>
+                    </div>
+                    @endforeach
+
+                    <div class="mt-8 pt-6 border-t text-right">
+                        @if($trabajaConIvaIncluido === 'S')
                             <p class="text-lg font-semibold text-[#003087]">
-                                Subtotal:
-                                <span class="font-medium">${{ $subtotal }}</span>
+                                Subtotal: <span class="font-medium">${{ $subtotal }}</span>
                             </p>
                             <p class="text-lg font-semibold text-[#003087]">
-                                IVA:
-                                <span class="font-medium">${{ $iva }}</span>
+                                IVA {{ $porcentajeIva }}%: <span class="font-medium">${{ $iva }}</span>
                             </p>
                             <p class="text-2xl font-bold text-[#003087]">
                                 Total a pagar: ${{ $total }}
                             </p>
-                        </div>
+                        @else
+                            <p class="text-lg font-semibold text-[#003087]">
+                                Subtotal: <span class="font-medium">${{ $subtotal }}</span>
+                            </p>
+                            <p class="text-lg font-semibold text-[#003087]">
+                                IVA incluido {{ $porcentajeIva }}%: <span class="font-medium">${{ $iva }}</span>
+                            </p>
+                            <p class="text-2xl font-bold text-[#003087]">
+                                Total bruto: ${{ $totalBruto }}
+                            </p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- BLOQUE 2 -->
+            <div class="lg:col-span-5 order-2 self-start">
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 lg:p-6">
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Selecciona método de entrega
+                        </label>
+                        <select id="metodo_entrega" name="metodo_entrega" required
+                            class="w-full border-2 border-gray-800 rounded-xl px-4 py-3">
+                            <option value="">Seleccione método de entrega</option>
+                            <option value="R">Retiro en local</option>
+                            <option value="E">Envío vehicular</option>
+                        </select>
                     </div>
 
-                <!-- Datos de Facturación -->
-                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 space-y-6">
+                    <h2 class="font-bold text-gray-900 text-2xl mb-6">Forma de Pago</h2>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Selecciona método de pago
+                        </label>
+                        <select id="tipo_pago" name="tipo_pago" required
+                            class="w-full border-2 border-gray-800 rounded-xl px-4 py-3">
+                            <option value="">Seleccione método de pago</option>
+                            @foreach($formasPago as $forma)
+                                <option value="{{ $forma->secuencia }}">
+                                    {{ $forma->forma_pago }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <button type="submit"
+                            class="w-full mt-8 bg-[#0F52BA] hover:bg-[#003087] text-white font-semibold text-lg py-4 rounded-2xl">
+                        Finalizar Pedido - ${{ $trabajaConIvaIncluido === 'S' ? $total : $totalBruto }}
+                    </button>
+
+                    <p class="text-center text-xs text-gray-500 mt-4">
+                        🔒 Pago seguro y encriptado
+                    </p>
+                </div>
+            </div>
+
+            <!-- BLOQUE 3 -->
+            <div class="lg:col-span-7 order-3">
+
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 lg:p-6 space-y-6">
+
                     <div class="flex justify-between items-center">
                         <h2 class="font-bold text-gray-900 text-2xl">Datos de Facturación</h2>
                         <button type="button" id="usar-registro"
@@ -124,25 +183,26 @@
                         </button>
                     </div>
 
-                    <!-- Cédula-->
-                <div class="flex items-end gap-3 mt-1">
-                    <div class="flex-1">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">RUC o Cédula</label>
-                        <input type="text" name="cedula" id="cedula"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
+                    <!-- Cédula -->
+                    <div class="flex items-end gap-3 mt-1">
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">RUC o Cédula</label>
+                            <input type="text" name="cedula" id="cedula" required
+                                class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
+                        </div>
+
+                        <div class="flex gap-2 mb-[2px]">
+                            <button type="button" id="buscar-cedula" class="btn-buscar">Buscar</button>
+                            <button type="button" id="borrar-datos" class="btn-borrar">Borrar</button>
+                        </div>
                     </div>
-                    <div class="flex gap-2 mb-[2px]">
-                        <button type="button" id="buscar-cedula" class="btn-buscar">Buscar</button>
-                        <button type="button" id="borrar-datos" class="btn-borrar">Borrar</button>
-                    </div>
-                </div>
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
-                        <input type="text" name="nombre" id="nombre"
+                        <input type="text" name="nombre" id="nombre" required
                             class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
                     </div>
 
-                    <!-- Las demás filas igual -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Dirección exacta</label>
                         <input type="text" name="direccion" id="direccion"
@@ -152,12 +212,13 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-                            <input type="text" name="telefono" id="telefono"
+                            <input type="text" name="telefono" id="telefono" required
                                 class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
                         </div>
+
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
-                            <input type="email" name="email" id="email"
+                            <input type="email" name="email" id="email" required
                                 class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
                         </div>
                     </div>
@@ -167,96 +228,11 @@
                         <textarea name="observacion" id="observacion" rows="2"
                                 class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]"></textarea>
                     </div>
-                </div>
 
                 </div>
+            </div>
 
-                <!-- === PASARELA DE PAGO === -->
-                <div class="lg:col-span-5">
-                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-                        <!-- Combo de método de entrega -->
-                            <div class="mb-6">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    Selecciona método de entrega
-                                </label>
-                                <select
-                                    id="metodo_entrega"
-                                    name="metodo_entrega"
-                                    required
-                                    class="w-full border-2 border-gray-800 rounded-xl px-4 py-3 bg-white text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3] focus:border-[#0300a3]">
-                                    <option value="">Seleccione método de entrega</option>
-                                    <option value="R">Retiro en local</option>
-                                    <option value="E">Envío vehicular</option>
-                                </select>
-                            </div>
-                        <h2 class="font-bold text-gray-900 text-2xl mb-6 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-[#0300a3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-                            </svg>
-                            Forma de Pago
-                        </h2>
-
-                        <!-- Combo Box -->
-                        <div class="mb-6">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Selecciona método de pago
-                            </label>
-                            <select
-                                id="tipo_pago"
-                                name="tipo_pago"
-                                required
-                                class="w-full border-2 border-gray-800 rounded-xl px-4 py-3 bg-white text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0300a3] focus:border-[#0300a3]">
-                                <option value="">Seleccione método de pago</option>
-
-                                @foreach($formasPago as $forma)
-                                    <option value="{{ $forma->secuencia }}">
-                                        {{ $forma->forma_pago }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <!-- Campos de Tarjeta (se muestran solo para PayPhone) -->
-                        <div id="card-fields">
-                            <div class="grid grid-cols-1 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nombre en la tarjeta</label>
-                                    <input type="text" name="nombre_tarjeta" class="w-full border border-gray-300 rounded-xl px-4 py-3">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Número de tarjeta</label>
-                                    <input type="text" name="numero_tarjeta" maxlength="19"
-                                        class="w-full border border-gray-300 rounded-xl px-4 py-3" placeholder="1234 5678 9012 3456">
-                                </div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de expiración</label>
-                                        <input type="text" name="expiracion" maxlength="5" placeholder="MM/YY"
-                                            class="w-full border border-gray-300 rounded-xl px-4 py-3">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">CVC</label>
-                                        <input type="text" name="cvc" maxlength="4"
-                                            class="w-full border border-gray-300 rounded-xl px-4 py-3">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button type="submit"
-                                class="w-full mt-8 bg-[#0F52BA] hover:bg-[#003087] text-white font-semibold text-lg py-4 rounded-2xl transition-all">
-                            Finalizar Pedido - ${{ $total }}
-                        </button>
-
-                        <p class="text-center text-xs text-gray-500 mt-4 flex items-center justify-center gap-1">
-                            <span class="text-green-600">🔒</span> Pago seguro y encriptado
-                        </p>
-                    </div>
-                </div>
-
-            </form>
-        </div>
+        </form>
     </div>
 </div>
 
@@ -295,10 +271,6 @@ document.getElementById('usar-registro').addEventListener('click', () => {
 });
 
 </script>
-
-
-
-
 
 
 <script>

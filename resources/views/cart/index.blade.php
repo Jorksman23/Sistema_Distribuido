@@ -148,18 +148,35 @@
                 <h2 class="text-lg font-bold text-gray-800 mb-5">Resumen</h2>
 
                 <div class="space-y-3 mb-5">
-                    <div class="flex justify-between text-sm text-gray-500">
-                        <span>Subtotal</span>
-                        <span id="resumen-subtotal" class="font-medium text-gray-800">${{ $subtotal }}</span>
-                    </div>
-                    <div class="flex justify-between text-sm text-gray-500">
-                        <span>IVA</span>
-                        <span id="resumen-iva" class="font-medium text-gray-800">${{ $iva }}</span>
-                    </div>
-                    <div class="border-t border-gray-100 pt-3 flex justify-between font-bold text-gray-900">
-                        <span>Total</span>
-                        <span id="resumen-total" class="text-xl">${{ $total }}</span>
-                    </div>
+                    @if($trabajaConIvaIncluido === 'S')
+                        {{-- Escenario S: precio sin IVA, se suma encima --}}
+                        <div class="flex justify-between text-sm text-gray-500">
+                            <span>Subtotal</span>
+                            <span id="resumen-subtotal" class="font-medium text-gray-800">${{ $subtotal }}</span>
+                        </div>
+                        <div class="flex justify-between text-sm text-gray-500">
+                            <span>IVA {{ $porcentajeIva }}%</span>
+                            <span id="resumen-iva" class="font-medium text-gray-800">${{ $iva }}</span>
+                        </div>
+                        <div class="border-t border-gray-100 pt-3 flex justify-between font-bold text-gray-900">
+                            <span>Total</span>
+                            <span id="resumen-total" class="text-xl">${{ $total }}</span>
+                        </div>
+                    @else
+                        {{-- Escenario N: precio incluye IVA, se desglosa --}}
+                        <div class="flex justify-between text-sm text-gray-500">
+                            <span>Subtotal</span>
+                            <span id="resumen-subtotal" class="font-medium text-gray-800">${{ $subtotal }}</span>
+                        </div>
+                        <div class="flex justify-between text-sm text-gray-500">
+                            <span>IVA incluido {{ $porcentajeIva }}%</span>
+                            <span id="resumen-iva" class="font-medium text-gray-800">${{ $iva }}</span>
+                        </div>
+                        <div class="border-t border-gray-100 pt-3 flex justify-between font-bold text-gray-900">
+                            <span>Total bruto</span>
+                            <span id="resumen-total" class="text-xl">${{ $totalBruto }}</span>
+                        </div>
+                    @endif
                 </div>
 
                 <p class="text-xs text-gray-400 mb-4">
@@ -168,12 +185,12 @@
                 </p>
 
                 <a href="{{ route('pedidos.pagar') }}"
-                   class="block w-full text-center bg-[#0300a3] hover:bg-[#0200cc] text-white font-semibold py-3 rounded-xl transition mb-3">
+                class="block w-full text-center bg-[#0300a3] hover:bg-[#0200cc] text-white font-semibold py-3 rounded-xl transition mb-3">
                     Proceder con el pago
                 </a>
 
                 <a href="{{ route('catalogo.index') }}"
-                   class="block w-full text-center text-sm text-gray-500 hover:text-gray-800 transition py-2">
+                class="block w-full text-center text-sm text-gray-500 hover:text-gray-800 transition py-2">
                     ← Seguir comprando
                 </a>
             </div>

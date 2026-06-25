@@ -363,48 +363,76 @@ class CarritoController {
             currentCompany()
         );
 
-        // Calcular subtotal e IVA con la misma lógica de CartService
         $empresa = currentCompany();
 
+        // Porcentaje IVA — multiempresa
         $ivaConfig = \Illuminate\Support\Facades\DB::connection('odbc')->selectOne("
             SELECT TOP 1 parametro FROM DBA.GE_PARAMETROS
             WHERE empresa = ? AND codigo = 17
         ", [$empresa]);
         $porcentajeIva = (float) trim($ivaConfig->parametro ?? '0');
 
+        // Modo IVA — multiempresa
         $modoIvaConfig = \Illuminate\Support\Facades\DB::connection('odbc')->selectOne("
             SELECT TOP 1 parametro FROM DBA.web_ge_parametros
             WHERE empresa = ? AND codigo = 248
         ", [$empresa]);
         $trabajaConIvaIncluido = strtoupper(trim($modoIvaConfig->parametro ?? 'S'));
 
-        $subtotal = 0;
-        $ivaTotal = 0;
+        $subtotal   = 0;
+        $ivaTotal   = 0;
+        $totalBruto = 0;
 
+        // Calcular datos por línea para el PDF
+        $itemsConDetalle = [];
         foreach ($items as $item) {
-            $precioLinea = (float) $item->pvp3 * (int) $item->cantidad;
+            $precioLinea  = (float) $item->pvp3 * (int) $item->cantidad;
+            $precioBase   = $precioLinea;
+            $ivaLinea     = 0;
 
             if (($item->iva ?? 'N') === 'S') {
                 if ($trabajaConIvaIncluido === 'S') {
-                    $subtotal += $precioLinea;
-                    $ivaTotal += $precioLinea * ($porcentajeIva / 100);
+                    // Precio NO incluye IVA — se suma encima
+                    $precioBase = $precioLinea;
+                    $ivaLinea   = $precioLinea * ($porcentajeIva / 100);
+                    $subtotal  += $precioBase;
+                    $ivaTotal  += $ivaLinea;
                 } else {
-                    $subtotalLinea = $precioLinea / (1 + ($porcentajeIva / 100));
-                    $subtotal      += $subtotalLinea;
-                    $ivaTotal      += $precioLinea - $subtotalLinea;
+                    // Precio YA incluye IVA — se desglosa
+                    $precioBase = $precioLinea / (1 + ($porcentajeIva / 100));
+                    $ivaLinea   = $precioLinea - $precioBase;
+                    $subtotal  += $precioBase;
+                    $ivaTotal  += $ivaLinea;
                 }
             } else {
-                $subtotal += $precioLinea;
+                // Sin IVA
+                $precioBase = $precioLinea;
+                $ivaLinea   = 0;
+                $subtotal  += $precioBase;
             }
+
+            $totalBruto += $precioLinea;
+
+            $itemsConDetalle[] = [
+                'nombre'      => $item->nombre,
+                'cantidad'    => $item->cantidad,
+                'pvp3'        => $item->pvp3,
+                'iva'         => $item->iva ?? 'N',
+                'precio_base' => number_format($precioBase, 2, '.', ''),
+                'iva_linea'   => $ivaLinea > 0 ? number_format($ivaLinea, 2, '.', '') : null,
+                'total_linea' => number_format($precioLinea, 2, '.', ''),
+            ];
         }
 
-        $pdf = Pdf::loadView('pdf.pedido-efectivo', compact('orden', 'items', 'formaPago') + [
-            'subtotal'      => number_format($subtotal, 2, '.', ''),
-            'ivaTotal'      => number_format($ivaTotal, 2, '.', ''),
-            'porcentajeIva' => $porcentajeIva,
+        $pdf = Pdf::loadView('pdf.pedido-efectivo', compact('orden', 'formaPago') + [
+            'items'                 => $itemsConDetalle,
+            'subtotal'              => number_format($subtotal, 2, '.', ''),
+            'ivaTotal'              => number_format($ivaTotal, 2, '.', ''),
+            'totalBruto'            => number_format($totalBruto, 2, '.', ''),
+            'porcentajeIva'         => $porcentajeIva,
+            'trabajaConIvaIncluido' => $trabajaConIvaIncluido,
         ]);
 
         return $pdf->download('Pedido_' . $orden->codigo . '.pdf');
     }
-
 }

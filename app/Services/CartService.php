@@ -116,8 +116,9 @@ class CartService
         ", [$empresa]);
         $trabajaConIvaIncluido = strtoupper(trim($modoIvaConfig->parametro ?? 'S'));
 
-        $subtotal = 0;
-        $ivaTotal = 0;
+        $subtotal   = 0;
+        $ivaTotal   = 0;
+        $totalBruto = 0;
 
         foreach ($items as $item) {
             $precioLinea = (float) $item->pvp3 * (int) $item->cantidad;
@@ -137,16 +138,21 @@ class CartService
                 // Producto sin IVA
                 $subtotal += $precioLinea;
             }
+
+            $totalBruto += $precioLinea;
         }
 
         $total = $subtotal + $ivaTotal;
 
         return [
-            'items'    => $items,
-            'subtotal' => number_format($subtotal, 2, '.', ''),
-            'iva'      => number_format($ivaTotal, 2, '.', ''),
-            'total'    => number_format($total, 2, '.', ''),
-            'count'    => count($items),
+            'items'                 => $items,
+            'subtotal'              => number_format($subtotal, 2, '.', ''),
+            'iva'                   => number_format($ivaTotal, 2, '.', ''),
+            'total'                 => number_format($total, 2, '.', ''),
+            'totalBruto'            => number_format($totalBruto, 2, '.', ''),
+            'porcentajeIva'         => $porcentajeIva,
+            'trabajaConIvaIncluido' => $trabajaConIvaIncluido,
+            'count'                 => count($items),
         ];
     }
 }

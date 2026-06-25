@@ -94,8 +94,10 @@ class PaymentService
         }
 
         $codigoOrden = $this->orderRepository->generarCodigoOrden($empresa);
-        $checkout    = $this->checkoutService->obtenerCheckout($codClienteCarrito);
-        $granTotal   = (float) $checkout['total'];
+        $checkout  = $this->checkoutService->obtenerCheckout($codClienteCarrito);
+        $granTotal = (float) ($checkout['trabajaConIvaIncluido'] === 'S'
+            ? $checkout['total']
+            : $checkout['totalBruto']);
 
         try {
             DB::connection('odbc')->beginTransaction();
@@ -178,7 +180,9 @@ class PaymentService
 
         $codigoOrden = $this->orderRepository->generarCodigoOrden($empresa);
         $checkout    = $this->checkoutService->obtenerCheckout($codClienteCarrito);
-        $granTotal   = (float) $checkout['total'];
+        $granTotal   = (float) ($checkout['trabajaConIvaIncluido'] === 'S'
+            ? $checkout['total']
+            : $checkout['totalBruto']);
 
         try {
             DB::connection('odbc')->beginTransaction();
