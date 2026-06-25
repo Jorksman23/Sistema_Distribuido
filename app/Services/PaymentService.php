@@ -268,12 +268,12 @@ class PaymentService
     public function obtenerOCrearCliente(array $data, string $empresa): array
     {
         try {
-            // 1️⃣ Consultar servicio externo
+            //  Consultar servicio externo
             $url = "http://186.101.203.79:2001/persona/{$data['cedula']}";
             $response = Http::timeout(5)->get($url);
             $datosServicio = $response->ok() ? $response->json() : [];
 
-            // 2️⃣ Buscar cliente local
+            //  Buscar cliente local
             $cliente = DB::connection('odbc')->selectOne("
                 SELECT TOP 1 *
                 FROM DBA.in_cliente
@@ -281,7 +281,7 @@ class PaymentService
             ", [$data['cedula'], $empresa]);
 
             if ($cliente) {
-                // 3️⃣ Actualizar datos con servicio + formulario
+                //  Actualizar datos con servicio + formulario
                 DB::connection('odbc')->table('DBA.in_cliente')
                     ->where('codigo', $cliente->codigo)
                     ->where('empresa', $empresa)
@@ -292,7 +292,7 @@ class PaymentService
                         'direccion1' => $data['direccion'] ?? $cliente->direccion1,
                     ]);
 
-                // 🔁 Retornar datos completos
+                // Retornar datos completos
                 return [
                     'codigo'     => $cliente->codigo,
                     'cedula'     => $cliente->cedula_ruc,
@@ -303,7 +303,7 @@ class PaymentService
                 ];
             }
 
-            // 4️⃣ Crear nuevo cliente si no existe (código único por empresa)
+            // Crear nuevo cliente si no existe (código único por empresa)
             $maxCodigo = DB::connection('odbc')->selectOne("
                 SELECT COALESCE(MAX(CAST(codigo AS INT)), 0) + 1 AS nuevo_codigo
                 FROM DBA.in_cliente
@@ -324,7 +324,7 @@ class PaymentService
                 'vendedor'   => '1'
             ]);
 
-            // 🔁 Retornar datos completos
+            //  Retornar datos completos
             return [
                 'codigo'     => $nuevoCodigo,
                 'cedula'     => $data['cedula'],

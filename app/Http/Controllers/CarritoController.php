@@ -14,6 +14,7 @@ use App\Services\ComprobanteService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\CxcAuxiliarProformaService;
 use App\Repositories\LoginRepository;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 
@@ -299,51 +300,53 @@ class CarritoController {
     }
 
     // === Guardar Comprobante ===
-   public function guardarComprobante(Request $request)
-{
-    // 1. Validar archivo comprobante
-    $request->validate([
-        'comprobante' => 'required|file|mimes:jpg,jpeg,png|max:5120'
-    ]);
-
-    // 2. Recuperar datos de checkout desde sesión
-    $checkoutData = session('checkout_data');
-    if (!$checkoutData) {
-        return redirect()->route('pedidos.pagar')->withErrors([
-            'error' => 'No existen datos de checkout.'
+    public function guardarComprobante(Request $request)
+    {
+        // 1. Validar archivo comprobante
+        $request->validate([
+            'comprobante' => 'required|file|mimes:jpg,jpeg,png|max:5120'
         ]);
+
+        // 2. Recuperar datos de checkout desde sesión
+        $checkoutData = session('checkout_data');
+        if (!$checkoutData) {
+            Log::warning("Checkout vacío en sesión para user_id: " . session('user_id'));
+            return redirect()->route('pedidos.pagar')->withErrors([
+                'error' => 'No existen datos de checkout.'
+            ]);
+        }
+
+        // 3. Datos del cliente y empresa
+        $codCliente = (string) session('user_id');
+        $empresa    = currentCompany();
+
+        // 4. Recuperar carrito
+        $items = $this->carrito->getCarritoByUser($codCliente);
+        Log::info("🛒 Carrito recuperado", ['items' => $items]);
+
+        // 5. Obtener total
+        $checkout  = $this->checkoutService->obtenerCheckout($codCliente);
+        $granTotal = (float) $checkout['total'];
+
+        // 6. Guardar comprobante y redirigir a pedidos (manejado por el servicio)
+        try {
+            return $this->comprobanteService->guardarComprobante(
+                $request->file('comprobante'),
+                $checkoutData,
+                $codCliente,
+                $empresa,
+                $items,
+                $granTotal
+            );
+        } catch (Throwable $e) {
+            Log::error("Error en controlador al guardar comprobante: " . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->withErrors([
+                'error' => 'Error inesperado al procesar el comprobante. Contacte soporte.'
+            ]);
+        }
     }
-
-    // 3. Datos del cliente y empresa
-    $codCliente = (string) session('user_id');
-    $empresa    = currentCompany();
-
-    // 4. Validar carrito
-    $items = $this->carrito->getCarritoByUser($codCliente);
-    if (empty($items)) {
-        // Si el carrito está vacío pero checkout_data existe,
-        // el comprobante ya fue procesado — redirigir a pedidos
-        return redirect()->route('profile.orders')->with(
-            'success',
-            'Comprobante enviado correctamente.'
-        );
-    }
-
-    // 5. Obtener total
-    $checkout  = $this->checkoutService->obtenerCheckout($codCliente);
-    $granTotal = (float) $checkout['total'];
-
-    // 6. Guardar comprobante y redirigir a pedidos (manejado por el servicio)
-    return $this->comprobanteService->guardarComprobante(
-        $request->file('comprobante'),
-        $checkoutData,
-        $codCliente,
-        $empresa,
-        $items,
-        $granTotal
-    );
-}
-
 
     // === Descargar Pedido ===
     public function descargarPedido($codigo) {

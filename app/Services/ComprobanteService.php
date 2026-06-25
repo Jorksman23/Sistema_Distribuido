@@ -2,12 +2,13 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use App\Repositories\CartRepository;
 use App\Repositories\OrderRepository;
 use App\Services\PaymentMethodService;
 use App\Services\CxcAuxiliarProformaService;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class ComprobanteService
@@ -53,9 +54,9 @@ class ComprobanteService
         ]);
     }
 
-    public function guardarComprobante($archivo, array $checkoutData, string $codCliente, string $empresa, $items, $granTotal)
+
+    public function guardarComprobante($archivo,array $checkoutData,string $codCliente,string $empresa,$items,$granTotal)
     {
-        // Reutilizar la orden y documento ya creados en el flujo de pago
         $codigoOrden = session('codigo_orden');
         $documento   = session('documento');
 
@@ -65,17 +66,57 @@ class ComprobanteService
             ]);
         }
 
-        $nombreArchivo = $codigoOrden . '_' . time() . '.' .$archivo->getClientOriginalExtension();
-        $ruta = $archivo->storeAs(
-            'comprobantes/' . $empresa,
-            $nombreArchivo,
-            'public'
-        );
+        $companyCode   = currentCompany();
+        $rucEmpresa    = companyRuc($companyCode);
+        $nombreArchivo = 'pruebapasante_' . $codigoOrden;
+
+        // Validar archivo antes de convertir
+        if (!$archivo->isValid()) {
+            return back()->withErrors([
+                'error' => 'El archivo de comprobante no es válido.'
+            ]);
+        }
+
+        // Leer contenido y convertir a base64 con prefijo MIME
+        $mimeType = $archivo->getMimeType();
+        $contenido = file_get_contents($archivo->getPathname());
+        if ($contenido === false) {
+            return back()->withErrors([
+                'error' => 'No se pudo leer el archivo de comprobante.'
+            ]);
+        }
+
+        $base64 = 'data:' . $mimeType . ';base64,' . base64_encode($contenido);
+
+        // Payload para el servicio externo
+        $payload = [
+            'files' => [
+                [
+                    'image' => $base64,
+                    'name'  => $nombreArchivo,
+                ]
+            ],
+            'ruc'       => $rucEmpresa,
+            'reference' => 'comprobante',
+        ];
 
         try {
             DB::connection('odbc')->beginTransaction();
+            $response = Http::post('http://186.101.203.76:10555/image/upload/', $payload);
 
-            // Registrar en auxiliar proforma con el documento existente
+            if (!$response->successful()) {
+                throw new \Exception('Error al subir al servidor externo');
+            }
+
+            $remoteData = $response->json();
+            if (empty($remoteData['data'][0]['url']) || empty($remoteData['data'][0]['name'])) {
+                throw new \Exception('El servidor externo no devolvió datos válidos');
+            }
+
+            $fotoId   = $remoteData['data'][0]['url'];
+            $fotoName = $remoteData['data'][0]['name'];
+
+            // 2. Registrar en auxiliar proforma
             $this->cxcAuxiliarProformaService->registrar(
                 $documento,
                 (int)$checkoutData['tipo_pago'],
@@ -85,20 +126,20 @@ class ComprobanteService
                 'Transferencia web'
             );
 
-            // Guardar adjunto
+            // 3. Guardar adjunto en tu BD con datos del servidor externo
             DB::connection('odbc')->table('DBA.PW_ADJUNTO_WEB')->insert([
                 'empresa'         => $empresa,
                 'cod_orden'       => $codigoOrden,
                 'cod_cliente'     => $codCliente,
-                'foto'            => $ruta,
-                'foto_id'         => $nombreArchivo,
+                'foto'            => $fotoName,
+                'foto_id'         => $fotoId,
                 'nombre_archivo'  => $archivo->getClientOriginalName(),
                 'tipo_archivo'    => $archivo->getClientOriginalExtension(),
                 'created_at'      => now(),
                 'update_at'       => now(),
             ]);
 
-            // Historial
+            // 4. Historial
             DB::connection('odbc')->table('DBA.PW_HISTORICO_PEDIDO')->insert([
                 'cod_orden'      => $codigoOrden,
                 'codigo_cliente' => $codCliente,
@@ -110,11 +151,10 @@ class ComprobanteService
                 'empresa'        => $empresa,
             ]);
 
-            // Asociar carrito
+            // 5. Asociar carrito
             $this->cartRepository->marcarComoProcesado($codCliente, $codigoOrden);
 
             DB::connection('odbc')->commit();
-
 
             session()->forget(['checkout_data','carrito_count','carrito_ubicacion']);
             return redirect()->route('profile.orders')->with(
@@ -123,9 +163,14 @@ class ComprobanteService
             );
         } catch (Throwable $e) {
             DB::connection('odbc')->rollBack();
-            if (!empty($ruta)) {
-                Storage::disk('public')->delete($ruta);
-            }
+
+            // Fallback: guardar local si falla
+            $archivo->storeAs(
+                'comprobantes/' . $empresa,
+                $nombreArchivo,
+                'public'
+            );
+
             return back()->withErrors([
                 'error' => 'Error al guardar el comprobante: ' . $e->getMessage()
             ]);
