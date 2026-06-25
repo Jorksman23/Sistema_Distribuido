@@ -68,16 +68,16 @@
         <form id="payment-form" method="POST" action="{{ route('carrito.procesar.pago') }}" class="contents">
             @csrf
 
-            <!-- BLOQUE 1 -->
+            {{-- BLOQUE 1: Resumen — primero en mobile y desktop --}}
             <div class="lg:col-span-7 order-1">
                 <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 lg:p-6">
 
                     <h2 class="font-bold text-gray-900 text-2xl mb-6 flex items-center gap-2">
                         <span class="text-[#0F52BA]">
-                        <svg class="w-7 h-7 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
-                        </svg>
+                            <svg class="w-7 h-7 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
                         </span> Resumen del Carrito
                     </h2>
 
@@ -85,7 +85,6 @@
                     <div class="flex gap-5 py-5 border-b last:border-none">
                         <img src="{{ $item->imagen_url }}" alt="{{ $item->nombre }}"
                             class="w-20 h-20 object-cover rounded-xl border">
-
                         <div class="flex-1">
                             <p class="font-medium text-gray-800">{{ $item->nombre }}</p>
                             @if($item->nombre_presentacion)
@@ -93,7 +92,6 @@
                             @endif
                             <p class="text-sm text-gray-600">Cantidad: {{ $item->cantidad }}</p>
                         </div>
-
                         <div class="text-right font-semibold text-lg">
                             ${{ number_format($item->pvp3 * $item->cantidad, 2) }}
                         </div>
@@ -126,53 +124,8 @@
                 </div>
             </div>
 
-            <!-- BLOQUE 2 -->
-            <div class="lg:col-span-5 order-2 self-start">
-                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 lg:p-6">
-
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Selecciona método de entrega
-                        </label>
-                        <select id="metodo_entrega" name="metodo_entrega" required
-                            class="w-full border-2 border-gray-800 rounded-xl px-4 py-3">
-                            <option value="">Seleccione método de entrega</option>
-                            <option value="R">Retiro en local</option>
-                            <option value="E">Envío vehicular</option>
-                        </select>
-                    </div>
-
-                    <h2 class="font-bold text-gray-900 text-2xl mb-6">Forma de Pago</h2>
-
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Selecciona método de pago
-                        </label>
-                        <select id="tipo_pago" name="tipo_pago" required
-                            class="w-full border-2 border-gray-800 rounded-xl px-4 py-3">
-                            <option value="">Seleccione método de pago</option>
-                            @foreach($formasPago as $forma)
-                                <option value="{{ $forma->secuencia }}">
-                                    {{ $forma->forma_pago }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <button type="submit"
-                            class="w-full mt-8 bg-[#0F52BA] hover:bg-[#003087] text-white font-semibold text-lg py-4 rounded-2xl">
-                        Finalizar Pedido - ${{ $trabajaConIvaIncluido === 'S' ? $total : $totalBruto }}
-                    </button>
-
-                    <p class="text-center text-xs text-gray-500 mt-4">
-                        🔒 Pago seguro y encriptado
-                    </p>
-                </div>
-            </div>
-
-            <!-- BLOQUE 3 -->
-            <div class="lg:col-span-7 order-3">
-
+            {{-- BLOQUE 2: Datos de Facturación — segundo en mobile, segunda fila izquierda en desktop --}}
+            <div class="lg:col-span-7 order-2">
                 <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 lg:p-6 space-y-6">
 
                     <div class="flex justify-between items-center">
@@ -183,14 +136,12 @@
                         </button>
                     </div>
 
-                    <!-- Cédula -->
                     <div class="flex items-end gap-3 mt-1">
                         <div class="flex-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">RUC o Cédula</label>
                             <input type="text" name="cedula" id="cedula" required
                                 class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
                         </div>
-
                         <div class="flex gap-2 mb-[2px]">
                             <button type="button" id="buscar-cedula" class="btn-buscar">Buscar</button>
                             <button type="button" id="borrar-datos" class="btn-borrar">Borrar</button>
@@ -215,7 +166,6 @@
                             <input type="text" name="telefono" id="telefono" required
                                 class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]">
                         </div>
-
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
                             <input type="email" name="email" id="email" required
@@ -229,6 +179,63 @@
                                 class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#0F52BA]"></textarea>
                     </div>
 
+                </div>
+            </div>
+
+            {{-- BLOQUE 3: Pasarela — último en mobile, columna derecha spanning 2 filas en desktop --}}
+            <div class="lg:col-span-5 lg:row-span-2 lg:row-start-1 lg:col-start-8 order-3 self-start">
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 lg:p-6">
+
+                    <div class="mb-6">
+                        <h2 class="font-bold text-gray-900 text-2xl mb-6 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-[#0300a3]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M5.223 2.25c-.497 0-.974.198-1.325.55l-1.3 1.298A3.75 3.75 0 0 0 7.5 9.75c.627.47 1.406.75 2.25.75.844 0 1.624-.28 2.25-.75.626.47 1.406.75 2.25.75.844 0 1.623-.28 2.25-.75a3.75 3.75 0 0 0 4.902-5.652l-1.3-1.299a1.875 1.875 0 0 0-1.325-.549H5.223Z" />
+                                <path fill-rule="evenodd" d="M3 20.25v-8.755c1.42.674 3.08.673 4.5 0A5.234 5.234 0 0 0 9.75 12c.804 0 1.568-.182 2.25-.506a5.234 5.234 0 0 0 2.25.506c.804 0 1.567-.182 2.25-.506 1.42.674 3.08.675 4.5.001v8.755h.75a.75.75 0 0 1 0 1.5H2.25a.75.75 0 0 1 0-1.5H3Zm3-6a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75v3a.75.75 0 0 1-.75.75h-3a.75.75 0 0 1-.75-.75v-3Zm8.25-.75a.75.75 0 0 0-.75.75v5.25c0 .414.336.75.75.75h3a.75.75 0 0 0 .75-.75v-5.25a.75.75 0 0 0-.75-.75h-3Z" clip-rule="evenodd" />
+                            </svg>
+                            Método de entrega
+                        </h2>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Selecciona método de entrega
+                        </label>
+                        <select id="metodo_entrega" name="metodo_entrega" required
+                            class="w-full border-2 border-gray-800 rounded-xl px-4 py-3">
+                            <option value="">Seleccione método de entrega</option>
+                            <option value="R">Retiro en local</option>
+                            <option value="E">Envío vehicular</option>
+                        </select>
+                    </div>
+
+                    <h2 class="font-bold text-gray-900 text-2xl mb-6 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-[#0300a3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                        </svg>
+                        Forma de Pago
+                    </h2>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Selecciona método de pago
+                        </label>
+                        <select id="tipo_pago" name="tipo_pago" required
+                            class="w-full border-2 border-gray-800 rounded-xl px-4 py-3">
+                            <option value="">Seleccione método de pago</option>
+                            @foreach($formasPago as $forma)
+                                <option value="{{ $forma->secuencia }}">
+                                    {{ $forma->forma_pago }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <button type="submit"
+                            class="w-full mt-8 bg-[#0F52BA] hover:bg-[#003087] text-white font-semibold text-lg py-4 rounded-2xl">
+                        Finalizar Pedido - ${{ $trabajaConIvaIncluido === 'S' ? $total : $totalBruto }}
+                    </button>
+
+                    <p class="text-center text-xs text-gray-500 mt-4">
+                        🔒 Pago seguro y encriptado
+                    </p>
                 </div>
             </div>
 
