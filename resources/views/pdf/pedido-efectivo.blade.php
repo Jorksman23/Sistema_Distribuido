@@ -48,7 +48,7 @@
         .footer { text-align: center; margin-top: 20px; font-size: 10px; color: #aaa; border-top: 1px solid #f0f0f0; padding-top: 12px; }
         .tabla-productos { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
         .tabla-productos thead tr { background: #f3f4f6; border-bottom: 1px solid #ddd; }
-        .tabla-productos th { padding: 8px 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #888; font-weight: bold; }
+        .tabla-productos th { padding: 8px 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #222142; font-weight: bold; }
         .tabla-productos td { padding: 8px 10px; font-size: 12px; border-bottom: 1px solid #f0f0f0; }
         .tabla-productos tfoot td { border-top: 2px solid #ddd; border-bottom: none; padding: 10px; }
         .badge-iva { display: inline-block; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; border-radius: 10px; padding: 1px 6px; font-size: 9px; font-weight: bold; }
@@ -61,7 +61,7 @@
     {{-- HEADER --}}
     <div class="header">
         <div class="header-left">
-            <div class="empresa-nombre">Eli Importadora</div>
+            <div class="empresa-nombre">{{ $empresaNombre }}</div>
             <div class="empresa-subtitulo">Comprobante de Pedido</div>
         </div>
         <div class="header-right">
@@ -73,7 +73,7 @@
     {{-- DOS COLUMNAS --}}
     <div class="secciones">
         <div class="seccion">
-            <div class="seccion-titulo">👤 Datos del Cliente</div>
+            <div class="seccion-titulo">Datos del Cliente</div>
             <div class="fila">
                 <div class="fila-label">Cliente:</div>
                 <div class="fila-valor">{{ $orden->nombre_cliente }}</div>
@@ -95,7 +95,7 @@
         <div class="spacer"></div>
 
         <div class="seccion">
-            <div class="seccion-titulo">🧾 Detalles de Transacción</div>
+            <div class="seccion-titulo">Detalles de Transacción</div>
             <div class="fila">
                 <div class="fila-label">Forma de pago:</div>
                 <div class="fila-valor">{{ strtoupper($formaPago->forma_pago ?? 'N/A') }}</div>
@@ -123,7 +123,7 @@
 
     {{-- TABLA DE PRODUCTOS --}}
     <div style="border:1px solid #e5e7eb; border-radius:6px; padding:16px; margin-bottom:20px;">
-        <div class="productos-titulo">📦 Detalle de Productos</div>
+        <div class="productos-titulo">Detalle de Productos</div>
         <table class="tabla-productos">
             <thead>
                 <tr>
