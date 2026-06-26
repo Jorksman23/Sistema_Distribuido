@@ -2,6 +2,21 @@
 @section('title', $empresaNombre)
 
 @section('content')
+{{-- AVISO COMPROBANTE PENDIENTE --}}
+@if(session('checkout_data') && session('codigo_orden'))
+<div class="max-w-7xl mx-auto px-4 mt-4">
+    <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 text-sm rounded-xl flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <span>⚠</span>
+            <span>Tienes una orden <strong>#{{ session('codigo_orden') }}</strong> pendiente de comprobante de pago.</span>
+        </div>
+        <a href="{{ route('pedidos.comprobante') }}"
+           class="ml-4 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-semibold px-4 py-2 rounded-full transition whitespace-nowrap">
+            Subir comprobante
+        </a>
+    </div>
+</div>
+@endif
 {{-- ===== CARRUSEL INFINITO ===== --}}
 @if(isset($carrusel) && count($carrusel) > 0)
 <div class="mt-12 mb-4">

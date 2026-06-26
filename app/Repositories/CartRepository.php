@@ -107,44 +107,21 @@ class CartRepository
 
     // Marcar procesado
     public function marcarComoProcesado(string $codCliente, string $ordenId): int {
-    $ubicacion = (string) session('ubicacion_seleccionada', '');
+        $ubicacion = (string) session('ubicacion_seleccionada', '');
 
-    return DB::connection($this->connection)->update("
-        UPDATE {$this->table}
-        SET estatus = '2',
-            orden_id = ?
-        WHERE cod_cliente = ?
-        AND estatus = '1'
-        AND ubicacion = ?
-        AND orden_id IS NULL
-    ", [
-        $ordenId,
-        $codCliente,
-        $ubicacion,
-    ]);
-}
-// public function marcarComoProcesado(string $codCliente, string $ordenId): int {
-//     return DB::connection($this->connection)->update("
-//         UPDATE {$this->table}
-//         SET estatus = '2',
-//             orden_id = ?
-//         WHERE cod_cliente = ?
-//         AND estatus = '1'
-//     ", [
-//         $ordenId,
-//         $codCliente
-//     ]);
-// }
-    //  public function marcarComoProcesado(string $codCliente,string $ordenId): int {
-    //     return DB::connection($this->connection)->update("
-    //         UPDATE {$this->table}
-    //         SET estatus = '2',
-    //             orden_id = ?
-    //         WHERE cod_cliente = ?
-    //         AND estatus = '1'
-    //         ", [
-    //             $ordenId,
-    //             $codCliente
-    //         ]);
-    // }
+        return DB::connection($this->connection)->update("
+            UPDATE {$this->table}
+            SET estatus = '2',
+                orden_id = ?
+            WHERE cod_cliente = ?
+            AND estatus = '1'
+            AND ubicacion = ?
+            AND orden_id IS NULL
+        ", [
+            $ordenId,
+            $codCliente,
+            $ubicacion,
+        ]);
+    }
+
 }

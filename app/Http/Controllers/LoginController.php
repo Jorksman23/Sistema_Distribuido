@@ -173,7 +173,6 @@ class LoginController {
         }
     }
 
-
     // Cerrar sesión
     public function logout()
     {

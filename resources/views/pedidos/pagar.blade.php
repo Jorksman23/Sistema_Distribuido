@@ -121,6 +121,18 @@
                             </p>
                         @endif
                     </div>
+                    {{-- Nota de envío --}}
+                    <div class="mt-4 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                        <svg class="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 110 20A10 10 0 0112 2z"/>
+                        </svg>
+                        <p class="text-xs text-amber-700 leading-relaxed">
+                            <span class="font-semibold">Nota:</span>
+                            El costo de envío no está incluido en este total. Si seleccionas envío vehicular,
+                            se aplicará un recargo adicional que será coordinado con nuestro equipo.
+                        </p>
+                    </div>
                 </div>
             </div>
 
