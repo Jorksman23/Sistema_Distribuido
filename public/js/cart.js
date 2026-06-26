@@ -126,7 +126,6 @@ document.addEventListener('DOMContentLoaded', function () {
      */
     async function vaciarCarrito(event, form) {
         event.preventDefault();
-
         try {
             const formData = new FormData(form);
 
@@ -149,6 +148,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (badge) {
                     badge.textContent = '0';
                     badge.classList.add('hidden');
+                }
+                // Actualizar contador del header
+                const headerCount = document.getElementById('carritoHeaderCount');
+                if (headerCount) {
+                    headerCount.classList.add('hidden');
                 }
             }
         } catch (error) {

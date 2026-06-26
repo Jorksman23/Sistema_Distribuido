@@ -114,23 +114,6 @@ class ProformaGenerator
                 'valor1'       => (float)$item->pvp3,
                 'bonificacion' => 0,
             ]);
-
-            // Descuento de stock
-            if ($presentacion > 0) {
-                DB::connection($this->connection)->update("
-                    UPDATE DBA.in_existencia_presentacion
-                    SET cantidad = cantidad - ?
-                    WHERE empresa = ? AND item_presentacion = ? AND ubicacion = ?
-                ", [$cantidad, $this->empresa, $presentacion, $ubicacion]);
-
-            }else {
-                // Solo descuento general
-                DB::connection($this->connection)->update("
-                    UPDATE DBA.in_existencia
-                    SET existencia = existencia - ?
-                    WHERE empresa = ? AND producto = ? AND ubicacion = ?
-                ", [$cantidad, $this->empresa, $codigoItem, $ubicacion]);
-            }
         }
     }
 
