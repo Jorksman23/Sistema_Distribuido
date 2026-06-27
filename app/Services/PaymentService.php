@@ -125,15 +125,6 @@ class PaymentService
                 'fecha_modificacion' => now(),
             ]);
 
-            $this->cxcAuxiliarProformaService->registrar(
-                $codigoOrden,
-                (int)$checkoutData['tipo_pago'],
-                $granTotal,
-                $empresa,
-                null,
-                'Reserva web - pago en tienda'
-            );
-
             $documento = $this->proformaGenerator->generarDesdeOrden(
                 (object)[
                     'codigo'             => $codigoOrden,
@@ -141,6 +132,14 @@ class PaymentService
                 ],
                 $items,
                 $empresa
+            );
+            $this->cxcAuxiliarProformaService->registrar(
+                $documento,
+                (int)$checkoutData['tipo_pago'],
+                $granTotal,
+                $empresa,
+                null,
+                'Reserva web - pago en tienda'
             );
 
             DB::connection('odbc')->table('DBA.PW_HISTORICO_PEDIDO')->insert([
@@ -213,15 +212,6 @@ class PaymentService
             $formaPago   = $this->paymentMethodService->obtenerFormaPago((int)$checkoutData['tipo_pago'], $empresa);
             $cuentaBanco = $this->paymentMethodService->obtenerCuentaBanco($formaPago, $empresa);
 
-            $this->cxcAuxiliarProformaService->registrar(
-                $codigoOrden,
-                (int)$checkoutData['tipo_pago'],
-                $granTotal,
-                $empresa,
-                null,
-                $cuentaBanco ? "Transferencia a banco {$cuentaBanco->descripcion}" : "Transferencia bancaria"
-            );
-
             $documento = $this->proformaGenerator->generarDesdeOrden(
                 (object)[
                     'codigo'             => $codigoOrden,
@@ -229,6 +219,14 @@ class PaymentService
                 ],
                 $items,
                 $empresa
+            );
+            $this->cxcAuxiliarProformaService->registrar(
+                $documento,
+                (int)$checkoutData['tipo_pago'],
+                $granTotal,
+                $empresa,
+                null,
+                $cuentaBanco ? "Transferencia a banco {$cuentaBanco->descripcion}" : "Transferencia bancaria"
             );
 
             DB::connection('odbc')->table('DBA.PW_HISTORICO_PEDIDO')->insert([

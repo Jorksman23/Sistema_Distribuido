@@ -116,17 +116,8 @@ class ComprobanteService
             $fotoId   = $remoteData['data'][0]['url'];
             $fotoName = $remoteData['data'][0]['name'];
 
-            // 2. Registrar en auxiliar proforma
-            $this->cxcAuxiliarProformaService->registrar(
-                $documento,
-                (int)$checkoutData['tipo_pago'],
-                $granTotal,
-                $empresa,
-                $granTotal,
-                'Transferencia web'
-            );
 
-            // 3. Guardar adjunto en tu BD con datos del servidor externo
+            // Guardar adjunto en tu BD con datos del servidor externo
             DB::connection('odbc')->table('DBA.PW_ADJUNTO_WEB')->insert([
                 'empresa'         => $empresa,
                 'cod_orden'       => $codigoOrden,
@@ -139,7 +130,7 @@ class ComprobanteService
                 'update_at'       => now(),
             ]);
 
-            // 4. Historial
+            // Historial
             DB::connection('odbc')->table('DBA.PW_HISTORICO_PEDIDO')->insert([
                 'cod_orden'      => $codigoOrden,
                 'codigo_cliente' => $codCliente,
@@ -151,7 +142,7 @@ class ComprobanteService
                 'empresa'        => $empresa,
             ]);
 
-            // 5. Asociar carrito
+            // Asociar carrito
             $this->cartRepository->marcarComoProcesado($codCliente, $codigoOrden);
 
             DB::connection('odbc')->commit();
