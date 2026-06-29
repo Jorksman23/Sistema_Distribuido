@@ -48,21 +48,19 @@ class CheckoutService
 
         foreach ($items as $item) {
             $precioLinea = (float) $item->pvp3 * (int) $item->cantidad;
+            $itemIva     = ($item->iva ?? 'N') === 'S';
 
-            if (($item->iva ?? 'N') === 'S') {
-                if ($trabajaConIvaIncluido === 'S') {
-                    // Precio NO incluye IVA — se suma encima
-                    $subtotal += $precioLinea;
-                    $ivaTotal += $precioLinea * ($porcentajeIva / 100);
-                } else {
-                    // Precio YA incluye IVA — se desglosa
-                    $subtotalLinea = $precioLinea / (1 + ($porcentajeIva / 100));
-                    $subtotal      += $subtotalLinea;
-                    $ivaTotal      += $precioLinea - $subtotalLinea;
-                }
-            } else {
-                // Producto sin IVA
+            // Único caso que CALCULA (suma IVA encima): 248=S y el item tiene IVA.
+            // Cualquier otro caso DESGLOSA (el precio ya trae el IVA dentro).
+            if ($trabajaConIvaIncluido === 'S' && $itemIva) {
+                // CALCULAR: precio NO incluye IVA, se suma encima
                 $subtotal += $precioLinea;
+                $ivaTotal += $precioLinea * ($porcentajeIva / 100);
+            } else {
+                // DESGLOSAR: precio YA incluye IVA, se extrae
+                $subtotalLinea = $precioLinea / (1 + ($porcentajeIva / 100));
+                $subtotal     += $subtotalLinea;
+                $ivaTotal     += $precioLinea - $subtotalLinea;
             }
 
             $totalBruto += $precioLinea;

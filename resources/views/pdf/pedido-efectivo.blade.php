@@ -142,7 +142,7 @@
                     <td style="text-align:center;">{{ $item['cantidad'] }}</td>
                     <td style="text-align:right;">${{ $item['precio_base'] }}</td>
                     <td style="text-align:center;">
-                        @if($item['iva'] === 'S')
+                        @if($item['iva_linea'] !== null)
                             <span class="badge-iva">IVA</span>
                         @else
                             <span style="color:#ccc; font-size:11px;">—</span>

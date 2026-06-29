@@ -389,32 +389,24 @@ class CarritoController {
         // Calcular datos por línea para el PDF
         $itemsConDetalle = [];
         foreach ($items as $item) {
-            $precioLinea  = (float) $item->pvp3 * (int) $item->cantidad;
-            $precioBase   = $precioLinea;
-            $ivaLinea     = 0;
+            $precioLinea = (float) $item->pvp3 * (int) $item->cantidad;
+            $itemIva     = ($item->iva ?? 'N') === 'S';
 
-            if (($item->iva ?? 'N') === 'S') {
-                if ($trabajaConIvaIncluido === 'S') {
-                    // Precio NO incluye IVA — se suma encima
-                    $precioBase = $precioLinea;
-                    $ivaLinea   = $precioLinea * ($porcentajeIva / 100);
-                    $subtotal  += $precioBase;
-                    $ivaTotal  += $ivaLinea;
-                } else {
-                    // Precio YA incluye IVA — se desglosa
-                    $precioBase = $precioLinea / (1 + ($porcentajeIva / 100));
-                    $ivaLinea   = $precioLinea - $precioBase;
-                    $subtotal  += $precioBase;
-                    $ivaTotal  += $ivaLinea;
-                }
-            } else {
-                // Sin IVA
+            // Único caso que CALCULA (suma IVA encima): 248=S y el item tiene IVA.
+            // Cualquier otro caso DESGLOSA (el precio ya trae el IVA dentro).
+            if ($trabajaConIvaIncluido === 'S' && $itemIva) {
                 $precioBase = $precioLinea;
-                $ivaLinea   = 0;
-                $subtotal  += $precioBase;
+                $ivaLinea   = $precioLinea * ($porcentajeIva / 100);
+            } else {
+                $precioBase = $precioLinea / (1 + ($porcentajeIva / 100));
+                $ivaLinea   = $precioLinea - $precioBase;
             }
 
-            $totalBruto += $precioLinea;
+            $totalLinea = $precioBase + $ivaLinea;
+
+            $subtotal   += $precioBase;
+            $ivaTotal   += $ivaLinea;
+            $totalBruto += $totalLinea;
 
             $itemsConDetalle[] = [
                 'nombre'      => $item->nombre,
@@ -423,7 +415,7 @@ class CarritoController {
                 'iva'         => $item->iva ?? 'N',
                 'precio_base' => number_format($precioBase, 2, '.', ''),
                 'iva_linea'   => $ivaLinea > 0 ? number_format($ivaLinea, 2, '.', '') : null,
-                'total_linea' => number_format($precioLinea, 2, '.', ''),
+                'total_linea' => number_format($totalLinea, 2, '.', ''),
             ];
         }
 
