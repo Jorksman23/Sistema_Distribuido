@@ -83,8 +83,10 @@
 
                     @foreach($items as $item)
                     <div class="flex gap-5 py-5 border-b last:border-none">
-                        <img src="{{ $item->imagen_url }}" alt="{{ $item->nombre }}"
-                            class="w-20 h-20 object-cover rounded-xl border">
+                        <img src="{{ $item->imagen_url ?: 'https://placehold.co/96x96?text=Sin+imagen' }}"
+                            alt="{{ $item->nombre }}"
+                            class="w-20 h-20 object-cover rounded-xl border"
+                            onerror="this.onerror=null;this.src='https://placehold.co/96x96?text=Sin+imagen'">
                         <div class="flex-1">
                             <p class="font-medium text-gray-800">{{ $item->nombre }}</p>
                             @if($item->nombre_presentacion)

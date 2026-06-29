@@ -20,7 +20,7 @@
 
                 <div class="w-full">
                     <img id="mainImage"
-                         src="{{ $producto['imagen_url'] ?? asset('images/no-image.png') }}"
+                         src="{{ $producto['imagen_url'] ?: 'https://placehold.co/500x500?text=Sin+imagen' }}"
                          alt="{{ $producto['descripcion'] ?? '' }}"
                          class="w-full h-auto object-contain"
                          onerror="this.onerror=null;this.src='https://placehold.co/500x500?text=Sin+imagen'">
@@ -83,7 +83,7 @@
                                      data-stock="{{ $pres->stock_presentacion }}"
                                      class="thumbnail flex-shrink-0 w-24 cursor-pointer rounded-xl overflow-hidden border-2 transition-all hover:scale-105
                                             {{ $index === 0 ? 'border-[#0300a3] shadow-md' : 'border-gray-200' }}">
-                                    <img src="{{ $pres->foto_url }}"
+                                    <img src="{{ $pres->foto_url ?: 'https://placehold.co/96x96?text=Sin+imagen' }}"
                                          alt="{{ $pres->nombre }}"
                                          class="w-full aspect-square object-cover"
                                          onerror="this.onerror=null;this.src='https://placehold.co/96x96?text=?'">
@@ -269,8 +269,9 @@
 
 <script>
 function changeImage(element, newSrc, codigoPresentacion, stockPresentacion) {
+    const imagen = newSrc || 'https://placehold.co/500x500?text=Sin+imagen';
     // Cambiar imagen principal
-    document.getElementById('mainImage').src = newSrc;
+    document.getElementById('mainImage').src = imagen;
 
     // Marcar thumbnail seleccionado
     document.querySelectorAll('.thumbnail').forEach(thumb => {

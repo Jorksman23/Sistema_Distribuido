@@ -58,7 +58,7 @@
 
                     {{-- IMAGEN --}}
                     <div class="shrink-0 w-24 h-24 rounded-xl overflow-hidden bg-gray-50 border border-gray-100">
-                        <img src="{{ $item->imagen_url }}"
+                        <img src="{{ $item->imagen_url ?: 'https://placehold.co/96x96?text=Sin+imagen' }}"
                              alt="{{ $item->nombre }}"
                              class="w-full h-full object-cover"
                              onerror="this.onerror=null;this.src='https://placehold.co/96x96?text=?'">
