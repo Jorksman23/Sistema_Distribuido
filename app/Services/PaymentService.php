@@ -44,8 +44,13 @@ class PaymentService
         $this->proformaGenerator = $proformaGenerator;
     }
 
-    /**
-     * Procesar pago
+     /**
+     * Procesar pago.
+     *
+     * Decide el flujo según la secuencia de la forma de pago:
+     *   - config('payments.efectivo') → pago en efectivo (reserva en tienda)
+     *   - config('payments.nuvei')    → pasarela Nuvei (Link to Pay)
+     *   - cualquier otra              → transferencia bancaria (comprobante manual)
      */
     public function procesarPago(array $data, string $codCliente, string $empresa){
         $formaPago = $this->paymentMethodService->obtenerFormaPago($data['tipo_pago'], $empresa);
@@ -72,10 +77,19 @@ class PaymentService
                 ]
             ]);
 
-            if ((int)$data['tipo_pago'] === 1) {
+            $secuencia = (int) $data['tipo_pago'];
+
+            // Efectivo: orden en estatus '1', el cliente paga en tienda física (sin comprobante)
+            if ($secuencia === (int) config('payments.efectivo')) {
                 return $this->procesarPagoEfectivo(session('checkout_data'), $codClienteFactura, $codCliente, $empresa);
             }
 
+            // Nuvei (tarjeta de crédito): se manda a la pasarela; el webhook confirmará el pago
+            if ($secuencia === (int) config('payments.nuvei')) {
+                return $this->procesarPagoNuvei(session('checkout_data'), $codClienteFactura, $codCliente, $empresa);
+            }
+
+            // Cualquier otra forma de pago: transferencia bancaria (subir comprobante manual)
             return $this->procesarPagoTransferencia(session('checkout_data'), $codClienteFactura, $codCliente, $empresa);
         } catch (Throwable $e) {
             return back()->withErrors([
@@ -262,6 +276,249 @@ class PaymentService
     }
 
 
+    // public function procesarPagoTransferencia(array $checkoutData, string $codClienteFactura, string $codClienteCarrito, string $empresa){
+    //     $items = $this->carrito->getCarritoByUser($codClienteCarrito);
+    //     if (empty($items)) {
+    //         return redirect()->route('carrito.index')->withErrors([
+    //             'error' => 'El carrito está vacío.'
+    //         ]);
+    //     }
+
+    //     $codigoOrden = $this->orderRepository->generarCodigoOrden($empresa);
+    //     $checkout    = $this->checkoutService->obtenerCheckout($codClienteCarrito);
+    //     $granTotal   = (float) ($checkout['trabajaConIvaIncluido'] === 'S'
+    //         ? $checkout['total']
+    //         : $checkout['totalBruto']);
+
+    //     try {
+    //         DB::connection('odbc')->beginTransaction();
+
+    //         DB::connection('odbc')->table('DBA.PW_ORDENES_WEB')->insert([
+    //             'codigo'             => $codigoOrden,
+    //             'cod_cliente'        => $codClienteFactura, // código de in_cliente
+    //             'n_documento'        => $codigoOrden,
+    //             'tipo'               => companyDefaultOrderType('invoice'),
+    //             'empresa'            => $empresa,
+    //             'uuid_session'       => md5(uniqid(rand(), true)),
+    //             'user_id'            => $codClienteCarrito, // user_id de sesión
+    //             'tipo_pago'          => $checkoutData['tipo_pago'],
+    //             'items_carrito'      => count($items),
+    //             'gran_total'         => $granTotal,
+    //             'estatus'            => '1',
+    //             'cedula_cliente'     => $checkoutData['cedula'],
+    //             'nombre_cliente'     => $checkoutData['nombre'],
+    //             'email_cliente'      => $checkoutData['email'],
+    //             'telefono_cliente'   => $checkoutData['telefono'],
+    //             'direccion_cliente'  => $checkoutData['direccion'],
+    //             'observacion_compra' => $checkoutData['observacion'] ?? null,
+    //             'metodo_entrega'     => $checkoutData['metodo_entrega'],
+    //             'fecha_creacion'     => now(),
+    //             'fecha_modificacion' => now(),
+    //         ]);
+
+    //         $formaPago   = $this->paymentMethodService->obtenerFormaPago((int)$checkoutData['tipo_pago'], $empresa);
+    //         $cuentaBanco = $this->paymentMethodService->obtenerCuentaBanco($formaPago, $empresa);
+
+    //         $documento = $this->proformaGenerator->generarDesdeOrden(
+    //             (object)[
+    //                 'codigo'             => $codigoOrden,
+    //                 'observacion_compra' => $checkoutData['observacion']
+    //             ],
+    //             $items,
+    //             $empresa
+    //         );
+    //         $this->cxcAuxiliarProformaService->registrar(
+    //             $documento,
+    //             (int)$checkoutData['tipo_pago'],
+    //             $granTotal,
+    //             $empresa,
+    //             null,
+    //             $cuentaBanco ? "Transferencia a banco {$cuentaBanco->descripcion}" : "Transferencia bancaria"
+    //         );
+
+    //         DB::connection('odbc')->table('DBA.PW_HISTORICO_PEDIDO')->insert([
+    //             'cod_orden'      => $codigoOrden,
+    //             'codigo_cliente' => $codClienteFactura, // código de in_cliente
+    //             'cod_estado'     => '1',
+    //             'observacion'    => 'Pedido registrado para transferencia bancaria',
+    //             'fecha_cambio'   => now(),
+    //             'created_at'     => now(),
+    //             'update_at'      => now(),
+    //             'empresa'        => $empresa,
+    //         ]);
+
+    //         DB::connection('odbc')->commit();
+
+    //         session([
+    //             'checkout_data' => $checkoutData,
+    //             'codigo_orden'  => $codigoOrden,
+    //             'documento'     => $documento,
+    //         ]);
+
+    //         return redirect()->route('pedidos.comprobante')->with(
+    //             'success',
+    //             "Orden {$codigoOrden} registrada con documento {$documento}. Ahora suba su comprobante."
+    //         );
+    //     } catch (Throwable $e) {
+    //         DB::connection('odbc')->rollBack();
+    //         return back()->withErrors(['error' => $e->getMessage()]);
+    //     }
+    // }
+
+    /**
+     * Procesar pago con Nuvei (Link to Pay).
+     *
+     * Crea la orden en estatus '1' (igual que transferencia) y genera la proforma.
+     * Luego pide a Nuvei el enlace de pago y redirige al cliente al payment_url.
+     * Cuando el cliente vuelve tras pagar, cae en la pantalla de subir comprobante
+     * (igual que transferencia): sube la captura de su pago y la orden queda en
+     * estatus '1' a la espera de aprobación manual desde el panel de administración.
+     * NO se descuenta stock aquí ni automáticamente.
+     */
+    public function procesarPagoNuvei(array $checkoutData, string $codClienteFactura, string $codClienteCarrito, string $empresa){
+        $items = $this->carrito->getCarritoByUser($codClienteCarrito);
+        if (empty($items)) {
+            return redirect()->route('carrito.index')->withErrors([
+                'error' => 'El carrito está vacío.'
+            ]);
+        }
+
+        $codigoOrden = $this->orderRepository->generarCodigoOrden($empresa);
+        $checkout    = $this->checkoutService->obtenerCheckout($codClienteCarrito);
+        $granTotal   = (float) ($checkout['trabajaConIvaIncluido'] === 'S'
+            ? $checkout['total']
+            : $checkout['totalBruto']);
+
+        // ── 1. Crear orden + proforma en BD (estatus '1', sin descontar stock) ──
+        try {
+            DB::connection('odbc')->beginTransaction();
+
+            DB::connection('odbc')->table('DBA.PW_ORDENES_WEB')->insert([
+                'codigo'             => $codigoOrden,
+                'cod_cliente'        => $codClienteFactura,
+                'n_documento'        => $codigoOrden,
+                'tipo'               => companyDefaultOrderType('invoice'),
+                'empresa'            => $empresa,
+                'uuid_session'       => md5(uniqid(rand(), true)),
+                'user_id'            => $codClienteCarrito,
+                'tipo_pago'          => $checkoutData['tipo_pago'],
+                'items_carrito'      => count($items),
+                'gran_total'         => $granTotal,
+                'estatus'            => '1',
+                'cedula_cliente'     => $checkoutData['cedula'],
+                'nombre_cliente'     => $checkoutData['nombre'],
+                'email_cliente'      => $checkoutData['email'],
+                'telefono_cliente'   => $checkoutData['telefono'],
+                'direccion_cliente'  => $checkoutData['direccion'],
+                'observacion_compra' => $checkoutData['observacion'] ?? null,
+                'metodo_entrega'     => $checkoutData['metodo_entrega'],
+                'fecha_creacion'     => now(),
+                'fecha_modificacion' => now(),
+            ]);
+
+            $documento = $this->proformaGenerator->generarDesdeOrden(
+                (object)[
+                    'codigo'             => $codigoOrden,
+                    'observacion_compra' => $checkoutData['observacion']
+                ],
+                $items,
+                $empresa
+            );
+
+            $this->cxcAuxiliarProformaService->registrar(
+                $documento,
+                (int)$checkoutData['tipo_pago'],
+                $granTotal,
+                $empresa,
+                null,
+                'Pago con tarjeta (Nuvei) - pendiente de comprobante'
+            );
+
+            DB::connection('odbc')->table('DBA.PW_HISTORICO_PEDIDO')->insert([
+                'cod_orden'      => $codigoOrden,
+                'codigo_cliente' => $codClienteFactura,
+                'cod_estado'     => '1',
+                'observacion'    => 'Pedido registrado para pago con tarjeta (Nuvei)',
+                'fecha_cambio'   => now(),
+                'created_at'     => now(),
+                'update_at'      => now(),
+                'empresa'        => $empresa,
+            ]);
+
+            DB::connection('odbc')->commit();
+        } catch (Throwable $e) {
+            DB::connection('odbc')->rollBack();
+            return back()->withErrors(['error' => 'Error al registrar la orden: ' . $e->getMessage()]);
+        }
+
+        // ── 2. Pedir el enlace de pago a Nuvei (FUERA de la transacción) ──
+        $nuvei = new \App\Services\NuveiService();
+
+        // En el sistema los datos vienen como "NOMBRE1 NOMBRE2 APELLIDO1 APELLIDO2".
+        // Tomamos las 2 primeras palabras como nombres y el resto como apellidos.
+        // Nuvei exige que name y last_name NO estén vacíos.
+        $nombreCompleto = trim($checkoutData['nombre'] ?? '');
+        $palabras       = preg_split('/\s+/', $nombreCompleto, -1, PREG_SPLIT_NO_EMPTY);
+
+        $nombre   = trim(implode(' ', array_slice($palabras, 0, 2)));  // 2 primeras palabras
+        $apellido = trim(implode(' ', array_slice($palabras, 2)));     // el resto
+
+        // Respaldo: si no hay suficientes palabras, evitamos campos en blanco.
+        if ($nombre === '') {
+            $nombre = 'Cliente';
+        }
+        if ($apellido === '') {
+            $apellido = $nombre;
+        }
+
+        $resultado = $nuvei->generarLinkPago(
+            // orderData
+            [
+                'dev_reference'  => $codigoOrden,
+                'description'    => "Orden {$codigoOrden} - " . \App\Models\Empresa::getNombre(),
+                'amount'         => $checkout['trabajaConIvaIncluido'] === 'S'
+                                        ? (float) $checkout['total']
+                                        : (float) $checkout['totalBruto'],
+                'vat'            => (float) $checkout['iva'],
+                'tax_percentage' => (float) $checkout['porcentajeIva'],
+                'taxable_amount' => (float) $checkout['subtotal'],
+            ],
+            // userData (id = user_id de sesión)
+            [
+                'id'        => $codClienteCarrito,
+                'email'     => $checkoutData['email'] ?? '',
+                'name'      => $nombre,
+                'last_name' => $apellido,
+            ],
+            // urls de retorno:
+            //   success → pantalla de subir comprobante (el cliente adjunta su captura de pago)
+            //   los demás → pantalla informativa de Nuvei (pago no completado / pendiente / en revisión)
+            [
+                'success_url' => route('pedidos.comprobante'),
+                'failure_url' => route('pedidos.nuvei.retorno', ['estado' => 'failure', 'orden' => $codigoOrden]),
+                'pending_url' => route('pedidos.nuvei.retorno', ['estado' => 'pending', 'orden' => $codigoOrden]),
+                'review_url'  => route('pedidos.nuvei.retorno', ['estado' => 'review',  'orden' => $codigoOrden]),
+            ]
+        );
+
+        // ── 3. Decidir según la respuesta de Nuvei ──
+        if ($resultado['success'] && !empty($resultado['payment_url'])) {
+            // Guardar la orden en sesión para que la pantalla de comprobante la use al volver.
+            // (checkout_data ya fue guardado en sesión por procesarPago).
+            session([
+                'codigo_orden' => $codigoOrden,
+                'documento'    => $documento,
+            ]);
+
+            // Redirigir al cliente al entorno de pago de Nuvei
+            return redirect()->away($resultado['payment_url']);
+        }
+
+        // Nuvei falló: la orden quedó en '1' (sin pagar). Avisamos al cliente.
+        return back()->withErrors([
+            'error' => 'No se pudo iniciar el pago con tarjeta: ' . ($resultado['error'] ?? 'Error desconocido') . '. La orden quedó registrada como pendiente.'
+        ]);
+    }
 
     public function obtenerOCrearCliente(array $data, string $empresa): array
     {

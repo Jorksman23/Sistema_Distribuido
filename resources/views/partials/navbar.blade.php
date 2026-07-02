@@ -84,7 +84,13 @@
                 <div id="userMenu" class="hidden absolute right-0 top-9 w-44 sm:w-52 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden z-50 text-sm">
                     @if(session('user_id'))
                         <div class="px-4 py-3 border-b text-gray-700 font-semibold truncate">
-                            {{ session('nombre') }}
+                            @php
+                                $palabras = preg_split('/\s+/', trim(session('nombre') ?? ''), -1, PREG_SPLIT_NO_EMPTY);
+                                $primerNombre   = $palabras[0] ?? '';
+                                $primerApellido = $palabras[2] ?? '';   // palabra 3 = primer apellido
+                                $nombreCorto = trim($primerNombre . ' ' . $primerApellido);
+                            @endphp
+                            {{ $nombreCorto !== '' ? $nombreCorto : session('nombre') }}
                         </div>
                         <a href="{{ route('profile.show') }}"
                         class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium

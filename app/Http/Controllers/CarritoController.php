@@ -430,4 +430,19 @@ class CarritoController {
 
         return $pdf->download('Pedido_' . $orden->codigo . '.pdf');
     }
+
+    // === Retorno visual de Nuvei ===
+    // El cliente aterriza aquí tras pagar en la pasarela. Solo informa;
+    // la aprobación real de la orden la ejecuta el webhook (server-to-server).
+    public function retornoNuvei(Request $request)
+    {
+        $estado = $request->query('estado', 'pending'); // success | failure | pending | review
+        $orden  = $request->query('orden');
+
+        return view('pedidos.nuvei-retorno', [
+            'estado' => $estado,
+            'orden'  => $orden,
+        ]);
+    }
 }
+

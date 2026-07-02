@@ -15,6 +15,10 @@ class AppServiceProvider extends ServiceProvider
         //
     }
     public function boot(): void{
+        // Forzar HTTPS cuando la app corre detrás del túnel de ngrok (para pruebas de pasarela)
+        if (str_contains((string) config('app.url'), 'ngrok')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
         // Cargar nuestro Helper de Empresa e Imágenes
         require_once app_path('Helpers/CompanyHelper.php');
         // Compartir nombre de empresa en todas las vistas (lo que ya tenías)

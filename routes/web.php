@@ -50,7 +50,6 @@ Route::middleware('auth.custom')->group(function () {
 });
 
 Route::get('/pedidos/verp/{documento}', function($documento) {return view('pedidos.verp', ['documento' => $documento]);})->name('pedidos.verp');
-Route::get('/profile/pedidos', [ProfileController::class, 'pedidos'])->name('profile.pedidos');
 
 // PASSWORD RESET
 Route::middleware('guest')->group(function () {
@@ -84,3 +83,8 @@ Route::get('/pedidos/{codigo}/descargar',[CarritoController::class, 'descargarPe
 Route::get('/test-aprobar/{codigo}', function ($codigo,OrderApprovalService $service) {return $service->aprobar($codigo,currentCompany());});
 //Obtener los cliente a traves de un servicio
 Route::get('/cliente/datos', [CarritoController::class, 'obtenerDatosCliente'])->name('cliente.datos');
+
+// Retorno visual de Nuvei (el cliente vuelve aquí tras pagar en la pasarela).
+// Solo muestra un mensaje; la aprobación real la hace el webhook.
+Route::get('/pedidos/nuvei/retorno', [CarritoController::class, 'retornoNuvei'])->name('pedidos.nuvei.retorno');
+

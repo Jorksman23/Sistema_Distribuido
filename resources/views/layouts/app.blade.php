@@ -55,5 +55,6 @@
 <script src="{{ asset('js/wishlist.js') }}?v={{ filemtime(public_path('js/wishlist.js')) }}"></script>
 <script src="{{ asset('js/cart.js') }}?v={{ filemtime(public_path('js/cart.js')) }}"></script>
 <script src="{{ asset('js/comprobante.js') }}?v={{ filemtime(public_path('js/comprobante.js')) }}"></script>
+<script src="{{ asset('js/checkout-pago.js') }}?v={{ filemtime(public_path('js/checkout-pago.js')) }}"></script>
 </body>
 </html>

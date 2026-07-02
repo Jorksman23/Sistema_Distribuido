@@ -236,7 +236,8 @@
                             class="w-full border-2 border-gray-800 rounded-xl px-4 py-3">
                             <option value="">Seleccione método de pago</option>
                             @foreach($formasPago as $forma)
-                                <option value="{{ $forma->secuencia }}">
+                                <option value="{{ $forma->secuencia }}"
+                                        data-tarjeta="{{ (int)$forma->secuencia === (int)config('payments.nuvei') ? '1' : '0' }}">
                                     {{ $forma->forma_pago }}
                                 </option>
                             @endforeach
@@ -257,21 +258,6 @@
         </form>
     </div>
 </div>
-
-<script>
-document.getElementById('tipo_pago').addEventListener('change', function() {
-    const cardFields = document.getElementById('card-fields');
-    if (this.value === 'payphone') {
-        cardFields.style.display = 'block';
-    } else {
-        cardFields.style.display = 'none';
-    }
-});
-
-// Inicializar
-document.getElementById('tipo_pago').dispatchEvent(new Event('change'));
-</script>
-
 
 <script>
 document.getElementById('usar-registro').addEventListener('click', () => {
