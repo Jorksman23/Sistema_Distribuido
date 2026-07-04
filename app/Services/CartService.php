@@ -46,7 +46,7 @@ class CartService
             throw new \Exception('Producto no encontrado');
         }
         $producto = (new ProductsModel())->mapRowToInstance($raw);
-        $nombre = $data['nombre'] ?? $producto->descripcion1;
+        $nombre = $producto->descripcion1;
         $pvp3   = $data['pvp3']   ?? $producto->pvp1;
         $imagen = $data['imagen'] ?? $producto->imagen ?? 'https://placehold.co/300x300?text=Sin+imagen';
         $this->carrito->add([

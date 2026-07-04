@@ -139,7 +139,7 @@ class CarritoModel
         $instance                    = new self();
         $instance->id_item_web       = $row->id_item_web;
         $instance->codigo_item       = $row->codigo_item;
-        $instance->nombre            = ProductsModel::cleanString($row->nombre ?? null);
+        $instance->nombre            = $row->nombre ?? null;
         $instance->costo_real        = number_format((float)($row->costo_real ?? 0), 2, '.', '');
         $instance->pvp3              = number_format((float)($row->pvp3 ?? 0), 2, '.', '');
         $instance->cantidad          = (int)($row->cantidad ?? 1);
@@ -148,7 +148,7 @@ class CarritoModel
         $instance->estatus           = $row->estatus;
         $instance->iva               = $row->iva ?? 'N';
         $instance->presentacion      = (int)($row->presentacion ?? 0);
-        $instance->nombre_presentacion = ProductsModel::cleanString($row->nombre_presentacion ?? null);
+        $instance->nombre_presentacion = $row->nombre_presentacion ?? null;
         $instance->ubicacion = $row->ubicacion ?? null;
         // Si tiene presentacion usa la foto de la variante
         // Si no usa la imagen principal del producto
