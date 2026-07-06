@@ -5,11 +5,9 @@
    ========================================================== */
 ALTER TABLE DBA.PW_GE_USUARIO
 MODIFY contrasena VARCHAR(255);
-
 -- Añadir nuevo campo para que verifique el email del usuaio
 ALTER TABLE pw_ge_usuarios
 ADD email_verified_at DATETIME NULL;
-
 -- Creacion de tabla para el reseteo de contraseñas
 CREATE TABLE pw_password_resets (
     empresa     VARCHAR(3)    NOT NULL,
@@ -19,13 +17,11 @@ CREATE TABLE pw_password_resets (
     created_at  DATETIME      NOT NULL,
     PRIMARY KEY (empresa, codigo)
 );
-
 -- Relacion entre pw_password_resets e in_cliente para asegurar que solo se puedan generar tokens de reseteo para clientes existentes
 ALTER TABLE pw_password_resets
 ADD CONSTRAINT fk_pw_resets_cliente
 FOREIGN KEY (empresa, codigo)
 REFERENCES in_cliente (empresa, codigo);
-
 /* ==========================================================
    PW_GE_USUARIOS / IN_CLIENTE
 
@@ -107,7 +103,6 @@ END
    ========================================================== */
 ALTER TABLE DBA.PW_CARRITO_WEB
 ADD ubicacion VARCHAR(3) NULL;
-
 /* ==========================================================
    PW_CARRITO_WEB
    Campo para asociar los productos del carrito con la
@@ -115,7 +110,6 @@ ADD ubicacion VARCHAR(3) NULL;
    ========================================================== */
 ALTER TABLE DBA.PW_CARRITO_WEB
 ADD order_id INTEGER NULL;
-
 /* ==========================================================
    PW_WISHLIST
    Tabla para almacenar la lista de deseos (favoritos)
@@ -132,7 +126,6 @@ CREATE TABLE DBA.PW_WISHLIST (
     created_at TIMESTAMP DEFAULT CURRENT TIMESTAMP NULL,
     PRIMARY KEY (id_wish)
 );
-
 /* ==========================================================
    PW_WISHLIST
    Índice para optimizar la búsqueda de favoritos por
@@ -145,7 +138,6 @@ ON "DBA"."pw_wishlist" (
     "empresa",
     "cod_cliente"
 );
-
 /* ==========================================================
    PW_ADJUNTO_WEB
    Tabla para almacenar los archivos adjuntos asociados
@@ -206,7 +198,6 @@ UPDATE DBA.cxc_forma_pago
 SET cod_cuenta_banco = 1101002004000
 WHERE empresa = '005'
 AND forma_pago LIKE '%INTERNACION%';
-
 /* ==========================================================
    ge_empresa
   Añadir Campos adicionales para guardar informacion de la empresa
@@ -217,7 +208,6 @@ ADD celular LONG VARCHAR NULL,
 ADD telefono2 LONG VARCHAR NULL,
 ADD celular_rl LONG VARCHAR NULL,
 ADD logo_tienda LONG VARCHAR NULL;
-
 /* ==========================================================
    pw_ordenes_web
   Añadir Campo adicional para guardar el user_id de la sesion para
@@ -226,11 +216,8 @@ ADD logo_tienda LONG VARCHAR NULL;
    ========================================================== */
 ALTER TABLE "DBA"."pw_ordenes_web" ADD "user_id" INTEGER NULL;
 
-
-
-
+--Alter pw_ordenes_web para saber el metodo de entrega en R RETIRO en E ENVIO
+ALTER TABLE pw_ordenes_web ADD metodo_entrega char(1)
 
 --Alter cxc_forma_pago para ocultar las formas de pago
 ALTER TABLE cxc_forma_pago ADD view_on_tienda char(1)
-
-
