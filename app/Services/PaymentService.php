@@ -98,7 +98,6 @@ class PaymentService
         }
     }
 
-
     public function procesarPagoEfectivo(array $checkoutData, string $codClienteFactura, string $codClienteCarrito, string $empresa){
         $items = $this->carrito->getCarritoByUser($codClienteCarrito);
         if (empty($items)) {
@@ -274,96 +273,6 @@ class PaymentService
             return back()->withErrors(['error' => $e->getMessage()]);
         }
     }
-
-
-    // public function procesarPagoTransferencia(array $checkoutData, string $codClienteFactura, string $codClienteCarrito, string $empresa){
-    //     $items = $this->carrito->getCarritoByUser($codClienteCarrito);
-    //     if (empty($items)) {
-    //         return redirect()->route('carrito.index')->withErrors([
-    //             'error' => 'El carrito está vacío.'
-    //         ]);
-    //     }
-
-    //     $codigoOrden = $this->orderRepository->generarCodigoOrden($empresa);
-    //     $checkout    = $this->checkoutService->obtenerCheckout($codClienteCarrito);
-    //     $granTotal   = (float) ($checkout['trabajaConIvaIncluido'] === 'S'
-    //         ? $checkout['total']
-    //         : $checkout['totalBruto']);
-
-    //     try {
-    //         DB::connection('odbc')->beginTransaction();
-
-    //         DB::connection('odbc')->table('DBA.PW_ORDENES_WEB')->insert([
-    //             'codigo'             => $codigoOrden,
-    //             'cod_cliente'        => $codClienteFactura, // código de in_cliente
-    //             'n_documento'        => $codigoOrden,
-    //             'tipo'               => companyDefaultOrderType('invoice'),
-    //             'empresa'            => $empresa,
-    //             'uuid_session'       => md5(uniqid(rand(), true)),
-    //             'user_id'            => $codClienteCarrito, // user_id de sesión
-    //             'tipo_pago'          => $checkoutData['tipo_pago'],
-    //             'items_carrito'      => count($items),
-    //             'gran_total'         => $granTotal,
-    //             'estatus'            => '1',
-    //             'cedula_cliente'     => $checkoutData['cedula'],
-    //             'nombre_cliente'     => $checkoutData['nombre'],
-    //             'email_cliente'      => $checkoutData['email'],
-    //             'telefono_cliente'   => $checkoutData['telefono'],
-    //             'direccion_cliente'  => $checkoutData['direccion'],
-    //             'observacion_compra' => $checkoutData['observacion'] ?? null,
-    //             'metodo_entrega'     => $checkoutData['metodo_entrega'],
-    //             'fecha_creacion'     => now(),
-    //             'fecha_modificacion' => now(),
-    //         ]);
-
-    //         $formaPago   = $this->paymentMethodService->obtenerFormaPago((int)$checkoutData['tipo_pago'], $empresa);
-    //         $cuentaBanco = $this->paymentMethodService->obtenerCuentaBanco($formaPago, $empresa);
-
-    //         $documento = $this->proformaGenerator->generarDesdeOrden(
-    //             (object)[
-    //                 'codigo'             => $codigoOrden,
-    //                 'observacion_compra' => $checkoutData['observacion']
-    //             ],
-    //             $items,
-    //             $empresa
-    //         );
-    //         $this->cxcAuxiliarProformaService->registrar(
-    //             $documento,
-    //             (int)$checkoutData['tipo_pago'],
-    //             $granTotal,
-    //             $empresa,
-    //             null,
-    //             $cuentaBanco ? "Transferencia a banco {$cuentaBanco->descripcion}" : "Transferencia bancaria"
-    //         );
-
-    //         DB::connection('odbc')->table('DBA.PW_HISTORICO_PEDIDO')->insert([
-    //             'cod_orden'      => $codigoOrden,
-    //             'codigo_cliente' => $codClienteFactura, // código de in_cliente
-    //             'cod_estado'     => '1',
-    //             'observacion'    => 'Pedido registrado para transferencia bancaria',
-    //             'fecha_cambio'   => now(),
-    //             'created_at'     => now(),
-    //             'update_at'      => now(),
-    //             'empresa'        => $empresa,
-    //         ]);
-
-    //         DB::connection('odbc')->commit();
-
-    //         session([
-    //             'checkout_data' => $checkoutData,
-    //             'codigo_orden'  => $codigoOrden,
-    //             'documento'     => $documento,
-    //         ]);
-
-    //         return redirect()->route('pedidos.comprobante')->with(
-    //             'success',
-    //             "Orden {$codigoOrden} registrada con documento {$documento}. Ahora suba su comprobante."
-    //         );
-    //     } catch (Throwable $e) {
-    //         DB::connection('odbc')->rollBack();
-    //         return back()->withErrors(['error' => $e->getMessage()]);
-    //     }
-    // }
 
     /**
      * Procesar pago con Nuvei (Link to Pay).
